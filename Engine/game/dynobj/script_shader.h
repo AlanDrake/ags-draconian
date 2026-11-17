@@ -80,7 +80,7 @@ private:
     std::unordered_map<String, uint32_t> _constantTable;
 
     // The records of logical indexes and names of script shader objects.
-    // TODO: don't use static members, consider put this in a global object like GamePlayState?
+    // TODO: don't use static members, consider put this in a global object like GameState?
     // This also may be desired if we let create Shader entries in the editor and load them from the game data.
     // TODO: some helper class over free index counting (see also: overlays and managed pool)
     static uint32_t _nextShaderIndex;

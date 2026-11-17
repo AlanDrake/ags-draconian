@@ -52,7 +52,7 @@ namespace Engine
 {
 
 // Blocking video playback state
-class BlockingVideoPlayer : public GameState
+class BlockingVideoPlayer : public GameLoopState
 {
 public:
     BlockingVideoPlayer(int player_id, int video_flags, int state_flags, VideoSkipType skip);

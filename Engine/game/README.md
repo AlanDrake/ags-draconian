@@ -10,7 +10,7 @@ New code goes in the folder of its domain. A new file is also added to `Engine/C
 ## Root files
 
 - `game.cpp`: the `Game` script API and the game-wide functions (save slots, audio types, unloading the
-  game). `game_state.cpp`: `GamePlayState`, the state that scripts read as `game.*`.
+  game). `game_state.cpp`: `GameState`, the state that scripts read as `game.*`.
 - `game_init.cpp`: initialises the game after its data file is loaded.
 - `event.cpp`: game events and the room and script events they run.
 - `script.cpp`: runs the game's scripts and their events (the glue between the game and the VM).

@@ -748,7 +748,7 @@ bool get_custom_dialog_options_dimensions(ScriptDialogOptionsRendering *opt_rend
 #define DLG_OPTION_PARSER 99
 
 // Dialog options state
-class DialogOptionsState : public GameState
+class DialogOptionsState : public GameLoopState
 {
 public:
     DialogOptionsState(Dialog *topic, int dialog_id, bool run_game_loops_in_background);
@@ -1755,7 +1755,7 @@ int show_dialog_options(int dialog_id, bool run_game_loops_in_background)
 }
 
 // Dialog execution state
-// TODO: reform into GameState implementation, similar to DialogOptionsState!
+// TODO: reform into GameLoopState implementation, similar to DialogOptionsState!
 class DialogExec
 {
 public:

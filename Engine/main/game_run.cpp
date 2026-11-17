@@ -110,7 +110,7 @@ static void GameTick();
 // Game state instructs the engine to run game loops until
 // certain condition is not fullfilled.
 // TODO: reimplement the end condition check using a function pointer?
-class GameLoopUntilState : public GameState
+class GameLoopUntilState : public GameLoopState
 {
 public:
     GameLoopUntilState(int until_what, const void *data_ptr = nullptr, int data1 = 0, int data2 = 0)

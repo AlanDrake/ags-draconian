@@ -650,7 +650,7 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     return HGameInitError::None();
 }
 
-void ApplyAccessibilityOptions(GamePlayState &play, const EngineConfig &setup)
+void ApplyAccessibilityOptions(GameState &play, const EngineConfig &setup)
 {
     if (setup.Access.SpeechSkipStyle != kSkipSpeechNone)
     {
@@ -675,7 +675,7 @@ void ApplyAccessibilityOptions(GamePlayState &play, const EngineConfig &setup)
     }
 }
 
-void ApplyBehaviorOptions(GameDef & /*game*/, GamePlayState &play, const EngineConfig &setup)
+void ApplyBehaviorOptions(GameDef & /*game*/, GameState &play, const EngineConfig &setup)
 {
     // First designate the default behavior settings: games older than 3.6.3 had them off, which this
     // engine does not load any more, and 3.99+ data has them all on
@@ -698,7 +698,7 @@ void ApplyBehaviorOptions(GameDef & /*game*/, GamePlayState &play, const EngineC
     GUI::Options.ApplyTextDirection = play.GetRBSwitches()[kRBO_ApplyGUITextDirection];
 }
 
-void PrintBehaviorOptions(const GameDef & /*game*/, const GamePlayState &play)
+void PrintBehaviorOptions(const GameDef & /*game*/, const GameState &play)
 {
     // Runtime Behavior Switches
     {

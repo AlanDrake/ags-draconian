@@ -410,7 +410,7 @@ static void FreePropertyOverrides(Game &game)
     // no save holds the audio clips' values: a restore leaves them the definition's
     for (AudioClip &clip : game.AudioClips)
         clip.PropertyOverrides.clear();
-    // the GUIs' and the GUI controls' values, which GamePlayState holds
+    // the GUIs' and the GUI controls' values, which GameState holds
     game.Play.FreeProperties();
 }
 

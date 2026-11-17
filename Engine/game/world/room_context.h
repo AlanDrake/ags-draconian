@@ -99,8 +99,8 @@ public:
     // are not reused
     bool WalkBehindBaselinesChanged = false;
 
-    // The room on screen as the game changes it. These were fields of the game state (GamePlayState); the save
-    // keeps them at their places in the game state's layout (GamePlayState::ReadFromSavegame, WriteForSavegame,
+    // The room on screen as the game changes it. These were fields of the game state (GameState); the save
+    // keeps them at their places in the game state's layout (GameState::ReadFromSavegame, WriteForSavegame,
     // and the room component for BgModified and MaskModified). None is kept per room between visits.
     //
     // The size of the loaded room as the script's game.room_width/room_height report it, 0 until a room has

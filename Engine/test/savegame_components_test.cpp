@@ -207,7 +207,7 @@ protected:
 
         static PlayFlags Get()
         {
-            const GamePlayState &play = Game::Current().Play;
+            const GameState &play = Game::Current().Play;
             PlayFlags flags;
             flags.NoMultiLoopRepeat = play.no_multiloop_repeat;
             flags.DisableAntialiasing = play.disable_antialiasing;
@@ -222,7 +222,7 @@ protected:
 
         void Set() const
         {
-            GamePlayState &play = Game::Current().Play;
+            GameState &play = Game::Current().Play;
             play.no_multiloop_repeat = NoMultiLoopRepeat;
             play.disable_antialiasing = DisableAntialiasing;
             play.disable_dialog_parser = DisableDialogParser;

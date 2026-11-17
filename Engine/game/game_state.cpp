@@ -42,42 +42,42 @@ const std::array<const char *, kNum_RBS> kRBSwitchNames = {{
     "no_textprop_autotranslate", // kRBO_NoTextPropertyAutoTranslate
 }};
 
-GamePlayState::GamePlayState() {}
+GameState::GameState() {}
 
-void GamePlayState::SetRBSwitches(const std::array<bool, kNum_RBS> &overrides)
+void GameState::SetRBSwitches(const std::array<bool, kNum_RBS> &overrides)
 {
     std::copy(overrides.begin(), overrides.end(), _rbSwitches.begin());
 }
 
-void GamePlayState::SetScreenShader(int shader_id, int shader_handle)
+void GameState::SetScreenShader(int shader_id, int shader_handle)
 {
     _screenShaderID = shader_id;
     _screenShaderHandle = shader_handle;
 }
 
-void GamePlayState::SetCursorShader(int shader_id, int shader_handle)
+void GameState::SetCursorShader(int shader_id, int shader_handle)
 {
     _cursorShaderID = shader_id;
     _cursorShaderHandle = shader_handle;
 }
 
-bool GamePlayState::IsIgnoringInput() const
+bool GameState::IsIgnoringInput() const
 {
     return Clock::now() < _ignoreUserInputUntilTime;
 }
 
-void GamePlayState::SetIgnoreInput(int timeout_ms)
+void GameState::SetIgnoreInput(int timeout_ms)
 {
     if (Clock::now() + std::chrono::milliseconds(timeout_ms) > _ignoreUserInputUntilTime)
         _ignoreUserInputUntilTime = Clock::now() + std::chrono::milliseconds(timeout_ms);
 }
 
-void GamePlayState::ClearIgnoreInput()
+void GameState::ClearIgnoreInput()
 {
     _ignoreUserInputUntilTime = Clock::now();
 }
 
-bool GamePlayState::IsInWait() const
+bool GameState::IsInWait() const
 {
     // wait counter is either
     // * positive, and then there's a wait with timeout;
@@ -86,57 +86,57 @@ bool GamePlayState::IsInWait() const
     return wait_counter != 0;
 }
 
-int GamePlayState::GetWaitCounter() const
+int GameState::GetWaitCounter() const
 {
     return wait_counter;
 }
 
-int GamePlayState::GetWaitSkipType() const
+int GameState::GetWaitSkipType() const
 {
     return Game::Current().Play.key_skip_wait;
 }
 
-void GamePlayState::SetWaitSkipResult(int skipped_by, int data)
+void GameState::SetWaitSkipResult(int skipped_by, int data)
 {
     wait_counter = 0;
     wait_skipped_by = skipped_by;
     wait_skipped_by_data = data;
 }
 
-int GamePlayState::GetWaitSkipResult() const
+int GameState::GetWaitSkipResult() const
 { // NOTE: we remove timer flag to make timeout reason = 0
     return ((wait_skipped_by & ~SKIP_AUTOTIMER) << SKIP_RESULT_TYPE_SHIFT) |
            (wait_skipped_by_data & SKIP_RESULT_DATA_MASK);
 }
 
-bool GamePlayState::IsBlockingVoiceSpeech() const
+bool GameState::IsBlockingVoiceSpeech() const
 {
     return speech_has_voice && speech_voice_blocking;
 }
 
-bool GamePlayState::IsNonBlockingVoiceSpeech() const
+bool GameState::IsNonBlockingVoiceSpeech() const
 {
     return speech_has_voice && !speech_voice_blocking;
 }
 
-bool GamePlayState::ShouldPlayVoiceSpeech() const
+bool GameState::ShouldPlayVoiceSpeech() const
 {
     Game &game = Game::Current();
     return !game.Play.fast_forward && (game.Play.speech_mode != kSpeech_TextOnly) &&
            EngineServices::Current().VoiceAvail;
 }
 
-bool GamePlayState::ShouldPlayVoiceSpeechNonBlocking() const
+bool GameState::ShouldPlayVoiceSpeechNonBlocking() const
 {
     return !Game::Current().Play.fast_forward && EngineServices::Current().VoiceAvail;
 }
 
-bool GamePlayState::ShouldAASprites() const
+bool GameState::ShouldAASprites() const
 {
     return EngineServices::Current().Config.AntialiasSprites && (disable_antialiasing == 0);
 }
 
-void GamePlayState::StartScriptTimer(int timer_id, int timeout)
+void GameState::StartScriptTimer(int timer_id, int timeout)
 {
     assert(timer_id >= 0 && timeout > 0);
     if (timer_id >= 0 && timeout > 0)
@@ -145,7 +145,7 @@ void GamePlayState::StartScriptTimer(int timer_id, int timeout)
     }
 }
 
-void GamePlayState::StopScriptTimer(int timer_id)
+void GameState::StopScriptTimer(int timer_id)
 {
     assert(timer_id >= 0);
     auto it = _scriptTimers.find(timer_id);
@@ -153,7 +153,7 @@ void GamePlayState::StopScriptTimer(int timer_id)
         _scriptTimers.erase(it);
 }
 
-int GamePlayState::GetScriptTimerPos(int timer_id)
+int GameState::GetScriptTimerPos(int timer_id)
 {
     auto it = _scriptTimers.find(timer_id);
     if (it != _scriptTimers.end())
@@ -161,7 +161,7 @@ int GamePlayState::GetScriptTimerPos(int timer_id)
     return 0;
 }
 
-bool GamePlayState::CheckScriptTimer(int timer_id)
+bool GameState::CheckScriptTimer(int timer_id)
 {
     // The timer logic is that it counts down to 1, where stays
     // *until* user checks for its expiration in script.
@@ -178,7 +178,7 @@ bool GamePlayState::CheckScriptTimer(int timer_id)
     return false;
 }
 
-void GamePlayState::UpdateScriptTimers()
+void GameState::UpdateScriptTimers()
 {
     // The timer logic is that it counts down to 1, where stays
     // *until* user checks for its expiration in script.
@@ -189,8 +189,8 @@ void GamePlayState::UpdateScriptTimers()
     }
 }
 
-void GamePlayState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameStateSvgVersion svg_ver,
-                                     RestoredData &r_data)
+void GameState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameStateSvgVersion svg_ver,
+                                 RestoredData &r_data)
 {
     Room &room = Room::Current();
     in->ReadInt32(); // [DEPRECATED]
@@ -482,10 +482,10 @@ void GamePlayState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameS
     }
 }
 
-void GamePlayState::WriteForSavegame(Stream *out) const
+void GameState::WriteForSavegame(Stream *out) const
 {
     const Room &room = Room::Current();
-    // NOTE: the fields that are never saved here are listed above the GamePlayState struct;
+    // NOTE: the fields that are never saved here are listed above the GameState struct;
     // the order below is the save layout, ReadFromSavegame reads the same
     out->WriteInt32(0); // [DEPRECATED]
     out->WriteInt32(usedmode);
@@ -701,7 +701,7 @@ void GamePlayState::WriteForSavegame(Stream *out) const
     out->WriteByteCount(0, sizeof(int32_t) * 5);
 }
 
-void GamePlayState::FreeProperties()
+void GameState::FreeProperties()
 {
     for (auto &p : guiProps)
         p.clear();

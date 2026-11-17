@@ -26,7 +26,7 @@
 
 class Game;
 struct GameDef;
-struct GamePlayState;
+struct GameState;
 struct EngineConfig;
 
 namespace AGS
@@ -63,12 +63,12 @@ HGameInitError InitGameState(const Common::LoadedGameEntities &ents, GameDataVer
 // that the script changes. The first step of InitGameState; the elements' addresses are registered after it.
 void StartFromDefinitions(Game &game);
 // Applies accessibility options, some of them may override game settings
-void ApplyAccessibilityOptions(GamePlayState &play, const EngineConfig &setup);
+void ApplyAccessibilityOptions(GameState &play, const EngineConfig &setup);
 // Applies configurable behavior options for this game, which are the runtime behavior switches
 // (the engine's defaults, plus the overrides from the config)
-void ApplyBehaviorOptions(GameDef &game, GamePlayState &play, const EngineConfig &setup);
+void ApplyBehaviorOptions(GameDef &game, GameState &play, const EngineConfig &setup);
 // Prints behavior options to the log
-void PrintBehaviorOptions(const GameDef &game, const GamePlayState &play);
+void PrintBehaviorOptions(const GameDef &game, const GameState &play);
 
 // Registers any persistent script objects that are missing from the managed pool,
 // e.g. if restoring a save made before they were added to the game.

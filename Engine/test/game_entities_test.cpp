@@ -2127,7 +2127,7 @@ TEST_F(GameEntities, RestoreTakesAwayPropertiesSetAfterTheSave)
 }
 
 // The same for the six types of GUI control. A value set after the save stayed after the restore until
-// GamePlayState::FreeProperties (called by DoBeforeRestore) cleared the GUI controls' lists (guicontrolProps) too: the
+// GameState::FreeProperties (called by DoBeforeRestore) cleared the GUI controls' lists (guicontrolProps) too: the
 // "GUI" component only adds the saved values to a map (Properties::ReadValues does not clear it). Upstream's
 // FreeProperties still leaves them.
 TEST_F(GameEntities, RestoreTakesAwayGuiControlPropertiesSetAfterTheSave)
@@ -2318,7 +2318,7 @@ TEST_F(GameEntities, ScriptFlagsReadBackWhatTheScriptWrote)
 }
 
 // game.disable_antialiasing: 0 lets the sprites be antialiased where the player's setup asks for it, any other number
-// does not (GamePlayState::ShouldAASprites, which the drawing code asks)
+// does not (GameState::ShouldAASprites, which the drawing code asks)
 TEST_F(GameEntities, DisableAntialiasingTurnsSpriteAntialiasingOff)
 {
     Game &game = Game::Current();
@@ -2380,7 +2380,7 @@ TEST_F(GameEntities, NoMultiLoopRepeatKeepsTheRepeatInItsLoop)
     }
 }
 
-// The kinds of input that may skip the current wait are the running game's (GamePlayState::GetWaitSkipType), which
+// The kinds of input that may skip the current wait are the running game's (GameState::GetWaitSkipType), which
 // Game.BlockingWaitSkipType gives as the script's InputType flags
 TEST_F(GameEntities, WaitSkipTypeIsTheRunningGames)
 {
@@ -2393,7 +2393,7 @@ TEST_F(GameEntities, WaitSkipTypeIsTheRunningGames)
 }
 
 // Voice speech is played when the voice files are there and the game is not skipping a cutscene, and, for a blocking
-// speech, the speech mode is not text only (GamePlayState::ShouldPlayVoiceSpeech, ShouldPlayVoiceSpeechNonBlocking)
+// speech, the speech mode is not text only (GameState::ShouldPlayVoiceSpeech, ShouldPlayVoiceSpeechNonBlocking)
 TEST_F(GameEntities, VoiceSpeechPlaysWithTheVoiceFilesAndNoSkipping)
 {
     Game &game = Game::Current();

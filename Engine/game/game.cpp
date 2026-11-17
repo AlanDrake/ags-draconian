@@ -628,7 +628,7 @@ void unload_game()
     // Only the definition part (the GameDef base) is reset by assignment here: the members that Game will gain
     // in place of the other globals are cleared one by one above, as the globals were, and the whole object
     // cannot be assigned (Game is not copyable).
-    game.Play = GamePlayState();
+    game.Play = GameState();
     // the viewports and cameras were members of the game state and were reset with it; their script objects were
     // unregistered above (ccUnregisterAllObjects)
     game.Viewports = GameViewports();

@@ -106,7 +106,7 @@ static IDriverDependantBitmap *get_frame_for_transition_in(bool opaque)
 // Transition game states
 //-----------------------------------------------------------------------------
 
-class ScreenTransition : public GameState
+class ScreenTransition : public GameLoopState
 {
 public:
     ScreenTransition(ScreenTransitionStyle style, bool fade_in, int speed)
@@ -940,7 +940,7 @@ void FlipScreen(int direction)
     Game::Current().Play.screen_flipped = direction;
 }
 
-class ShakeScreenState : public GameState
+class ShakeScreenState : public GameLoopState
 {
 public:
     ShakeScreenState(int severe) : _severe(severe) {}

@@ -58,7 +58,7 @@ using namespace AGS::Common::BitmapHelper;
 bool display_check_user_input(int skip);
 
 // Game state of a displayed blocking message
-class DisplayMessageState : public GameState
+class DisplayMessageState : public GameLoopState
 {
 public:
     DisplayMessageState(int over_type, int timer, int skip_style)

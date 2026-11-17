@@ -48,7 +48,7 @@ struct RestoredData;
 } // namespace AGS
 struct ScriptOverlay;
 
-// The game state's save format (GameDef's saved fields and GamePlayState)
+// The game state's save format (GameDef's saved fields and GameState)
 // Before 4.0: 0 to 3 (3.5.0 to 3.5.0.10), 4 (3.6.1.14), then 3060300, 3060302, 3060304, 3060313 (3.6.3).
 enum GameStateSvgVersion
 {
@@ -87,13 +87,13 @@ struct SceneLocationRef
 };
 
 
-// A GameState is a parent class for the game states.
-class GameState
+// A GameLoopState is a parent class for the game states.
+class GameLoopState
 {
 public:
     using String = AGS::Common::String;
 
-    virtual ~GameState() = default;
+    virtual ~GameLoopState() = default;
 
     // Begin the state, initialize and prepare any resources
     virtual void Begin() = 0;
@@ -124,8 +124,8 @@ public:
 // guicontrolProps).
 // The save layout also holds the room's ScriptFinished, AnimBackgroundDelay, BgFrame, BgFrameLocked,
 // WalkableAreasOn, EnteredAtX, EnteredAtY and EnteredEdge (game/world/room_context.h), at the places their
-// GamePlayState fields had: ReadFromSavegame and WriteForSavegame read and write them in the current Room.
-struct GamePlayState
+// GameState fields had: ReadFromSavegame and WriteForSavegame read and write them in the current Room.
+struct GameState
 {
     // TODO: this is left purely to load older save version, revise later
     static const int LEGACY_GAMENAMELENGTH = 100;
@@ -317,7 +317,7 @@ struct GamePlayState
     int shake_screen_yoff = 0;
 
 
-    GamePlayState();
+    GameState();
 
     // Custom error text, to use when displaying a quit message (may be translated)
     const AGS::Common::String &GetGameErrorText() const { return _gameErrorText; }

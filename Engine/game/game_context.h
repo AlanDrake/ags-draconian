@@ -222,7 +222,7 @@ public:
     static Game *SetCurrent(Game *game);
 
     // The game's own state: settings the script changes, play progress, blocking and transient state
-    GamePlayState Play;
+    GameState Play;
     // The viewports and cameras of the game screen and the room
     GameViewports Viewports;
 

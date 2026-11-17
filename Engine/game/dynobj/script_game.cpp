@@ -34,7 +34,7 @@ int32_t CCScriptGame::ReadInt32(const void *address, intptr_t offset)
     Game &game = Game::Current();
     Room &room = Room::Current();
     const int index = offset / sizeof(int32_t);
-    if (index >= 5 && index < 5 + GamePlayState::LEGACY_MAXGLOBALVARS)
+    if (index >= 5 && index < 5 + GameState::LEGACY_MAXGLOBALVARS)
         return 0; // [DEPRECATED]
 
     switch (index)
@@ -129,7 +129,7 @@ void CCScriptGame::WriteInt32(void *address, intptr_t offset, int32_t val)
     Game &game = Game::Current();
     Room &room = Room::Current();
     const int index = offset / sizeof(int32_t);
-    if (index >= 5 && index < 5 + GamePlayState::LEGACY_MAXGLOBALVARS)
+    if (index >= 5 && index < 5 + GameState::LEGACY_MAXGLOBALVARS)
         return; // [DEPRECATED]
 
     switch (index)
