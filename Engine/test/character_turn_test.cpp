@@ -40,7 +40,7 @@ protected:
         for (int i = 0; i < MAX_FACE_DIRECTIONS; ++i)
             game.Views[0].Loops[i].Initialize(1);
         game.Characters.resize(1);
-        game.DefForLoader().CharacterCount = 1;
+        game.MutableDef().CharacterCount = 1;
         game.Characters[0].View = 0;
         game.Characters[0].ID = 0;
         _savedPriority = game.Options[OPT_TURNORDERPRIORITY];
@@ -51,7 +51,7 @@ protected:
         Game &game = Game::Current();
         game.Options[OPT_TURNORDERPRIORITY] = _savedPriority;
         game.Characters.clear();
-        game.DefForLoader().CharacterCount = 0;
+        game.MutableDef().CharacterCount = 0;
         game.Views.clear();
     }
 

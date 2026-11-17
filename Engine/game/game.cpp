@@ -647,7 +647,7 @@ void unload_game()
     // and the drawing data freed above free their dynamic sprites, which reads it. The sprite cache stays attached to
     // it (the vector object lives as long as the Game); the cache's own data is reset below.
     game.SpriteInfos.clear();
-    game.DefForLoader() = GameDef();
+    game.MutableDef() = GameDef();
 
     // Reset all resource caches
     // IMPORTANT: this is hard reset, including locked items

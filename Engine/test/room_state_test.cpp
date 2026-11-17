@@ -1173,7 +1173,7 @@ protected:
     {
         LoadedRoom::SetUp();
         Game &game = Game::Current();
-        GameDef &game_def = game.DefForLoader();
+        GameDef &game_def = game.MutableDef();
         _wasNumViews = game_def.ViewCount;
         _wasViews.swap(game.Views);
         game.Views.resize(1);
@@ -1188,7 +1188,7 @@ protected:
     {
         Game &game = Game::Current();
         game.Views.swap(_wasViews);
-        game.DefForLoader().ViewCount = _wasNumViews;
+        game.MutableDef().ViewCount = _wasNumViews;
         LoadedRoom::TearDown();
     }
 

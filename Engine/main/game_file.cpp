@@ -106,7 +106,7 @@ HGameFileError game_file_first_open(MainGameSource &src)
 
 HError preload_game_data()
 {
-    GameDef &game_def = Game::Current().DefForLoader();
+    GameDef &game_def = Game::Current().MutableDef();
     MainGameSource src;
     HGameFileError err = game_file_first_open(src);
     if (!err)
@@ -180,7 +180,7 @@ HError load_game_file()
 {
     Game &game = Game::Current();
     MainGameSource src;
-    LoadedGameEntities ents(game.DefForLoader());
+    LoadedGameEntities ents(game.MutableDef());
     HError err = (HError)OpenMainGameFileFromDefaultAsset(src, EngineServices::Current().Assets.get());
     if (!err)
         return err;
@@ -203,7 +203,7 @@ HError load_game_file()
     err = (HError)UpdateGameData(ents, src.DataVersion);
     if (!err)
         return err;
-    TryLoadGameScripts(game.DefForLoader());
+    TryLoadGameScripts(game.MutableDef());
     err = (HError)InitGameState(ents, src.DataVersion);
     if (!err)
         return err;

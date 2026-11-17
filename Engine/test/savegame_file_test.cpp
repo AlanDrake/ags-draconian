@@ -92,7 +92,7 @@ protected:
     void SetUp() override
     {
         Game &game = Game::Current();
-        GameDef &game_def = game.DefForLoader();
+        GameDef &game_def = game.MutableDef();
         // the dynamic sprites component reads the sprite table through the sprite cache, as the engine has it
         init_sprite_cache();
         // a name of its own, also when ctest runs the tests in parallel processes
@@ -113,7 +113,7 @@ protected:
     void TearDown() override
     {
         Game &game = Game::Current();
-        GameDef &game_def = game.DefForLoader();
+        GameDef &game_def = game.MutableDef();
         for (const String &file : _files)
             File::DeleteFile(file);
         Directory::DeleteDirectory(_dir);

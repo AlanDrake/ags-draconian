@@ -264,7 +264,7 @@ protected:
         Game &game = Game::Current();
         game.Dialogs.clear();
         game.Dialogs.resize(dialog_count);
-        game.DefForLoader().DialogCount = dialog_count;
+        game.MutableDef().DialogCount = dialog_count;
         for (int d = 0; d < dialog_count; ++d)
         {
             game.Dialogs[d].Options.resize(option_count);
@@ -283,7 +283,7 @@ protected:
         Game &game = Game::Current();
         game.MouseCursors.clear();
         game.MouseCursors.resize(count);
-        game.DefForLoader().MouseCursorCount = count;
+        game.MutableDef().MouseCursorCount = count;
     }
 
     // Resizes the game's audio types, all in their default state with a default volume of 0
@@ -303,7 +303,7 @@ protected:
         Game &game = Game::Current();
         game.Views.clear();
         game.Views.resize(view_count);
-        game.DefForLoader().ViewCount = view_count;
+        game.MutableDef().ViewCount = view_count;
         for (auto &view : game.Views)
         {
             view.Initialize(loop_count);
@@ -323,7 +323,7 @@ protected:
     static void SetCounts(int characters, int items)
     {
         Game &game = Game::Current();
-        GameDef &game_def = game.DefForLoader();
+        GameDef &game_def = game.MutableDef();
         game.Characters.clear();
         game.Characters.resize(characters);
         game_def.CharacterCount = characters;

@@ -228,9 +228,9 @@ public:
 
     // What the game file says, as loaded; never written while the game runs
     const GameDef &Def() const { return *_def; }
-    // The definition as the code that loads and unloads the game file writes it (load_game_file,
-    // preload_game_data, unload_game); nothing else calls it (Script/check_layers.py)
-    GameDef &DefForLoader() { return *_def; }
+    // The same definition, writable: for the code that loads and unloads the game file (load_game_file,
+    // preload_game_data, unload_game) and nothing else (Script/check_layers.py fails on another caller)
+    GameDef &MutableDef() { return *_def; }
 
     // The game's own state: settings the script changes, play progress, blocking and transient state
     GameState Play;

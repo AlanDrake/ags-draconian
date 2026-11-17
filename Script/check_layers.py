@@ -34,7 +34,7 @@ of its .cpp, reached through the module's functions. The check also fails on an 
 header declares any more, so the table only gets shorter. Function declarations and `extern "C"` do not count.
 
 A few calls are kept to the files that own them (CALL_RULES, with the reason and the files that may): the game's
-definition is written through Game::DefForLoader() by the loader and unload_game only, the rest of the engine reads
+definition is written through Game::MutableDef() by the loader and unload_game only, the rest of the engine reads
 it through Game::Def(). A call outside its files fails the check.
 `--self-test` runs the declaration parser, both extern failures on made-up headers and the call rule on made-up lines.
 
@@ -154,10 +154,10 @@ EXTERN_ALLOWED = {
 # A call that only some files of the engine may make: the text of the call -> (why, the files or directories that
 # may). A line comment does not count.
 CALL_RULES = {
-    'DefForLoader(': ('the game\'s definition is written by the code that loads and unloads the game file only; the '
-                      'rest of the engine reads it through Game::Def(), which is const',
-                      ('Engine/main/game_file.cpp', 'Engine/game/game.cpp', 'Engine/game/game_context.h',
-                       'Engine/test/')),
+    'MutableDef(': ('the game\'s definition is written by the code that loads and unloads the game file only; the '
+                    'rest of the engine reads it through Game::Def(), which is const',
+                    ('Engine/main/game_file.cpp', 'Engine/game/game.cpp', 'Engine/game/game_context.h',
+                     'Engine/test/')),
 }
 
 
@@ -264,12 +264,12 @@ def self_test():
     allowed['gone'] = 'reason'
     assert check_header_externs(declared[:-1], allowed) == ([], ['gone'])
     # a call of a restricted function: allowed in its files, a failure elsewhere, not counted in a line comment
-    source = ['GameDef &def = game.DefForLoader();\n', '// DefForLoader() is for the loader\n',
-              'x = 1; // not DefForLoader(\n']
+    source = ['GameDef &def = game.MutableDef();\n', '// MutableDef() is for the loader\n',
+              'x = 1; // not MutableDef(\n']
     assert forbidden_calls('Engine/main/game_file.cpp', source, CALL_RULES) == []
     assert forbidden_calls('Engine/test/game_test.cpp', source, CALL_RULES) == []
     assert forbidden_calls('Engine/game/world/room.cpp', source, CALL_RULES) == [
-        ('Engine/game/world/room.cpp', 1, 'DefForLoader(')]
+        ('Engine/game/world/room.cpp', 1, 'MutableDef(')]
     print('check_layers: self-test passed')
     return 0
 
