@@ -111,7 +111,7 @@ ScriptAudioChannel *AudioClip_PlayOnChannel(AudioClip *clip, int chan, int prior
     if (priority == SCR_NO_VALUE)
         priority = clip->DefaultPriority;
     if (repeat == SCR_NO_VALUE)
-        repeat = clip->IsRepeatingByDefault;
+        repeat = clip->IsRepeatingByDefault != 0;
     return play_audio_clip_on_channel(clip, chan, priority, repeat);
 }
 
@@ -129,7 +129,7 @@ ScriptAudioChannel *AudioClip_PlayAsType(AudioClip *clip, int type, int chan, in
     if (priority == SCR_NO_VALUE)
         priority = clip->DefaultPriority;
     if (repeat == SCR_NO_VALUE)
-        repeat = clip->IsRepeatingByDefault;
+        repeat = clip->IsRepeatingByDefault != 0;
     return play_audio_clip(AudioPlayback(clip, type), chan, priority, repeat);
 }
 

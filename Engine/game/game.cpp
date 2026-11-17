@@ -2306,7 +2306,7 @@ void script_debug(int cmdd, int dataa)
     else if (cmdd == 3)
     {
         int goToRoom = -1;
-        if (game.RoomNames.size() == 0)
+        if (game.RoomNames.empty())
         {
             String inroomtex = String::FromFormat("!Enter new room: (in room %d)", game.DisplayedRoom);
             setup_for_dialog(game.Play.normal_font);

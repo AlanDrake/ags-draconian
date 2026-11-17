@@ -516,7 +516,7 @@ ScriptAudioChannel *play_audio_clip_as_type(const AudioPlayback &aplay, int chan
     if (priority == SCR_NO_VALUE)
         priority = clip->DefaultPriority;
     if (repeat == SCR_NO_VALUE)
-        repeat = clip->IsRepeatingByDefault;
+        repeat = clip->IsRepeatingByDefault != 0;
 
     if (channel < 0)
         channel = find_free_audio_channel(aplay, priority, !queueIfNoChannel, queueIfNoChannel);

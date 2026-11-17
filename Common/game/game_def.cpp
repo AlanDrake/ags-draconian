@@ -240,7 +240,7 @@ HError GameDef::read_interaction_scripts(Common::Stream *in, GameDataVersion /*d
 
 void GameDef::read_words_dictionary(Common::Stream *in)
 {
-    ParserDictionary.reset(new WordsDictionary());
+    ParserDictionary = std::make_unique<WordsDictionary>();
     ParserDictionary->ReadFromFile(in);
 }
 
