@@ -58,7 +58,7 @@ private:
     int PrepareTextToDraw();
 
     // Information on macros contained within Text field
-    GUILabelMacro _textMacro;
+    GUILabelMacro _textMacro = kLabelMacro_None;
 };
 
 } // namespace Common
