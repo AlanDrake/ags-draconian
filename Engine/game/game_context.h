@@ -200,8 +200,8 @@ struct EventState
 
 // One play-through: what the game file says (the base, GameDef) and everything that changes while the game
 // runs, which is what a save holds. What the game changes has a live copy here that hides its definition
-// (Characters, InventoryItems, Options...; PLAN.md 5.1a), but the GUIs, which the game still changes in the
-// base until they get theirs. The game logic reaches it through
+// (Characters, InventoryItems, Guis, Options...; PLAN.md 5.1a): the engine writes nothing of the base after load.
+// The game logic reaches it through
 // Game::Current(); a function that uses it more than once takes a reference at its top:
 //     Game &game = Game::Current();
 class Game : public GameDef
@@ -250,6 +250,18 @@ public:
     std::vector<View> Views;
     // The dialogs, by dialog number
     std::vector<Dialog> Dialogs;
+    // The GUIs, by GUI index, and their controls, by control index of each type: copies of the definitions' objects
+    // (the same classes until the GUI is split into definitions and live objects, PLAN.md 5.1a step 5). A GUI refers
+    // to its controls by pointer: the copied GUIs point at the definition's controls, or at none, until
+    // InitGameState's GUI::RebuildGUI links them to these controls, the first thing that reads them after the copy.
+    // The managed pool and the script exports hold the controls' addresses: the lists are built once per game.
+    std::vector<AGS::Common::GUIMain> Guis;
+    std::vector<AGS::Common::GUIButton> GuiButtons;
+    std::vector<AGS::Common::GUIInvWindow> GuiInvWindows;
+    std::vector<AGS::Common::GUILabel> GuiLabels;
+    std::vector<AGS::Common::GUIListBox> GuiListBoxes;
+    std::vector<AGS::Common::GUISlider> GuiSliders;
+    std::vector<AGS::Common::GUITextBox> GuiTextBoxes;
     // The sprites' sizes and flags (SPF_*), by sprite number: the table the sprite cache writes (init_sprite_cache
     // attaches it), with the sizes of the sprite file's sprites, the dynamic sprites and the flags the engine sets
     // during play. It starts as the definition's, which has the game file's flags (StartFromDefinitions, before the

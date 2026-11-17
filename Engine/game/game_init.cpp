@@ -511,6 +511,15 @@ void StartFromDefinitions(Game &game)
     game.AudioClipTypes = game.Def().AudioClipTypes;
     game.Views = game.Def().Views;
     StartEach(game.Dialogs, game.Def().Dialogs);
+    // the GUIs' pointers to their controls are copied as the definition's GUIs hold them: InitGameState links the
+    // copies to the live controls (GUI::RebuildGUI) before anything else reads them
+    game.Guis = game.Def().Guis;
+    game.GuiButtons = game.Def().GuiButtons;
+    game.GuiInvWindows = game.Def().GuiInvWindows;
+    game.GuiLabels = game.Def().GuiLabels;
+    game.GuiListBoxes = game.Def().GuiListBoxes;
+    game.GuiSliders = game.Def().GuiSliders;
+    game.GuiTextBoxes = game.Def().GuiTextBoxes;
     // the sprite cache is attached to the live table (init_sprite_cache) and first writes it after this (InitGameState's
     // EnlargeTo, then the sprite file's sizes in engine_init_sprites): it starts with the game file's flags
     game.SpriteInfos = game.Def().SpriteInfos;
@@ -555,7 +564,7 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     // 2. Allocate and init game objects
     //
     services.Sprites.EnlargeTo(ents.SpriteCount - 1);
-    // the GUIs, views and dialogs were read into the game (GameDef) by the loader
+    // the live GUIs, copied from the definitions, are linked to the live controls
     GUI::Context.GameColorDepth = game.GetColorDepth();
     GUI::Context.Spriteset = &services.Sprites;
     GUIRefCollection gui_control_refs(game.GuiButtons, game.GuiInvWindows, game.GuiLabels, game.GuiListBoxes,

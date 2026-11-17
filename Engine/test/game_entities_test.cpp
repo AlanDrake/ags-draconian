@@ -25,6 +25,9 @@
 // started game has, which are its definition's; ViewFrame.YOffset, which gave
 // the x offset; the sprite table, which the sprite cache writes in the game's live
 // copy (sizes, dynamic sprites, deleted sprites, flags), with Game::IsSpriteValid.
+// The GUIs and their controls: a script setter of the GUI and of each type of
+// control, the save round trip and the unload, against the live copies and the
+// definitions; the live GUIs' links to the live controls.
 // The custom properties of the characters, inventory items, dialogs, audio clips,
 // GUIs and GUI controls through their script functions: the value set during
 // play, else the definition's, else the schema's default; the save round trip,
@@ -85,9 +88,15 @@
 #include "game/save/savegame_components.h"
 #include "game/save/savegame_internal.h"
 #include "game/script.h"
+#include "game/ui/button.h"
 #include "game/ui/gui.h"
 #include "game/ui/gui_control.h"
+#include "game/ui/inv_window.h"
+#include "game/ui/label.h"
+#include "game/ui/list_box.h"
 #include "game/ui/mouse.h"
+#include "game/ui/slider.h"
+#include "game/ui/text_box.h"
 #include "game/view_def.h"
 #include "game/world/character.h"
 #include "game/world/inventory_item.h"
@@ -180,6 +189,17 @@ const int kMissingSprite = 5;
 // controls of GUI 1 are its controls 0 to 5 and the elements 1 of the six control lists
 const int kGuiCount = 2;
 const GUIControlType kControlTypes[] = {kGUIButton, kGUILabel, kGUIInvWindow, kGUISlider, kGUITextBox, kGUIListBox};
+// The fields that the GUI tests give values of their own: one of the GUI and one of each type of control, all saved
+enum GuiField
+{
+    kGuiX,
+    kButtonTextColor,
+    kLabelTextColor,
+    kInvWindowItemWidth,
+    kListBoxSelectedBgColor,
+    kSliderMax,
+    kTextBoxTextColor
+};
 // The custom properties of the game's schema: a number and a text, with their defaults. The definition gives element 1
 // of every kind values of its own and the other elements none.
 const char *const kNumberProperty = "Weight";
@@ -273,8 +293,11 @@ ScriptGUI GuiObject(int id)
     return gui;
 }
 
-// Element i of the game's list of controls of that type
-GUIControl *ControlOf(GameDef &game, GUIControlType type, int i)
+// Element i of the game's list of controls of that type: through a Game the live list, which hides the definition's,
+// through a GameDef (Game::Def()) the definition's
+template <typename G>
+auto ControlOf(G &game, GUIControlType type, int i)
+    -> std::conditional_t<std::is_const_v<G>, const GUIControl *, GUIControl *>
 {
     switch (type)
     {
@@ -286,6 +309,33 @@ GUIControl *ControlOf(GameDef &game, GUIControlType type, int i)
     case kGUIListBox: return &game.GuiListBoxes[i];
     default: return nullptr;
     }
+}
+
+// Tells if the control is an element of one of the game's control lists ('game' names them as for ControlOf)
+template <typename G>
+bool IsControlOf(G &game, const GUIControl *control)
+{
+    auto in = [control](const auto &list)
+    {
+        return std::any_of(list.begin(), list.end(),
+                           [control](const GUIControl &element) { return &element == control; });
+    };
+    return in(game.GuiButtons) || in(game.GuiLabels) || in(game.GuiInvWindows) || in(game.GuiSliders) ||
+           in(game.GuiTextBoxes) || in(game.GuiListBoxes);
+}
+
+// The values of the fields of GuiField in GUI g and in its controls of the game's lists ('game' names them as for
+// ControlOf), in the order of GuiField
+template <typename G>
+std::vector<int> GuiFieldValues(G &game, int g)
+{
+    return {game.Guis[g].GetX(),
+            game.GuiButtons[g].GetTextColor(),
+            game.GuiLabels[g].GetTextColor(),
+            game.GuiInvWindows[g].GetItemWidth(),
+            game.GuiListBoxes[g].GetSelectedBgColor(),
+            game.GuiSliders[g].GetMaxValue(),
+            game.GuiTextBoxes[g].GetTextColor()};
 }
 
 // The text a script function returned (nullptr as an empty text)
@@ -712,7 +762,8 @@ protected:
     }
 
     // The GUIs of MakeDefinition, as the loader reads them: each GUI's references to its controls in the six control
-    // lists (kGuiCount, kControlTypes); StartGame links them (GUI::RebuildGUI)
+    // lists (kGuiCount, kControlTypes), not linked to them (StartGame links the live copies, GUI::RebuildGUI); and in
+    // GUI g and its controls the values GuiValue(g, field) of the fields of GuiField
     static void MakeGuis(GameDef &def)
     {
         def.GuiCount = kGuiCount;
@@ -735,6 +786,76 @@ protected:
             def.Guis[g].SetID(g);
             for (GUIControlType type : kControlTypes)
                 def.Guis[g].AddControl(type, g, nullptr);
+            def.Guis[g].SetX(GuiValue(g, kGuiX));
+            def.GuiButtons[g].SetTextColor(GuiValue(g, kButtonTextColor));
+            def.GuiLabels[g].SetTextColor(GuiValue(g, kLabelTextColor));
+            def.GuiInvWindows[g].SetItemWidth(GuiValue(g, kInvWindowItemWidth));
+            def.GuiListBoxes[g].SetSelectedBgColor(GuiValue(g, kListBoxSelectedBgColor));
+            def.GuiSliders[g].SetMaxValue(GuiValue(g, kSliderMax));
+            def.GuiTextBoxes[g].SetTextColor(GuiValue(g, kTextBoxTextColor));
+        }
+    }
+
+    // The value of a field of GuiField in GUI g or in its control of the field's type: base, plus ten times the field,
+    // plus g. MakeGuis gives the definitions the values of base 10.
+    static int GuiValue(int g, int field, int base = 10) { return base + 10 * field + g; }
+
+    // Sets the fields of GuiField in GUI g and its controls to GuiValue(g, field, base), through the script functions,
+    // on the elements that the script reaches: the GUI by its index, each control by its address in the live list
+    static void SetGuiValues(int g, int base)
+    {
+        Game &game = Game::Current();
+        ScriptGUI gui = GuiObject(g);
+        GUI_SetX(&gui, GuiValue(g, kGuiX, base));
+        Button_SetTextColor(&game.GuiButtons[g], GuiValue(g, kButtonTextColor, base));
+        Label_SetTextColor(&game.GuiLabels[g], GuiValue(g, kLabelTextColor, base));
+        InvWindow_SetItemWidth(&game.GuiInvWindows[g], GuiValue(g, kInvWindowItemWidth, base));
+        ListBox_SetSelectedBackColor(&game.GuiListBoxes[g], GuiValue(g, kListBoxSelectedBgColor, base));
+        Slider_SetMax(&game.GuiSliders[g], GuiValue(g, kSliderMax, base));
+        TextBox_SetTextColor(&game.GuiTextBoxes[g], GuiValue(g, kTextBoxTextColor, base));
+    }
+
+    // GUI g and its controls, as the script functions give them, have the values that SetGuiValues(g, base) sets
+    static void ExpectGuiValues(int g, int base)
+    {
+        SCOPED_TRACE(testing::Message() << "GUI " << g);
+        Game &game = Game::Current();
+        ScriptGUI gui = GuiObject(g);
+        EXPECT_EQ(GuiValue(g, kGuiX, base), GUI_GetX(&gui));
+        EXPECT_EQ(GuiValue(g, kButtonTextColor, base), Button_GetTextColor(&game.GuiButtons[g]));
+        EXPECT_EQ(GuiValue(g, kLabelTextColor, base), Label_GetTextColor(&game.GuiLabels[g]));
+        EXPECT_EQ(GuiValue(g, kInvWindowItemWidth, base), InvWindow_GetItemWidth(&game.GuiInvWindows[g]));
+        EXPECT_EQ(GuiValue(g, kListBoxSelectedBgColor, base), ListBox_GetSelectedBackColor(&game.GuiListBoxes[g]));
+        EXPECT_EQ(GuiValue(g, kSliderMax, base), Slider_GetMax(&game.GuiSliders[g]));
+        EXPECT_EQ(GuiValue(g, kTextBoxTextColor, base), TextBox_GetTextColor(&game.GuiTextBoxes[g]));
+    }
+
+    // Live GUI g and its controls have their definitions' values, and the GUI is linked to the live controls
+    static void ExpectGuiTakesTheDefinition(int g)
+    {
+        Game &game = Game::Current();
+        EXPECT_EQ(GuiFieldValues(game.Def(), g), GuiFieldValues(game, g)) << "GUI " << g;
+        ExpectGuiLinkedToTheLiveControls(g);
+    }
+
+    // Each control of live GUI g is the element of the live list that the GUI's reference names, which has the GUI as
+    // its parent; none is an element of the definition's lists
+    static void ExpectGuiLinkedToTheLiveControls(int g)
+    {
+        SCOPED_TRACE(testing::Message() << "GUI " << g);
+        Game &game = Game::Current();
+        const GUIMain &gui = game.Guis[g];
+        const auto &refs = gui.GetControlRefs();
+        ASSERT_EQ(refs.size(), static_cast<size_t>(gui.GetControlCount()));
+        for (int i = 0; i < gui.GetControlCount(); ++i)
+        {
+            SCOPED_TRACE(testing::Message() << "control " << i);
+            const GUIControl *control = gui.GetControl(i);
+            EXPECT_EQ(ControlOf(game, refs[i].first, refs[i].second), control);
+            EXPECT_FALSE(IsControlOf(game.Def(), control));
+            ASSERT_NE(nullptr, control);
+            EXPECT_EQ(g, control->GetParentID());
+            EXPECT_EQ(i, control->GetID());
         }
     }
 
@@ -799,8 +920,8 @@ protected:
     }
 
     // Does what InitGameState does for these entities that a test can run without fonts, plugins, scripts and a
-    // graphics driver: the live copies of the definitions (StartFromDefinitions, as InitGameState), the GUIs linked to
-    // their controls (GUI::RebuildGUI; with the controls' graphics clipped to their rectangles, so that no font or
+    // graphics driver: the live copies of the definitions (StartFromDefinitions, as InitGameState), the live GUIs linked
+    // to the live controls (GUI::RebuildGUI; with the controls' graphics clipped to their rectangles, so that no font or
     // sprite is measured), the player, the GUIs' lists of the custom property values set during play sized as
     // InitGameState sizes them (a list that has values keeps them: InitGameState runs on a game that unload_game
     // emptied; the other entities hold theirs in their live copies, which start without any), the audio clips' ids and
@@ -1193,6 +1314,19 @@ protected:
         EXPECT_EQ(made.InventoryCursorHotspotCrossColor, def.InventoryCursorHotspotCrossColor);
         EXPECT_EQ(made.DefaultLipSyncFrame, def.DefaultLipSyncFrame);
         ExpectSameSpriteInfos(made.SpriteInfos, def.SpriteInfos);
+        ASSERT_EQ(made.Guis.size(), def.Guis.size());
+        ASSERT_EQ(made.GuiButtons.size(), def.GuiButtons.size());
+        ASSERT_EQ(made.GuiLabels.size(), def.GuiLabels.size());
+        ASSERT_EQ(made.GuiInvWindows.size(), def.GuiInvWindows.size());
+        ASSERT_EQ(made.GuiListBoxes.size(), def.GuiListBoxes.size());
+        ASSERT_EQ(made.GuiSliders.size(), def.GuiSliders.size());
+        ASSERT_EQ(made.GuiTextBoxes.size(), def.GuiTextBoxes.size());
+        for (int g = 0; g < static_cast<int>(made.Guis.size()); ++g)
+        {
+            SCOPED_TRACE(testing::Message() << "GUI " << g);
+            EXPECT_EQ(GuiFieldValues(made, g), GuiFieldValues(def, g));
+            EXPECT_EQ(made.Guis[g].GetControlRefs(), def.Guis[g].GetControlRefs());
+        }
     }
 
     // The started game's items, cursors, view frames, dialog options, audio types, audio clips, options and values,
@@ -1236,6 +1370,15 @@ protected:
         EXPECT_EQ(&game.Characters[def.PlayerCharacterID], game.PlayerChar);
         EXPECT_EQ(def.DefaultLipSyncFrame, game.DefaultLipSyncFrame);
         ExpectSameSpriteInfos(def.SpriteInfos, game.SpriteInfos);
+        ASSERT_EQ(def.Guis.size(), game.Guis.size());
+        EXPECT_EQ(def.GuiButtons.size(), game.GuiButtons.size());
+        EXPECT_EQ(def.GuiLabels.size(), game.GuiLabels.size());
+        EXPECT_EQ(def.GuiInvWindows.size(), game.GuiInvWindows.size());
+        EXPECT_EQ(def.GuiListBoxes.size(), game.GuiListBoxes.size());
+        EXPECT_EQ(def.GuiSliders.size(), game.GuiSliders.size());
+        EXPECT_EQ(def.GuiTextBoxes.size(), game.GuiTextBoxes.size());
+        for (int g = 0; g < static_cast<int>(game.Guis.size()); ++g)
+            ExpectGuiTakesTheDefinition(g);
     }
 
     EngineServices _services;
@@ -1863,6 +2006,61 @@ TEST_F(GameEntities, StartedGameTakesTheDefinitions)
     ExpectDefinitionAsMade();
 }
 
+// The script functions of a GUI and of each type of control write the live GUI and controls: they give back what was
+// set, the other GUI and its controls keep the definitions' values, and the definitions keep theirs
+TEST_F(GameEntities, GuiSettersWriteTheLiveGuisAndControls)
+{
+    SetGuiValues(1, 200);
+    ExpectGuiValues(1, 200);
+    ExpectGuiTakesTheDefinition(0);
+    ExpectGuiLinkedToTheLiveControls(1);
+    ExpectDefinitionAsMade();
+}
+
+// The saved fields of the GUIs and of their controls come back from a save into the live GUIs and controls of a game
+// started again, which stay linked to each other; the definitions keep their values
+TEST_F(GameEntities, GuisComeBackFromASave)
+{
+    SetGuiValues(0, 200);
+    SetGuiValues(1, 300);
+    std::vector<uint8_t> saved;
+    std::string error;
+    ASSERT_TRUE(Save(kSaveCmp_GUI, saved, error)) << error;
+
+    RestartGame();
+    ExpectGuiTakesTheDefinition(1);
+    HSaveError err = Restore(saved, kSaveCmp_GUI);
+    ASSERT_TRUE(err) << err->FullMessage().GetCStr();
+    ExpectGuiValues(0, 200);
+    ExpectGuiValues(1, 300);
+    for (int g = 0; g < kGuiCount; ++g)
+        ExpectGuiLinkedToTheLiveControls(g);
+    ExpectDefinitionAsMade();
+}
+
+// A started game's GUIs point at the live controls only, also when the definition's GUIs are linked to the
+// definition's controls (the GUIs are copied with their pointers, StartFromDefinitions, and linked again after,
+// GUI::RebuildGUI); the definition's GUIs keep pointing at the definition's controls
+TEST_F(GameEntities, StartedGuisPointAtTheLiveControlsOnly)
+{
+    Game &game = Game::Current();
+    GameDef &def = Definition();
+    GUIRefCollection def_control_refs(def.GuiButtons, def.GuiInvWindows, def.GuiLabels, def.GuiListBoxes,
+                                      def.GuiSliders, def.GuiTextBoxes);
+    for (GUIMain &gui : def.Guis)
+        ASSERT_TRUE(gui.RebuildArray(def_control_refs));
+    pool.Reset();
+    StartGame();
+
+    for (int g = 0; g < kGuiCount; ++g)
+    {
+        ExpectGuiLinkedToTheLiveControls(g);
+        const GUIMain &def_gui = game.Def().Guis[g];
+        for (int i = 0; i < def_gui.GetControlCount(); ++i)
+            EXPECT_TRUE(IsControlOf(game.Def(), def_gui.GetControl(i))) << "GUI " << g << " control " << i;
+    }
+}
+
 // unload_game keeps nothing of the game's live copies: the lists are empty, the options and values those of a game
 // without a definition; the next game, started from its definition, takes the definition's values, not the changes
 // that the first one made
@@ -1880,8 +2078,16 @@ TEST_F(GameEntities, UnloadedGameKeepsNoLiveCopies)
     SetGameOption(OPT_DIALOGGAP, 95);
     DialogOptions_SetBulletGraphic(96);
     Game_SetInventoryCursorHotspotGraphic(97);
+    SetGuiValues(1, 200);
 
     unload_game();
+    EXPECT_TRUE(game.Guis.empty());
+    EXPECT_TRUE(game.GuiButtons.empty());
+    EXPECT_TRUE(game.GuiLabels.empty());
+    EXPECT_TRUE(game.GuiInvWindows.empty());
+    EXPECT_TRUE(game.GuiListBoxes.empty());
+    EXPECT_TRUE(game.GuiSliders.empty());
+    EXPECT_TRUE(game.GuiTextBoxes.empty());
     EXPECT_TRUE(game.Characters.empty());
     EXPECT_TRUE(game.InventoryItems.empty());
     EXPECT_TRUE(game.MouseCursors.empty());

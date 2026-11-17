@@ -4279,7 +4279,7 @@ int GetLipSyncFrame(const char *curtex, int *stroffs)
     int bestfit = game.DefaultLipSyncFrame;
     for (int i = 0; i < MAXLIPSYNCFRAMES; i++)
     {
-        char *tptr = game.lipSyncFrameLetters[i];
+        const char *tptr = game.lipSyncFrameLetters[i];
         while (tptr[0] != 0)
         {
             size_t lenthisbit = strlen(tptr);

@@ -190,8 +190,9 @@ public:
     bool HasCursorRole(int curs, CursorRole role) const { return MouseCursors[curs].Role == role; }
 
     // The game's entities as loaded from the game file (ReadGameData reads into them). The engine's Game inherits
-    // them and keeps a live copy of the views and dialogs, which hides these; it still changes the GUIs here until
-    // they get theirs (PLAN.md 5.1a).
+    // them and keeps a live copy of each of these lists, which hides it (PLAN.md 5.1a). The game file reader does
+    // not link the GUIs to their controls (it reads each GUI's references to them only): the engine links its live
+    // copies.
     // The game's views
     std::vector<ViewDef> Views;
     // The dialog topics of the game, by dialog number

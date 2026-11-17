@@ -41,7 +41,7 @@ String trans_name;
 String trans_filename;
 Translation trans;
 
-FontDef construct_font_override(FontDef *base_finfo, const FontDef &finfo, int fields)
+FontDef construct_font_override(const FontDef *base_finfo, const FontDef &finfo, int fields)
 {
     if (base_finfo)
     {

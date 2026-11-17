@@ -616,6 +616,12 @@ void unload_game()
     game.DefaultLipSyncFrame = 0;
 
     game.Guis.clear();
+    game.GuiButtons.clear();
+    game.GuiInvWindows.clear();
+    game.GuiLabels.clear();
+    game.GuiListBoxes.clear();
+    game.GuiSliders.clear();
+    game.GuiTextBoxes.clear();
     game.ScGuis.clear();
 
     get_overlays().Clear();
