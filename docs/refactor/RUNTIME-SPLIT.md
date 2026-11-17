@@ -665,14 +665,14 @@ type first). Part names are chosen when the second type is split.
 |---|---|
 | The managed pool registers objects by the address of the globals | one pool per `Game`; registration goes through the current `Game` |
 | Scripts import `&play`, the static arrays, `&_sc_PlayerCharPtr` by address | a restore already unlinks and relinks the scripts; the exports are registered again after the exchange |
-| Plugins hold `&game.chars[i]`, `&scrObj[i]` | not settled. Exchanging the contents element by element (not the vectors' buffers) keeps the addresses (C4), but the pool filled during the read maps handles to the second instance's addresses and must be rebound. Switching the current pointer keeps the pool right and moves the addresses, so plugins would have to fetch their pointers again after a restore |
+| Plugins hold `&game.chars[i]`, `&scrObj[i]` | **exchange the contents** (the user, 2026-11-17, of three ways shown as code: this, switching the pointer, one game with an in-memory snapshot). Exchanging the contents element by element (not the vectors' buffers) keeps the addresses (C4), but the pool filled during the read maps handles to the second instance's addresses and must be rebound. Switching the current pointer keeps the pool right and moves the addresses, so plugins would have to fetch their pointers again after a restore |
 | Script global data is copied into the live instances | it is already read into `RestoredData` first; it becomes part of the `Game` |
 | `validate_restored_save` runs in script with the restored state live | exchange, validate, exchange back on a refusal: with two instances a rollback is the same operation |
 | Dynamic sprites live in the sprite cache and are freed first today | each `Game` owns its list of dynamic sprite slots; the hardest part, to design in 5.11 |
 | Audio channels, draw caches | rebuilt after the exchange, as `DoAfterRestore` does today |
 | The loaded room | the second `Game` loads its own `Room` |
 
-**Sprites** (the target, the user 2026-11-16; to design in detail in 5.11). The sprite cache holds two things
+**Sprites** (the target, the user 2026-11-16, confirmed 2026-11-17 against two smaller ways: the set staying the cache's, which is the first batch on the way, and holding the sprites aside during a restore; to design in detail in 5.11). The sprite cache holds two things
 with different lifetimes today. The static sprites are read from the game's sprite file on demand, kept up to a
 memory limit and evicted: an asset cache, which lasts as long as the game file and holds nothing a save needs.
 The dynamic sprites are bitmaps a script creates; they sit in the same cache, locked against eviction, in the
@@ -704,9 +704,9 @@ character fields that `InitAndRegisterCharacters` writes inside the registration
 and two readings outside the game (the height of font 0 and the GUI module's colour depth, both the same for
 every `Game` of one definition).
 
-A decision for the user in 5.11: `RestartGame()` without a restart point fails today (the automatic first
-restart point went with the pre-3.6.1 paths); it could start a new game from the `GameDef` instead, which is a
-behaviour change.
+`RestartGame()` without a restart point fails today (the automatic first restart point went with the
+pre-3.6.1 paths). Decided by the user, 2026-11-17: it starts a new game from the `GameDef`, with no save file,
+which is a behaviour change; a new `Game` is built and started aside and made live as a restored one is.
 
 ## 9. Build time
 
