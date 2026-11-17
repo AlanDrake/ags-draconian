@@ -309,6 +309,54 @@ draw loops before the first batch lands (STYLE.md "Performance").
 - **Its header is lighter**: `game_state.h`, which the game context holds by value, no longer brings
   `speech.h`, `move_list.h` and `graphicsdriver.h` to every user of the context.
 
+**What 5.1a step 4a built (2026-11-17): the definition is no longer the game's base.**
+
+The paragraphs above that say `class Game : public GameDef` and "the live list hides the definition's by name"
+describe how each step was done; this is where it ended.
+
+- **The GUI lists have live copies** (`Game::Guis`, `GuiButtons`, `GuiInvWindows`, `GuiLabels`, `GuiListBoxes`,
+  `GuiSliders`, `GuiTextBoxes`), the same classes as the definition's until the GUI is split into records and
+  live classes (step 5). `StartFromDefinitions` copies them; `InitGameState`'s `GUI::RebuildGUI` links each live
+  GUI to the live controls before anything else reads them, and the managed pool registers the live controls'
+  addresses. A `GUIMain` owns nothing through a pointer (its controls are named by reference and index, a
+  control's parent by index), and the game file's reader does not link a GUI to its controls, so the copy
+  carries no pointer into the definition. With that, a scratch build with every public member of `GameDef`
+  `const` leaves no error in the engine but the loader's own (`TryLoadGameScripts`) and `unload_game`'s reset.
+- **`Game` is played from a definition it does not own.** It holds a `GameDef *` given to its constructor
+  (`explicit Game(GameDef &)`); `Def()` returns it `const`, and `MutableDef()` returns it writable to
+  `load_game_file`, `preload_game_data` and `unload_game`'s reset only (`Script/check_layers.py` fails on a call
+  anywhere else; the tests, which play the loader, may). The engine's pair is two statics of `game.cpp`, the
+  definition first; a test fixture owns a `GameDef` and builds a `Game` on it. So "the engine does not write the
+  definition" is what the compiler keeps, and a second `Game` on the same definition (5.11) needs nothing more
+  of this shape. `GameDef::Current()` was never needed: the definition is `Game::Current().Def()`.
+- **A read of the definition is spelled as one**: `game.Def().CharacterCount`, or, in a function that reads it
+  more than once or once inside a loop, `game_def.CharacterCount` through
+  `const GameDef &game_def = game.Def();` after the `game` local (the rule of the contexts' locals, for the same
+  reason: a loop does not reload the pointer). 369 reads were converted, 277 of them through the local in 100
+  functions; the two the conversion script missed did not build.
+- **Measured** (MSVC x64 `/O2`, ten sources of the draw, update, GUI, cursor and character code, 107,000
+  instructions): +264 instructions (+0.25%); 97 functions grew, nearly all by 1 to 5 (the load of the pointer,
+  sometimes a saved register), 6 shrank; no loop reloads the pointer (`update_character_move_and_anim`,
+  `prepare_characters_for_drawing` read the count through a register as before); per drawn entity
+  `get_local_tint`, `construct_object_gfx` and `CreateCompatBitmap` gained one instruction each,
+  `apply_tint_or_light` none; `display_speech` gained 101 (an inlining change, once per spoken line).
+  `sizeof(Game)` went from 76,880 to 72,872 bytes.
+- **`class Room : public RoomStruct` keeps the transitional shape** (its live lists hide the definition's by
+  name) until `AGS.Native` no longer compiles `RoomStruct` (6.7e).
+- **The script timers are a class** (`ScriptTimerSet`, held as `GameState::ScriptTimers`): the one of the eight
+  members that step 4 made public which keeps an invariant (an id that is not negative, a timeout above 0, a
+  timer that stops at 1 until it is checked). An aggregate may hold a member of a class type with private data;
+  it is one row, with a `FieldValue` specialization beside the table. The other seven stay public plain values
+  (`GraphicState` holds a shader's id and handle as two public fields too).
+- **`RunAGSGame` goes** (the user, 2026-11-17; an exception to C3). It was the only reason the loaded game file
+  had a shorter life than the process: the definition had to be torn down and read again in place, and every
+  service that describes the game (asset libraries, the sprite file, fonts, plugins, script symbols, the
+  translation) had to be resettable. The script function is a stub that ends the game with an error, a save
+  made by another game file is refused, `game.previous_game_data` is a plain script variable. What is left of
+  the reload (`ReloadGameForRestore`: the same game file, then the restore) serves `RetryWithClearGame`
+  alone and is deleted with it in 5.11 step 3; from then on the table of lifetimes at the top of this section
+  has three rows: the definition lives as long as the process.
+
 ## 3. Names
 
 The stem is the Editor's class name (`AGS.Types`). `ScriptX` handles, `CCX` managers, the Tools' `AGF::X` and
@@ -452,23 +500,36 @@ static_assert(FieldsCoverStruct(kCharacterDefFields), "CharacterDef: a field has
 - **A row is a name, a member and a role** (`Common/util/field_table.h`, header only). The member gives the
   address and, through its type, the operations (`FieldValue<V>`: equal, print, alter), which every row of that
   type shares: numbers, enums, `String`, points, vectors, maps and arrays of those have them, and so has a
-  struct with a table of its own (`CharacterState::Anim`); a base class is one row (`BaseFields`). The role is
-  `Saved` (a part of the state: a restored game has the value the saved one had), `FromDefinition` (the
-  definition gives it again whenever the object is loaded, play may change it meanwhile and a save does not
-  hold it: a region's light and tint, a walkable area's scaling, the script names of a room's entities, which
-  the room file gives again at every load of the room), `Derived` (computed from
-  other fields; a restore computes it again: the character's `EffectiveOffset`, `EffectiveAnchor`,
-  `SpriteWidth`, `SpriteHeight`, `FrameOffsetX`, `FrameOffsetY`, `OffsetZoom`), `Transient` (play state that a
-  save does not hold and a restore does not give back: how the last wait was skipped, the location last
-  named, the overlay bookkeeping; compared and printed like any field, altered only on request) or `Opaque`
-  (not a value that can be compared or stored; listed so that the table is whole: the two event tables for
-  now, which have no comparison). `FromDefinition` was added with the room's tables (the user, 2026-11-16):
-  until then such a row borrowed `Derived`, and a test had to tell "given again by the file" from "computed"
-  by the kind of struct. `Transient` was added with `GameState`'s table (5.1a step 4, 2026-11-17, the
-  supervisor's proposal): its 15 rows there are also the list of what a restore into a running game leaves
-  from the game played before, which 5.11's restore into a fresh `Game` settles.
-  The comparison, the print and the alteration descend into a base or a member that has a table, so a
-  difference is reported by field (`TintRed: 0 != 1`, `Anim.Delay: 0 != 1`) and a role applies at every depth;
+  struct with a table of its own (`CharacterState::Anim`); a base class is one row (`BaseFields`); a member of
+  a class type with private data is one row with a `FieldValue` specialization beside the table
+  (`GameState::ScriptTimers`). **The role says what a restore gives the field** (reworded 2026-11-17, batch
+  `roles`; until then `FromDefinition` and `Transient` each carried two or three meanings): `Saved` (a part of
+  the state: a restored game has the value the saved one had), `FromDefinition` (the definition gives it: the
+  object has the definition's value whenever it is built or loaded from its definition, a room's entity at
+  every load of the room, a game's entity at the start of the game, and a save does not hold it: a region's
+  light and tint, a walkable area's scaling, the script names), `Derived` (computed from other fields; a restore
+  computes it again: the character's `EffectiveOffset`, `EffectiveAnchor`, `SpriteWidth`, `SpriteHeight`,
+  `FrameOffsetX`, `FrameOffsetY`, `OffsetZoom`), `Transient` (what the running game is doing now: a save does
+  not hold it and a new game has the member's initializer; a restored game is meant to have the initializer too,
+  5.11, and a row whose field keeps the running game's value across a restore today says so in its comment: how
+  the last wait was skipped, the location last named, `RoomChanges`) or `Opaque` (not a value that can be
+  compared or stored; listed so that the table is whole: the two event tables for now, which have no
+  comparison). `FromDefinition` was added with the room's tables (the user, 2026-11-16): until then such a row
+  borrowed `Derived`. `Transient` was added with `GameState`'s table (5.1a step 4, 2026-11-17, the supervisor's
+  proposal): its 15 rows there are also the list of what 5.11's restore into a fresh `Game` has to settle, and
+  `AudioClipState::PropertyOverrides` has it too (no save holds an audio clip's values and a restore clears
+  them).
+  **A row's role is about the member's own value.** For a member with rows of its own (a struct with a table,
+  or a vector, a plain array or a `std::array` of such structs) `Saved` means "see its own rows", and any other
+  role covers the whole member, every field in it at any depth. The comparison, the print and the alteration
+  descend into a base, into such a member and, element by element, into such a list, so a difference is
+  reported by field (`TintRed: 0 != 1`, `Anim.Delay: 0 != 1`, `Loops[2].Frames[0].Delay: 3 != 4`); a list is
+  never resized by `AlterFields`, its length being the definition's or its owner's and not a value of the table
+  (two lists of different lengths give one line, `Loops: 2 items != 3 items`); a list of plain values stays one
+  value. So `ViewDef::Loops`, `ViewLoopDef::Frames` and `DialogDef::Options` are plain `Saved` rows whose
+  elements carry the roles (a frame's `Sprite` is `Saved`, a loop's `FrameCount` is `FromDefinition`): the
+  round-trip tests work on whole views and dialogs, and a writer that walks the rows (5.12) reaches every frame.
+  Until this rule those three rows were `FromDefinition` and hid their elements.
   `AlterFields(object, role)` alters the rows of one role, which is how a test of a load shows both halves: a
   `Saved` field keeps the altered value, a `FromDefinition` field comes back as the definition's.
 - **One row per data member, never more.** The bits of `Flags` are not rows: for a comparison and for a save
@@ -630,6 +691,18 @@ state: a save writes each bitmap, and a restore frees all of the running game's 
 
 5.1a step 3 takes the first step only: `Game::SpriteInfos` is the live info table (a copy of the loaded one,
 which hides it), and the cache is pointed at it instead of at the definition's.
+
+**What 5.11 step 1 built (2026-11-17): the starting state of a `Game` no longer needs the engine's startup.**
+A `Game` built on a `GameDef` is started by three things: the members' initializers (every constant; a test
+holds the printed `GameState` of a started game), `StartFromDefinitions` (the live copies) and
+`StartGameValues(Game &, const EngineConfig &, bool debug_mode)` (what the definition and the configuration
+decide: the option-driven values of `GameState`, the characters' idle time and starting loop, the starting
+inventory), which writes the game alone; a test starts three `Game` objects on one definition and compares
+them by their field tables. Not yet part of that start, and for step 2 to place: the palette (the hardware
+drivers hold the address of `game.Palette` and draw an 8-bit game's preload image before it is filled), the
+character fields that `InitAndRegisterCharacters` writes inside the registration, the room context's values,
+and two readings outside the game (the height of font 0 and the GUI module's colour depth, both the same for
+every `Game` of one definition).
 
 A decision for the user in 5.11: `RestartGame()` without a restart point fails today (the automatic first
 restart point went with the pre-3.6.1 paths); it could start a new game from the `GameDef` instead, which is a

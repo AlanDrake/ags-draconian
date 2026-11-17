@@ -103,6 +103,17 @@ Entry points, in reading order:
 - The engine's layout is the fork's own (5.3, 2026-11-14): upstream keeps the flat `Engine/ac/`, `Engine/gui/`
   and `Common/ac/`, the fork has rings and domain folders (below). A path of upstream's tree maps to the
   fork's through `docs/refactor/moves-5.3.tsv`; a port goes through `port.py`, which reads that map.
+- The engine's and `Common/game`'s struct fields and about 25 types have the fork's names (5.1a, 2026-11-17).
+  `docs/refactor/fields-5.1a.tsv` (upstream struct and field, the fork struct that declares the field now, its
+  name) and `docs/refactor/types-5.1a.tsv` (types, and the globals that became context members) place an upstream
+  change that names one; `.compare/helpers/port.py where <commit or range>` prints them as hints under each file.
+  A later rename or move of a field or type adds or changes its line by hand.
+- `RunAGSGame` is not supported (the user, 2026-11-17; an exception to C3): the script function stays registered,
+  so that a compiled game links, and a call ends the game with a game error; `game.previous_game_data` is a plain
+  script variable that the engine never sets; a save made by another game file is refused
+  (`kSvgErr_GameGuidMismatch`). What is left of the in-process reload serves the restore's `RetryWithClearGame`
+  alone (`ReloadGameForRestore`, the same game file) and goes with it in PLAN.md 5.11 step 3; after that the
+  loaded game file lives as long as the process.
 - Upstream is read-only: `git fetch upstream`, cherry-pick with `-x`, record in `docs/UPSTREAM.md`.
 
 ## Where things are (fork)
@@ -133,11 +144,12 @@ that uses it more than once takes `EngineServices &services = EngineServices::Cu
 A new process-wide value is a member there, not a global; `Script/use_context.py` converts the uses of a global
 to a context's member (`--check` fails on a converted global that is named again).
 The game's and the room's globals are members of two more contexts (5.1 step 3, 2026-11-15): `Game`
-(`Engine/game/game_context.h`; `class Game : public GameDef`, where `GameDef` in `Common/game/game_def.h` is
-upstream's `GameSetupStruct` and its base; `Game::Current()`, local `Game &game`): `game.Characters`, `game.Options`,
+(`Engine/game/game_context.h`; played from a `GameDef`, `Common/game/game_def.h`, upstream's `GameSetupStruct` and
+its base, which it holds by pointer and does not own: `explicit Game(GameDef &)`; `Game::Current()`, local
+`Game &game`): `game.Characters`, `game.Options`,
 `game.Play` (a `GameState`: upstream's `GamePlayState play`, less its room fields, its viewports and its per-object
 property lists), `game.Viewports` (`GameViewports`: the viewports and cameras that upstream's `GamePlayState`
-holds), `game.Views`, `game.Guis` (a member of `GameDef` still: the loader reads into it), `game.DisplayedRoom`,
+holds), `game.Views`, `game.Guis`, `game.DisplayedRoom`,
 `game.Palette`,
 the script objects and handles, and state structs such as `game.Cursor`, `game.Speech`, `game.Scripts`,
 `game.Events`; and `Room` (`Engine/game/world/room_context.h`; `class Room : public RoomStruct`,
@@ -155,8 +167,10 @@ ring's own state, crash handler values), which fails on any other `extern` varia
 A definition is kept apart from its live object (5.1a steps 1 to 4, 2026-11-17; RUNTIME-SPLIT.md 2 and 3): `XDef`
 is the record the game or room file holds (Common, never written by the engine after load), `XState` the fields
 that exist only during play, `X` the live class that derives from both; a live type that holds nothing more than
-its definition is an alias of it until it does. The live list has the definition's name and hides it; the
-definition is read through `game.Def()` or `room.Def()`.
+its definition is an alias of it until it does. The live list has the definition's name; the definition is read
+through `game.Def()` (a function that reads it more than once, or once inside a loop, takes
+`const GameDef &game_def = game.Def();` after its `game` local) or `room.Def()` (`class Room` still derives from
+`RoomStruct` and hides its lists by name, until 6.7e).
 
 | Upstream | Definition (`Common/game/*_def.h`) | Live (Engine) | Live list |
 |---|---|---|---|
@@ -181,8 +195,15 @@ definition is read through `game.Def()` or `room.Def()`.
   reaches the state by offset (`Engine/game/dynobj/script_game.cpp`), whatever the C++ names; a script switch with
   a negative name stays the script's `int` and the logic asks a positive predicate (`IsDialogParserEnabled()`).
 - **The game's live copies** are made by `StartFromDefinitions` (`Engine/game/game_init.cpp`, the first statement
-  of `InitGameState`) and cleared by `unload_game`; what runs before the game starts reads `game.Def()`. The
-  engine writes no member of `GameDef` after load but the GUI lists (5.1a step 5).
+  of `InitGameState`) and cleared by `unload_game`; what runs before the game starts reads `game.Def()`. The rest
+  of a game's starting state is `GameState`'s and the other members' initializers (the constants) and
+  `StartGameValues` (same file; what the definition and the configuration decide; it writes the game alone, and
+  `InitGameState` calls it once the fonts are loaded): a new starting value goes to one of the two, never to
+  `engine_init_game_settings`, which sets up the engine for the game (palette, precaching, translation). The GUI
+  lists are among them: copies of the same classes as the definition's (`GUIDef` records are 5.1a step 5), linked
+  to their controls by `InitGameState`'s `GUI::RebuildGUI`. The engine writes no member of `GameDef` after load:
+  `Def()` is `const`, and only `load_game_file`, `preload_game_data` and `unload_game` (and the tests, which play
+  the loader) call `Game::MutableDef()`; `Script/check_layers.py` (`CALL_RULES`) fails on a call anywhere else.
 - **The room's live entities** have two kinds of definition field: the ones a room state keeps between visits and
   a save holds (an object's position and sprite, a hotspot's `Name`, a walk-behind's `Baseline`, a walkable area's
   `FaceDirectionRatio`), and the ones the room file gives again at every load (`RebindDefinition`, called by
@@ -200,11 +221,17 @@ definition is read through `game.Def()` or `room.Def()`.
   `XState`, and of `GameState`, has one row in the struct's table, in its source file (`kCharacterDefFields` in
   `character_def.cpp`); a field added without a row does not build (`static_assert(FieldsCoverStruct(...))`), so
   these structs stay aggregates (no private data, no constructor written out). Not yet: `RoomDef`, `RoomState`,
-  `GameDef`. A row is a name, a member and a role, nothing more: `Saved`; `FromDefinition` (the definition gives it
-  again, a save does not hold it); `Derived` (computed); `Transient` (play state that a save does not hold and a
-  restore does not give back); `Opaque`. A base that has a table is one `BaseFields` row; `DiffFields`,
-  `PrintFields` and `AlterFields` work on any struct with a table and descend into its bases and members that have
-  one, and a test that checks a save uses them rather than naming fields.
+  `GameDef`. A member of a class type with private data is one row, with a `FieldValue` specialization beside the
+  table (`GameState::ScriptTimers`, a `ScriptTimerSet`). A row is a name, a member and a role, nothing more, and the
+  role says what a restore gives the field: `Saved` (the saved value); `FromDefinition` (the definition's value,
+  whenever the object is built or loaded from it; a save does not hold it); `Derived` (computed again); `Transient`
+  (what the running game is doing now: a save does not hold it and a new game has the member's initializer; a row
+  whose field keeps the running game's value across a restore today says so in its comment, 5.11); `Opaque`. A
+  base that has a table is one `BaseFields` row; `DiffFields`, `PrintFields` and `AlterFields` work on any struct
+  with a table and descend into its bases, its members that have one and, element by element, a vector or array of
+  such structs, which `AlterFields` never resizes (`Loops[2].Frames[0].Delay: 3 != 4`). On a member with rows of
+  its own, `Saved` means "see its rows" and any other role covers the whole member. A test that checks a save uses
+  these rather than naming fields.
 `Engine/game/` holds the game logic in `world`, `navigation`, `dialog`, `ui`, `render`, `audio`, `video`,
 `input`, `save`, `lib` and `dynobj`, and the script bindings in `script_api/`. `docs/context/repository.md`
 describes upstream's tree, so its `Engine/ac/` and `Common/ac/` paths map through

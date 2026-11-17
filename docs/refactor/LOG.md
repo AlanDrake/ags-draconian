@@ -2530,6 +2530,232 @@ the game's own state, renamed `GameState`, the blocking-loop base class of that 
   earlier ruling; a table for a 150-field struct pays at once (one test replaces a hand-written check of 16
   fields and names what a restore leaves behind); a role that is missing shows as rows nobody can label.
 
+### 5.1a step 4a: the definition is no longer the game's base
+
+*Definition:* PLAN.md 5.1a step 4a, added after a review of steps 3 and 4 (the user asked for it, 2026-11-17,
+then "make the changes you recommend"). The review found no defect in the 16 commits of those steps and four
+things to change: `class Game : public GameDef` has to end before 5.11 (a second `Game` cannot share a base, and
+the proof that the engine does not write the definition was a scratch build to repeat), with the GUI lists
+still written in the base; the field roles carried several meanings each and a list row hid its elements; one
+member of `GameState` that keeps an invariant had been made public; and the rename maps were local files.
+
+**Status (2026-11-17): done**, 8 commits (`8d4e8e58e` the label's initializer, `322102cb1` `guilive`, `832e9173f`
+`timers`, `29ea3e0ae` `roles`, `8f7ce89ea` `defref`, `9a40cf335` `noragame`, `35f4ac0b9` the maps, `74325a2eb` the
+`[rename]` of `Game::DefForLoader` to `MutableDef`: the user found the first name unclear and chose this one,
+so the text below says `MutableDef` throughout), cut from the snapshots `refs/wip/51a5/*`. Designed and supervised by Fable 5.2
+(`.compare/briefs/brief-51a5-*.md`); the batches by Opus 5.5 `high` (`guilive`, `roles`, `defref`) and Sonnet
+5.5 `medium` (`timers`, `namemap`, `noragame`, and the verification run), `guilive`, `defref` and `noragame`
+one after the other in the main tree, `roles`, `timers` and the verification in worktrees at the same time.
+
+- **The batches:**
+  1. `guilive`: live copies of the seven GUI lists in `Game`, the same classes as the definition's, copied by
+     `StartFromDefinitions`, linked by `InitGameState`'s `GUI::RebuildGUI`, cleared by `unload_game`. A
+     `GUIMain` owns nothing through a pointer and the game file's reader does not link a GUI to its controls
+     (the brief had assumed it does), so a copy carries no pointer into the definition; a test links the
+     definition's GUIs on purpose, starts the game and checks that no live GUI's control is an element of a
+     definition list. The scratch build with all 64 public data members of `GameDef` `const`: 8 error lines in
+     3 engine files, six of them `TryLoadGameScripts` (the loader, on a `GameDef &`), two read-only uses
+     through non-`const` pointers, fixed (`construct_font_override`, `GetLipSyncFrame`). 3 tests.
+  2. `timers`: `class ScriptTimerSet` (the map private; `Start`, `Stop`, `GetPos`, `Check`, `Update`, and for
+     the save code `Clear`, `Restore`, which skips without an assertion what `Start` would refuse, and
+     `Running`), held as `GameState::ScriptTimers`, one row (`FieldValue<ScriptTimerSet>` in
+     `game_state.cpp`); `GameState`'s five timer methods are gone, their four callers call the member's. Save
+     bytes unchanged (the timers are still written in the map's order). 5 tests. The review had proposed the
+     same for the two shader pairs: dropped, since `GraphicState` holds a shader's id and handle as two public
+     fields too, and a class in one place would be the odd one.
+  3. `roles` (5.9): `field_table.h` compares and alters a vector, plain array or `std::array` of structs with
+     tables element by element and never resizes it; on a member with rows of its own `Saved` means "see its
+     rows" and any other role covers the whole member (`FieldOps::Alter` takes a `whole` flag); the roles'
+     comments say what a restore gives; `ViewDef::Loops`, `ViewLoopDef::Frames`, `DialogDef::Options` plain
+     rows, `AudioClipState::PropertyOverrides` `Transient`; each `Transient` row of `GameState` says whether a
+     restore keeps the running game's value or what it sets. `EveryViewFrameFieldIsRestored` and
+     `EveryDialogOptionFieldIsRestored` run through the tables; with `ViewFrameDef::Delay` flipped to
+     `FromDefinition` the first fails and names `Loops[0].Frames[0].Delay: 20 != 21`. 6 tests.
+  4. `namemap`: `docs/refactor/fields-5.1a.tsv` (435 lines over 21 upstream structs: `GamePlayState` 185,
+     `CharacterExtras` 44, `RoomObject` 44, `CharacterInfo` 42...) and `types-5.1a.tsv` (44 types, 167 globals),
+     made from the seven local maps `rename_fields.py` was run with (373 lines, none missing) and from both
+     trees, each line checked to exist in `upstream/ags4` and in the working tree by a script;
+     `.compare/helpers/port.py where` prints the names as hints under each file of an upstream change (a field
+     only when its struct's type or a variable of it is in the hunk, or the name has 8 characters or more);
+     a paragraph in `docs/UPSTREAM.md`.
+  5. `defref`: `Game` holds a `GameDef *` (`explicit Game(GameDef &)`, `Def()` `const`, `MutableDef()`); the
+     engine's pair is two statics of `game.cpp`; 369 reads of the definition through a `Game` converted by a
+     script (`.compare/helpers/51a5/defref.py`, which imports `use_context.py`'s function and loop finder):
+     277 through a local `const GameDef &game_def = game.Def();` in 100 functions, the rest direct. With the
+     base gone the build failed on two uses the script had missed (a class member `Game &_game` in the fades)
+     and on the tests' writes, nothing else. `ApplyBehaviorOptions` and `PrintBehaviorOptions` lost their
+     unused `GameDef` parameter (an open item of 5.1 step 2). `Script/check_layers.py` has a table of
+     restricted calls (`CALL_RULES`): `MutableDef(` outside `main/game_file.cpp`, `game/game.cpp`, the
+     context header and the tests fails; shown failing on a planted call. `sizeof(Game)` 76,880 to 72,872.
+  6. `noragame`: `RunAGSGame` is a stub that quits with a game error; `test_game_guid` and the callback
+     overload of `FindGameData` are gone; `load_game` refuses a save of another game file; what is left of the
+     reload is `ScheduleGameReloadForRestore` and `ReloadGameForRestore` for `RetryWithClearGame`
+     (`EngineServices::ReloadGameForRestore`, `ePSAReloadGameForRestore`), unchanged in what it does but for
+     the two points under "Visible changes".
+- **The decision on `RunAGSGame`** (the user, 2026-11-17, on the supervisor's finding that the value passed
+  to the next game is reset on the way, in upstream too): "it's a very unconventional feature by today
+  standards. If it's gonna put a wrench on the cleanliness of how redesign, I want it gone"; the stub with the
+  import kept was the supervisor's proposal, accepted. The auto-test game and the private AGS 4 game never
+  call it; the private 8-bit game's calls are leftovers of a second game that does not exist.
+- **Visible changes:** `RunAGSGame` ends the game with an error; a save of another game file gives the
+  GUID-mismatch error where the engine used to look for that game's file and run it; a restore that needs the
+  reload keeps the active translation (the reset to the default one was for another game's translation); under
+  the editor's debugger that reload is refused with a message of its own.
+- **Found, not changed** ("Open items" below): `reload_restore_cmp` (was `load_new_game_restore_cmp`) is set
+  and never read; nothing tests the reload or the refusal of another game's save (both need a running
+  engine).
+- **The cost of the pointer** (AGENTS.md "No silent performance loss"; for the user to accept): MSVC x64 `/O2`
+  objects of ten sources before and after `defref` (`draw.cpp`, `update.cpp`, `game_run.cpp`, `gui.cpp`,
+  `screen.cpp`, `character_update.cpp`, `object.cpp`, `character.cpp`, `mouse.cpp`, `overlay.cpp`; 107,000
+  instructions; `.compare/helpers/51a5/perf_refs.py`): +264 instructions (+0.25%); 97 functions grew, nearly
+  all by 1 to 5 (one load of the pointer per function, sometimes a saved register), 6 shrank
+  (`adjust_x_for_guis` by 32); no loop reloads the pointer (read in `update_character_move_and_anim` and
+  `prepare_characters_for_drawing`; the conversion script reports none without the local); per drawn entity
+  `get_local_tint`, `construct_object_gfx`, `CreateCompatBitmap` +1 each, `apply_tint_or_light` 0;
+  `display_speech` +101 (964 to 1,065, inlining; once per spoken line), `Character_AddInventory` +16.
+  GCC 13 Release (`-O3`, LTO), the whole linked engine before and after `defref` (`gcc_cmp_51s2.sh`, counted by
+  `.compare/helpers/51a5/gcc_insn_delta.py`): +450 instructions of 1,416,859 (+0.032%), `.text` +2,284 bytes
+  (+0.029%); 319 functions grew, 301 of them by 1 to 5, and 28 shrank; `construct_object_gfx` +1,
+  `apply_tint_or_light` +5, `display_speech` -1, `Character_AddInventory` +5; the six that grew by more than 20
+  load, save or start the game (`read_savedgame_description` +49, `StartFromDefinitions` +28, `quit` +21).
+- **Verified on the finished tree** (the six batches together, uncommitted): `prepush.py --auto` with every
+  stage: `format`, `helpers`, `layers` (0 restricted calls out of place), `buildlists`, `build`, `headers`,
+  `libcxx`, `emscripten`, `linux` (GCC, 1,344 of 1,344 tests), `msbuild` (5 solutions, the Editor's NUnit) pass;
+  `tidy` found one name (`schedule_game_reload_for_restore`), renamed with its partner to
+  `ScheduleGameReloadForRestore` and `ReloadGameForRestore`, and passes; after the rename the MSVC build, its
+  1,344 tests and the auto-test game, 2414 of 2414 on Software, Direct3D 9, Direct3D 11 and OpenGL.
+  `ci/corpus/run.py`: 53 of 53 rooms of the private AGS 4 game, with the script warning the earlier run had.
+  The sanitizer stage (ASan, UBSan and leaks on the unit tests and the auto-test game) found one defect that
+  the live GUI copies turned into a read: `GUILabel::_textMacro` has no initializer (upstream too) and a label
+  whose text was never set is copied by `StartFromDefinitions` ("load of value 3200171710, which is not a valid
+  value for type 'GUILabelMacro'"); it has one now (`kLabelMacro_None`); the other GUI classes' constructors
+  set every member. That run's build, its 1,344 unit tests and the auto-test game were otherwise clean; the
+  stage ran again, without a finding, on the tree with the two 5.11 batches on top ("5.11 step 1, second
+  batch" below; the user, 2026-11-17: WSL runs only when necessary or at the very end).
+- **Not verified:** build parity on this tree (nothing a tool reads changed: `Common/game` lost one overload
+  that only the engine called, a label got an initializer, and the field tables are not in the tools' path; the
+  50 commits under it were compared, below); the reload for `RetryWithClearGame` and the refusal of another game's
+  save, which no test reaches; the Linux builder image's GCC 8, macOS, iOS and Android, which only CI compiles;
+  compile time (two members and a pointer; not measured).
+- **The 50 commits before this step, verified again** (a worktree at `7de2cfe30`, its own build): build
+  parity with the `pre-6.7d` reference editor (`compare_builds.py --editor <reference> --api-header
+  pre-6.7d --variants all`) in all ten variants for the auto-test game (59 files in the plain variant), the
+  private AGS 4 game (208) and the private 8-bit game with its reference palette (53): no file differs, which
+  the steps since step 1 had not checked; the auto-test game 2414 of 2414 on Software, Direct3D 9, Direct3D
+  11 and OpenGL; `ci/corpus/run.py` 53 of 53 rooms; `ctest` 1,332 with the two `compat_restore` fixtures.
+
+### 5.11 step 1, first batch: `GameState()` is the starting state
+
+*Definition:* PLAN.md 5.11 step 1, the batch that needs no decision: the constants that
+`engine_init_game_settings` assigns to `game.Play` become `GameState`'s member initializers, pinned first by a
+printed state, so that a `GameState` built for a second `Game` or a new game needs no settings function for
+them and a `Transient` row's initializer is what a new game has.
+
+**Status (2026-11-17): done**, `3386587ae` (snapshot `refs/wip/511s1/initializers`). By one Opus 5.5 `high` subagent in a worktree
+(brief `.compare/briefs/brief-511s1-initializers.md`); the four constants it left were moved by the supervisor.
+
+- **Pinned first:** `GameEntities.StartedGameStateIsAsPinned` compares the state after the settings function,
+  one line per row of the field table (154; runs of equal list items collapsed, `LastParserEntry: [0 x200]`),
+  with a text in the test: the review artifact for "what does a new game have". The clock's two fields
+  (`RandomSeed`, `IgnoreUserInputUntilTime`) are fixed before the print. The text was taken from the unchanged
+  code and passes unchanged after it. A dump of the same lines at the real start of the auto-test game (a
+  temporary print, software renderer) before and after: identical but for those two fields.
+- **What moved:** 97 statements left `engine_init_game_settings`: 38 members got another initializer
+  (`InventoryItemWidth` 40, `MessageTimeLeft` -1, `AbortKey` 324, `SpeechVolume` 255, `TextReadingSpeed` 15,
+  `SpeechVoiceMode` `kSpeech_VoiceText`...), 57 already had the value, and two calls set what a default member
+  holds (`SetWaitSkipResult(SKIP_NONE)`, `BadParsedWord.Empty()`). `GameState` is still an aggregate with the
+  same members in the same order.
+- **The four that an earlier writer sets** (`TextReadingSpeed`, `MinimumTextDisplayTimeMs`, `SpeechVoiceMode`,
+  `SkipDisplay`): `InitGameState` applies the configuration's accessibility options before the settings
+  function, which overwrote them with the constants and applied the options again at its end. With the
+  constants as initializers the options are applied to them twice, to the same result; nothing reads the four
+  between the two calls (the readers are the text display, the speech and the script).
+- **What stays in the settings function**, the input of the rest of step 1: the values the game or the
+  configuration decide (`GameEntities.NewGameStateDiffersFromTheStartedOneByTheGame` lists the fields in which
+  a started state differs from `GameState()`: `DebugMode`, `GlobalSpeechAnimationDelay`, the five colours from
+  `GUI::GetStandardColor`, which reads the game's colour depth, `SpeechTextWindowGui`, `NarratorSpeech`,
+  `SpeechSkipStyle`, the audio types' volumes, the GUI property lists, the behaviour switches; `GameName`,
+  `ShowSingleDialogOption`, `FaceDirectionRatio` and the right-to-left alignments equal the initializer in the
+  fixture); `ClearIgnoreInput()` (the clock); the room's (`BgFrame`, `WalkableAreasOn`...), the characters' and
+  the script objects' starting values, the palette, the precaching, the GUI options, the translation. The
+  repeated `ApplyAccessibilityOptions` is still needed for `SpeechSkipStyle` (the game's option is set after
+  `InitGameState`'s call); the repeated `ApplyBehaviorOptions` is not in the real start, and is the only one
+  the test fixture has.
+- **Other code that sets the same constants** (unchanged; for step 3): `unload_game` (`game.Play =
+  GameState()`), `DoBeforeRestore` (the two overlay ids), `unload_old_room` (the portrait and the hidden
+  character), `load_new_room` (`GlobalScriptTimer`, `PlayerRegionID`).
+- **Verified** (the tree with step 4a under it): the MSVC build and 1,346 of 1,346 unit tests; the auto-test
+  game, 2414 of 2414 on Software, Direct3D 9, Direct3D 11 and OpenGL; the pre-push stages `format`, `helpers`,
+  `layers`, `buildlists`, `build`, `tidy`, `headers`, `libcxx`, `emscripten` and `msbuild`. GCC and the
+  sanitizers: with the second batch, below (the user, 2026-11-17: WSL once, at the very end).
+- **Not verified:** a plugin's or a script's write to the state between `InitGameState` and the settings
+  function (reasoned: no script runs before the start, and the plugin API's `GetGameOptions` is not supported).
+
+### 5.11 step 1, second batch: one start of a game's values
+
+*Definition:* PLAN.md 5.11 step 1: what gives a `Game` its starting state, spread over `InitGameState` and
+`engine_init_game_settings` and mixed with the engine's side effects, in one function that takes the game and
+writes nothing else, so that a second `Game` on the same definition can be started.
+
+**Status (2026-11-17): done**, `3fee80612` (snapshot `refs/wip/511s1/start`). By one Opus 5.5 `high` subagent in a worktree (brief
+`.compare/briefs/brief-511s1-start.md`), reviewed by the supervisor.
+
+- **`void StartGameValues(Game &game, const EngineConfig &config, bool debug_mode)`** (`game_init.cpp`):
+  the GUI property lists' sizes, `FadeEffect`, `StandardGuiTextHeight`, the game's error text, the characters'
+  idle time, full-step marker and starting loop (which reads the views), the starting inventory, the split of
+  the speech animation option, `DebugMode`, the right-to-left alignments, the speech skip style, the five
+  standard colours, `ShowSingleDialogOption`, `NarratorSpeech`, `SpeechTextWindowGui`, `GameName`,
+  `FaceDirectionRatio`, the audio types' volumes, and the configuration's options applied once (the behaviour
+  switches before the alignments that read them, the accessibility options last, since they may replace the
+  game's skip style). `InitGameState` calls it after the registration and the fonts: `InitAndRegisterCharacters`
+  writes `Loop = 0`, `StandardGuiTextHeight` is the height of font 0, and `GUI::GetStandardColor` reads the
+  colour depth that `InitGameState` gives the GUI module. Those two (the font module, `GUI::Context`) are what
+  it reads outside the game, its definition and the configuration; `debug_mode` is the command line's `--test`,
+  which is not in `EngineConfig`. `StartFromDefinitions` is still the first statement of `InitGameState`.
+- **Dropped as constants the members already hold:** the characters' `ActiveInventory`, `WalkWaitCounter`,
+  `Z`, `Zoom`, `ProcessIdleThisTime`, `SlowMoveCounter`, `WalkAnimWait` (every `Character` is built new by
+  `StartFromDefinitions`), and the script objects' ids (the registration sets them). `FullStepX = INVALID_X`
+  stays an assignment: tests build characters without a start and move them, where 0 and the marker differ.
+  `Paused`, `IfacePopped` and `DisplayedRoom` are assigned although the initializers hold the values, for the
+  restore's reload, which starts the same `Game` object again.
+- **`engine_init_game_settings` is the engine's part alone:** the randomizer, the audio packs, the text
+  format, the palette, the precaching, the room's values, the GUI options, the translation, the inventory
+  lists, the game speed. `ApplyBehaviorOptions` writes the game only: `GUI::Options.ApplyTextDirection` is set
+  by its two callers' callers (`InitGameState`, `DoAfterRestore`). The two repeated calls that applied the
+  configuration at the end of the settings function are gone.
+- **The window** between a value's new place and its old one (the rest of `InitGameState` with the plugins'
+  startup and the script linking, the graphics mode, the preload image, the sprites): no engine code reads or
+  writes a moved value. **The palette stays in `engine_init_game_settings`**: the Direct3D and OpenGL drivers
+  hold the address of `game.Palette` and draw an 8-bit game's preload image with it, all black at the first
+  start, and a plugin's startup can read it (`GetPalette`); filling it earlier would change that image. A
+  plugin that calls a script getter at startup (`Character::get_Loop`...) sees the started value where it saw
+  the game file's raw one, and one that wrote a moved value there would keep its write where the settings
+  function overwrote it: none of the plugins in the repository does either.
+- **Two games:** `GameEntities.SecondGameStartsAsTheFirstDid` builds a second and a third `Game` on the
+  fixture's definition, starts them with the two functions and compares them with the field tables (`Play`,
+  both tables of every character, the options, the palette); the third is started after every field of the
+  first was altered, and equals the second. Nothing stops a second `Game` from being built. What is still
+  shared, for step 2: the font module and `GUI::Context`, read by the start; the script arrays, the managed
+  pool and the symbol table that `InitGameState` fills around it (`StaticAudioClipArray`, `StaticHandlesArray`);
+  and the character fields that `InitAndRegisterCharacters` writes inside the registration (`MoveListID`,
+  `BlinkInterval` 140, `BlinkTimer`, `ID`, `PreviousRoom` -1, `Loop` and `Frame` 0, `WalkWait` -1,
+  `UpdateEffectiveValues`): a start without the registration misses them.
+- **Pins:** `StartedGameIsAsPinned` (195 lines: every row of both tables of three characters, the options, the
+  palette, `Paused`, `IfacePopped`, `DisplayedRoom`, the error text) beside the first batch's two, all written
+  on the unchanged code and unchanged after; a dump of the real start of the auto-test game (the state, every
+  character, the options, the palette, the GUI's text direction, the script objects' ids; 1,400 lines) before
+  and after: identical but for the clock's two fields.
+- **Verified** (the whole tree before it was cut into commits: step 4a, the label's initializer, both
+  batches; the commits between were not built one by one, each is a snapshot's state or differs from one
+  by the label's initializer and the two reload functions' names): the MSVC build and
+  1,348 of 1,348 unit tests; the auto-test game, 2414 of 2414 on Software, Direct3D 9, Direct3D 11 and OpenGL;
+  the pre-push stages `format`, `helpers`, `layers`, `buildlists`, `build`, `tidy`, `headers`, `emscripten`
+  and `msbuild`. Then the one WSL pass of the session: `linux` (GCC: the build, the header check, 1,348 of
+  1,348 tests), the sanitizers (ASan, UBSan and leaks on the unit tests and the auto-test game: no finding,
+  which also confirms the label's initializer), and `libcxx` (345 headers).
+- **Not verified:** an 8-bit game's preload image (read in the code, not run); the reload for a restore; a
+  real plugin at startup.
+
 ### 5.8 step 1: Common's save code into the engine
 
 *Definition:* PLAN.md 5.8 step 1: the `...Savegame` methods of six `Common/game` files go to
@@ -2806,5 +3032,48 @@ user kept it local and took the readings of a busy machine as good enough.
   - `Script/use_context.py --check` cannot read a function template with default template arguments (it
     reports "use outside a function"); a list row of a field table does not pass its role to its elements
     (`Loops`, `Frames`, `Options` are `FromDefinition` rows for that reason).
+- 5.1a step 4a (2026-11-17), found on the way, none fixed:
+  - `reload_restore_cmp` is set with the slot when a restore asks for the reload and never read, so the
+    components that the save lacks (`SaveRestoreFeedback::RetryWithoutComponents`) have never reached the second
+    restore (it was `load_new_game_restore_cmp`; upstream not checked). It goes with the reload in 5.11 step 3;
+  - the reload for `RetryWithClearGame` and the refusal of a save made by another game file have no test: both
+    need a running engine (`load_game` is not declared in a header); only the decision
+    (`Feedback.RetryWithClearGame` for a save that holds less than the game) is tested;
+  - `GameState::PreviousGameData` and the script's `game.previous_game_data` are a slot nothing sets; the
+    comment of `RunAGSGame` in `agsdefns.sh` still describes the function as working (the header is not edited
+    outside a script API change, since its text is what an Editor compiles);
+  - `GameState::RoomChanges` is compared by frames up the stack to notice a change of room (`event.cpp`,
+    `script.cpp`), so it must only grow: it is the process's counter kept in the game's state, and
+    a game that is started again has it at 0 (`unload_game`'s `GameState()`; harmless while nothing runs then);
+  - the check of the two name maps (`.compare/helpers/51a5/check_namemap.py`, with its generators) is a local
+    file; it needs `upstream/ags4`, which CI does not fetch. As a script of the repository it would be an
+    on-demand check, to move when the maps next change;
+  - the include question of `defref` (2.10b): `game_context.h` still includes `game_def.h` for `MAX_OPTIONS`,
+    `RGB`, `COLOR_MAP`, `SpriteInfo`, `GameDataVersion` and the GUI types; of 250 engine units 90 see
+    `game_def.h` and 87 the context header; 29 units see both and name no definition member, and would stop
+    seeing `game_def.h` if the context header took what it needs from lighter headers;
+  - every room of the private AGS 4 game logs `ResolveScriptPath: failed to find a match for:
+    $SAVEGAMEDIR$/...` in the corpus run (a file the game looks for in a fresh save directory); the code that
+    prints it was touched in `f47b8ccb4`..`7de2cfe30` only by two renames proven mechanical; not compared with
+    a run of an older build.
+- 5.11 step 1 (2026-11-17), for step 2's design:
+  - the palette is filled by `engine_init_game_settings`, after the graphics mode and the preload image; the
+    Direct3D and OpenGL drivers draw an 8-bit game's preload image through the address of `game.Palette`, which
+    is all black at the first start (read in the code, not run): whether
+    that image is meant to be drawn with a black palette is a question for an 8-bit game with a preload image;
+  - `InitAndRegisterCharacters` writes starting fields of the characters inside the registration (`MoveListID`,
+    `BlinkInterval` 140, `BlinkTimer`, `ID`, `PreviousRoom` -1, `Loop` and `Frame` 0, `WalkWait` -1,
+    `UpdateEffectiveValues`): a `Game` started without the registration lacks them, and `StartGameValues` has
+    to come after it because of `Loop`;
+  - `CharacterState::FullStepX` has the initializer 0 and the start gives `INVALID_X`, because tests move
+    characters they built without a start; the marker as the initializer needs those tests changed first;
+  - a plugin that reads a character or the game state through a script getter in its startup call sees the
+    started values (they were the game file's raw ones until `engine_init_game_settings` ran), and one that
+    wrote them there keeps its write; no plugin in the repository does;
+  - `Paused`, `IfacePopped` and `DisplayedRoom` are assigned by `StartGameValues` although their initializers
+    hold the values, because the restore's reload starts the same `Game` object again; they go with the reload
+    (5.11 step 3);
+  - `StartGameValues` takes the debug mode as a parameter because the command line's `--test` lives in
+    `EngineServices::Debug.Flags`, not in `EngineConfig`.
 - `Tools/test/directory_test.cpp`'s comment on the MSBuild googletest being older is out of date;
   `FetchGoogleTest.cmake` still pins 1.8.1 for GCC older than 5, which no builder uses.
