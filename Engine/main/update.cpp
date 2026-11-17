@@ -30,6 +30,7 @@
 #include "game/render/overlay.h"
 #include "game/render/screen_overlay.h"
 #include "game/world/character.h"
+#include "game/world/entity_state.h"
 #include "game/world/move_list.h"
 #include "game/world/object.h"
 #include "game/world/room.h"
@@ -56,8 +57,8 @@ using namespace AGS::Engine;
 // Returns whether to there's a need to update the sprite due to a change in direction
 MoveResult do_movelist_move(short &mslot, int &pos_x, int &pos_y, bool do_step)
 {
-    assert(mslot > 0);
-    if (mslot < 1)
+    assert(mslot > MoveState::kNoMoveList);
+    if (mslot <= MoveState::kNoMoveList)
         return kMoveResult_Abort;
 
     MoveList &cmls = *get_movelist(mslot);
@@ -76,7 +77,7 @@ MoveResult do_movelist_move(short &mslot, int &pos_x, int &pos_y, bool do_step)
         pos_y = cmls.GetCurrentPos().Y;
         // reset MoveList, and tell moving object to stop
         remove_movelist(mslot);
-        mslot = 0; // movelist 0 means "not moving/walking"
+        mslot = MoveState::kNoMoveList;
         move_result = kMoveResult_Done;
     }
     return move_result;

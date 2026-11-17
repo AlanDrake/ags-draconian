@@ -861,11 +861,13 @@ TEST(RoomObjectSave, EverySavedFieldIsRestored)
     EXPECT_TRUE(saved == WriteObject(restored));
 }
 
-// An object starts with MoveListID -1 from either constructor, where a character starts with 0 (MoveState's default)
-TEST(RoomObjectStart, MoveListIdIsMinusOne)
+// An object starts not moving, with MoveListID kNoMoveList from either constructor, as a character does
+TEST(RoomObjectStart, StartsWithNoMoveList)
 {
-    EXPECT_EQ(-1, RoomObject().MoveListID);
-    EXPECT_EQ(-1, RoomObject(RoomObjectDef()).MoveListID);
+    EXPECT_EQ(MoveState::kNoMoveList, RoomObject().MoveListID);
+    EXPECT_EQ(MoveState::kNoMoveList, RoomObject(RoomObjectDef()).MoveListID);
+    EXPECT_FALSE(RoomObject().IsMoving());
+    EXPECT_FALSE(RoomObject(RoomObjectDef()).IsMoving());
     EXPECT_EQ(MoveState::kNoMoveList, MoveState().MoveListID);
 }
 
@@ -1217,15 +1219,20 @@ TEST_F(LoadedRoomWithView, ObjectAnimWaitWrapsAt16Bits)
     EXPECT_EQ(40000 + 5 - 65536, restored.AnimWait);
 }
 
-// An object that has not moved since the room was entered has MoveListID -1 (no move list); its destination is
-// where it stands, as for an object whose move has ended (MoveListID 0)
+// An object that has not moved since the room was entered has no move list; its destination is where it stands.
+// A save of an earlier engine holds -1 for such an object, and it must keep working
 TEST_F(LoadedRoom, ObjectDestinationOfAnObjectThatHasNotMoved)
 {
     BindRoomState(_room);
     RoomObject &obj = _state.Objects[1];
-    ASSERT_EQ(-1, obj.MoveListID);
+    ASSERT_EQ(MoveState::kNoMoveList, obj.MoveListID);
     ScriptObject obj1;
     obj1.id = 1;
+    EXPECT_EQ(obj.X, Object_GetDestinationX(&obj1));
+    EXPECT_EQ(obj.Y, Object_GetDestinationY(&obj1));
+
+    obj.MoveListID = -1; // what a save of an earlier engine restores
+    EXPECT_FALSE(obj.IsMoving());
     EXPECT_EQ(obj.X, Object_GetDestinationX(&obj1));
     EXPECT_EQ(obj.Y, Object_GetDestinationY(&obj1));
 

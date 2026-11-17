@@ -200,6 +200,8 @@ void RoomObject::ReadFromSavegame(Stream *in, int cmp_ver)
     Loop = in->ReadInt16();
     Frame = in->ReadInt16();
     AnimWait = in->ReadInt16();
+    // The stored 0 and -1 (an object that had not moved, in a save of an earlier engine) both mean no move list. If
+    // kNoMoveList ever takes another value, this is where a stored id is converted
     MoveListID = in->ReadInt16();
     int legacy_animating = in->ReadInt8(); // legacy animating
     int anim_delay = in->ReadInt8();       // legacy anim delay (8-bit)

@@ -156,6 +156,7 @@ void ReadCharacterDef(Character &ch, Stream *in, CharacterLegacyFields &old_fiel
     ch.WalkWaitCounter = in->ReadInt16();
     ch.Loop = in->ReadInt16();
     ch.Frame = in->ReadInt16();
+    // The stored 0 means no move list. If kNoMoveList ever takes another value, this is where a stored id is converted
     ch.MoveListID = in->ReadInt16();
     in->ReadInt16(); // legacy animating
     ch.WalkSpeedX = in->ReadInt16();
@@ -2251,6 +2252,8 @@ HSaveError ReadMoveLists(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Pre
         err = move_list.ReadFromSavegame(in, cmp_ver);
         if (!err)
             return err;
+        // The slot index is the id the entities store (0 and -1 there mean none, and slot 0 is an empty list). If
+        // kNoMoveList ever takes another value, this is where a stored id is converted
         add_movelist(std::move(move_list), i);
     }
     return err;

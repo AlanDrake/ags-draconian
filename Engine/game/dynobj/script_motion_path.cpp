@@ -15,6 +15,7 @@
 
 #include "game/game.h"
 #include "game/navigation/route_finder.h"
+#include "game/world/entity_state.h"
 #include "script/dynobj/dynobj_manager.h"
 #include "util/stream.h"
 
@@ -25,17 +26,17 @@ ScriptMotionPath::ScriptMotionPath(uint32_t mlist_id) : _moveListID(mlist_id) {}
 
 bool ScriptMotionPath::IsValid() const
 {
-    return _moveListID > 0;
+    return _moveListID > MoveState::kNoMoveList;
 }
 
 MoveList *ScriptMotionPath::GetMoveList() const
 {
-    return _moveListID == 0 ? nullptr : get_movelist(_moveListID);
+    return _moveListID == MoveState::kNoMoveList ? nullptr : get_movelist(_moveListID);
 }
 
 void ScriptMotionPath::Invalidate()
 {
-    _moveListID = 0u;
+    _moveListID = MoveState::kNoMoveList;
 }
 
 const char *ScriptMotionPath::GetType()

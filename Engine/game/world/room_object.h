@@ -43,7 +43,7 @@ class Game;
 // The play state of a room object: what exists only while the game runs. RoomObject holds it with its definition. The
 // parts a character has too are its bases (entity_state.h): the graphic fields (tint, Zoom, Rotation, the sprite's
 // size...), the view animation (Loop, Frame, AnimWait, Anim), the move list and the frame sounds' volume, panning and
-// speed. It is never made on its own: RoomObject's constructors give MoveListID the object's starting value.
+// speed. It is never made on its own: RoomObject holds it.
 struct RoomObjectState : public GraphicState, public ViewAnimState, public MoveState, public FrameSoundState
 {
     static constexpr uint16_t NoView = UINT16_MAX;
@@ -64,10 +64,9 @@ struct RoomObjectState : public GraphicState, public ViewAnimState, public MoveS
 class RoomObject : public AGS::Common::RoomObjectDef, public RoomObjectState
 {
 public:
-    // An object starts with MoveListID -1, where a character starts with 0 (MoveState's default)
-    RoomObject() { MoveListID = -1; }
+    RoomObject() = default;
     // Starts an object from its definition
-    explicit RoomObject(const AGS::Common::RoomObjectDef &def) : RoomObjectDef(def) { MoveListID = -1; }
+    explicit RoomObject(const AGS::Common::RoomObjectDef &def) : RoomObjectDef(def) {}
 
     // Takes again from the definition what a room state does not keep between visits, and so what a save does not
     // hold: the id, the script name, the room number, the events, the interactions and the custom properties as the

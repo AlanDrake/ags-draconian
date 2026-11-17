@@ -2267,7 +2267,7 @@ int Character_GetMoving(Character *ch)
 
 int Character_GetDestinationX(Character *ch)
 {
-    if (ch->get_movelist_id() > 0)
+    if (ch->get_movelist_id() > MoveState::kNoMoveList)
     {
         MoveList *cmls = get_movelist(ch->get_movelist_id());
         return cmls->GetLastPos().X;
@@ -2801,7 +2801,7 @@ int Character_GetViewOffsetY(Character *ch)
 ScriptMotionPath *Character_GetMotionPath(Character *ch)
 {
     const int mslot = ch->get_movelist_id();
-    if (mslot <= 0)
+    if (mslot <= MoveState::kNoMoveList)
         return nullptr;
 
     if (ch->MoveListHandle > 0)
@@ -2911,11 +2911,11 @@ void move_character_impl(Character *ch, const std::vector<Point> *path, int tox,
         path_result &= (new_mlist.GetFirstPos() != new_mlist.GetLastPos());
 
     // If path available, then add movelist
-    const int movelist = path_result ? add_movelist(std::move(new_mlist)) : 0;
-    assert(!path_result || movelist > 0);
+    const int movelist = path_result ? add_movelist(std::move(new_mlist)) : MoveState::kNoMoveList;
+    assert(!path_result || movelist > MoveState::kNoMoveList);
 
     // If successful, then start moving
-    if (movelist > 0)
+    if (movelist > MoveState::kNoMoveList)
     {
         // Stop idling state (if character was in one)
         stop_character_idling(ch);

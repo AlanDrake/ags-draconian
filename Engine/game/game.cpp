@@ -53,6 +53,7 @@
 #include "game/video/video.h"
 #include "game/view_def.h"
 #include "game/world/character.h"
+#include "game/world/entity_state.h"
 #include "game/world/hotspot.h"
 #include "game/world/inventory_item.h"
 #include "game/world/object.h"
@@ -146,8 +147,8 @@ CCDialog ccDynamicDialog;
 CCAudioClip ccDynamicAudioClip;
 CCAudioChannel ccDynamicAudio;
 
-// MoveLists of the moving characters and room objects, addressed by their index; NOTE: slot 0 is never used,
-// as 0 means "no movelist". A slot freed by remove_movelist is queued in movelist_free_ids and used again.
+// MoveLists of the moving characters and room objects, addressed by their index; NOTE: slot MoveState::kNoMoveList
+// is never used, as it means "no movelist" (the first usable slot is the next). A slot freed by remove_movelist is queued in movelist_free_ids and used again.
 std::vector<MoveList> movelists;
 std::queue<uint32_t> movelist_free_ids;
 
@@ -2073,11 +2074,11 @@ uint32_t add_movelist(MoveList &&move_list)
     }
     else if (movelists.size() == UINT32_MAX)
     {
-        return 0u;
+        return MoveState::kNoMoveList;
     }
     else
     {
-        index = std::max<uint32_t>(1, movelists.size());
+        index = std::max<uint32_t>(MoveState::kNoMoveList + 1, movelists.size());
     }
 
     return add_movelist(std::move(move_list), index);
@@ -2092,7 +2093,7 @@ uint32_t add_movelist(MoveList &&move_list, uint32_t at_index)
 
 void remove_movelist(uint32_t index)
 {
-    if (index == 0 || index >= movelists.size() || movelists[index].IsEmpty())
+    if (index == MoveState::kNoMoveList || index >= movelists.size() || movelists[index].IsEmpty())
         return; // requested non-existing movelist
 
     // Don't erase vector elements, instead set invalid and record free index
@@ -2102,7 +2103,7 @@ void remove_movelist(uint32_t index)
 
 MoveList *get_movelist(uint32_t index)
 {
-    if (index == 0 || index >= movelists.size() || movelists[index].IsEmpty())
+    if (index == MoveState::kNoMoveList || index >= movelists.size() || movelists[index].IsEmpty())
         return nullptr; // requested non-existing movelist
 
     return &movelists[index];
@@ -2111,9 +2112,9 @@ MoveList *get_movelist(uint32_t index)
 void restore_movelists()
 {
     // Will have to readjust free ids records, as movelists may be restored in any random slots
-    // NOTE: valid movelist ids begin with 1!
+    // NOTE: valid movelist ids begin above MoveState::kNoMoveList!
     movelist_free_ids = std::queue<uint32_t>();
-    for (uint32_t i = 1; i < movelists.size(); ++i)
+    for (uint32_t i = MoveState::kNoMoveList + 1; i < movelists.size(); ++i)
     {
         if (movelists[i].IsEmpty())
         {

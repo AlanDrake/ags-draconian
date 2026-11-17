@@ -74,12 +74,11 @@ struct ViewAnimState
 // The entity's move along a path
 struct MoveState
 {
-    // No move list: what a finished move and a character's start leave in MoveListID. A valid index is above it
+    // No move list: what an entity starts with and a finished move leaves in MoveListID. A valid index is above it
     static constexpr int16_t kNoMoveList = 0;
 
     // Which move list the entity is running: its index in the game's move lists (get_movelist), always above
-    // kNoMoveList. Two values mean "none": kNoMoveList, and -1, which a room object starts with (RoomObject's
-    // constructors). Ask IsMoving(); never test it for non-zero.
+    // kNoMoveList. Ask IsMoving(); never test it for non-zero. A save holds the raw number (see the save readers).
     int16_t MoveListID = kNoMoveList;
     int MoveListHandle = 0; // handle to the script movelist
 
