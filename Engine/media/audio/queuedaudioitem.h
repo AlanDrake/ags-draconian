@@ -21,7 +21,9 @@ namespace AGS
 namespace Common
 {
 class Stream;
-}
+template <typename T>
+struct FieldTable;
+} // namespace Common
 } // namespace AGS
 
 struct QueuedAudioItem
@@ -30,6 +32,9 @@ struct QueuedAudioItem
     short priority = 0;
     bool repeat = false;
     std::unique_ptr<SoundClip> cachedClip;
+
+    // One row per field above (util/field_table.h)
+    static AGS::Common::FieldTable<QueuedAudioItem> Fields();
 
     void ReadFromSavegame(AGS::Common::Stream *in);
     void WriteToSavegame(AGS::Common::Stream *out) const;

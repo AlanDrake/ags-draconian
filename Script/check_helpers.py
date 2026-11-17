@@ -47,6 +47,10 @@ KNOWN = {
     ('Engine/platform/base/engine_services.h', 'Current'),
     ('Engine/game/game_context.h', 'Current'),
     ('Engine/game/world/room_context.h', 'Current'),
+    # The operations of a FieldValue specialization, which util/field_table.h calls by these names (a location
+    # reference's, beside GameState's field table)
+    ('Engine/game/game_state.cpp', 'Equal'),
+    ('Engine/game/game_state.cpp', 'Alter'),
 }
 HUNK = re.compile(r'^@@ -\S+ \+(\d+)(?:,(\d+))? @@')
 # The first line of a function definition or declaration: at most one level of indentation

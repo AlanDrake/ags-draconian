@@ -15,7 +15,8 @@
 // Savegame components with game content, which savegame_test.cpp leaves in
 // the empty state of an engine without a game: characters, inventory items,
 // dialog options, mouse cursors, audio types and the game setup's saved
-// fields with non-default state are saved, cleared and restored; a save made
+// fields with non-default state are saved, cleared and restored, and so is
+// every saved field of the game state (by its field table); a save made
 // for a game with a different number of them is refused, or accepted with the
 // restore flags that allow it; prescanning a save counts its content without
 // changing the game; a restored game state leaves the running engine's own
@@ -991,6 +992,83 @@ TEST_F(SavegameContent, ScriptTimersComeBackFromASave)
     EXPECT_EQ(1, IsTimerExpired(0));
     EXPECT_EQ(0, IsTimerExpired(0));
     EXPECT_EQ(0, GetTimerPos(0));
+}
+
+namespace
+{
+
+// Keeps the game state of the test process, and gives it back when it goes out of scope
+struct KeptPlayState
+{
+    GameState Kept = std::move(Game::Current().Play);
+    ~KeptPlayState() { Game::Current().Play = std::move(Kept); }
+};
+
+} // namespace
+
+// Every field of the game state that is a part of the game's state comes back from the game state component, but the
+// ones below. The rows of GameState say which fields those are, so a field added to it is checked here without a line
+// of this test changing. The state is restored into a new one, as unload_game leaves it; the room's fields that the
+// component also holds are the room's as it is, written and read back unchanged.
+TEST_F(SavegameContent, EveryGameStateFieldIsRestored)
+{
+    // The saved fields that this component does not give back, and why
+    const struct
+    {
+        const char *Name;
+        const char *Reason;
+    } not_restored_here[] = {
+        {"GammaAdjustment", "written, and dropped by the reader on purpose: the running game's gamma stays"},
+        {"DefaultAudioTypeVolumes", "saved by the \"Audio\" component, one per audio type (AudioTypesAreRestored)"},
+        {"GuiProperties", "saved by the \"GUI\" component, one per GUI"},
+        {"GuiControlProperties", "saved by the \"GUI\" component, one per control"},
+    };
+
+    KeptPlayState kept;
+    Game &game = Game::Current();
+    GameState before = GameState();
+    AlterFields(before);
+    EXPECT_TRUE(FieldsAreDistinct(before));
+    game.Play = GameState();
+    AlterFields(game.Play);
+    ASSERT_TRUE(DiffFields(before, game.Play).empty());
+    const std::vector<uint8_t> saved = SaveGameState();
+
+    game.Play = GameState();
+    RestoreGameState(saved);
+
+    std::string lost;
+    std::vector<std::string> excluded;
+    for (const String &line : DiffFields(before, game.Play, false))
+    {
+        const std::string text = line.GetCStr();
+        const auto exclusion =
+            std::find_if(std::begin(not_restored_here), std::end(not_restored_here),
+                         [&text](const auto &field) { return text.rfind(std::string(field.Name) + ":", 0) == 0; });
+        if (exclusion != std::end(not_restored_here))
+            excluded.push_back(exclusion->Name);
+        else
+            lost += text + "\n";
+    }
+    EXPECT_EQ("", lost);
+    // each exclusion is still needed: the field does not come back
+    EXPECT_EQ(std::size(not_restored_here), excluded.size());
+}
+
+// DEFECT: a restore appends the saved parsed words to the ones the running game has: ReadFromSavegame adds them to
+// the list (std::back_inserter) and DoBeforeRestore does not clear it, so until the next sentence is parsed the
+// game's parser checks (Parser.Said) see the words of the game played before the restore, then the saved ones
+TEST_F(SavegameContent, DISABLED_ParsedWordsAreReplacedByARestore)
+{
+    KeptPlayState kept;
+    Game &game = Game::Current();
+    game.Play = GameState();
+    game.Play.ParsedWords = {5};
+    const std::vector<uint8_t> saved = SaveGameState();
+    game.Play.ParsedWords = {7, 8};
+
+    RestoreGameState(saved);
+    EXPECT_EQ((std::vector<uint16_t>{5}), game.Play.ParsedWords);
 }
 
 TEST(SavegameState, AnimatedOverlayWaitIsRestored)

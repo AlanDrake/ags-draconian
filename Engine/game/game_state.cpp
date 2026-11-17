@@ -28,6 +28,7 @@
 #include "gfx/gfx_def.h"
 #include "media/audio/audio_system.h"
 #include "platform/base/engine_services.h"
+#include "util/field_table.h"
 #include "util/string_utils.h"
 #include "util/timer.h"
 
@@ -42,39 +43,251 @@ const std::array<const char *, kNum_RBS> kRBSwitchNames = {{
     "no_textprop_autotranslate", // kRBO_NoTextPropertyAutoTranslate
 }};
 
-GameState::GameState() {}
+// The operations of a location reference, for the rows of GameState that hold one. They are here, not beside the
+// struct in game_state.h, so that the header does not include field_table.h: only this file's table names the type.
+namespace AGS
+{
+namespace Common
+{
+
+template <>
+struct FieldValue<SceneLocationRef>
+{
+    static bool Equal(const SceneLocationRef &a, const SceneLocationRef &b) { return a == b; }
+    static String Print(const SceneLocationRef &value)
+    {
+        return String::FromFormat("(%d, %d)", value.LocationType, value.ObjectIndex);
+    }
+    static void Alter(SceneLocationRef &value)
+    {
+        value.LocationType++;
+        value.ObjectIndex++;
+    }
+};
+
+} // namespace Common
+} // namespace AGS
+
+namespace
+{
+
+// Saved: by the "Game State" component (ReadFromSavegame, WriteForSavegame) unless the row names another one.
+// Transient: set and cleared as the game runs; the row says what a restore leaves in it.
+constexpr FieldRow<GameState> kGameStateFields[] = {
+    Field<&GameState::UsedMode>("UsedMode"),
+    Field<&GameState::UserInterfaceDisabledCount>("UserInterfaceDisabledCount"),
+    Field<&GameState::GlobalScriptTimer>("GlobalScriptTimer"),
+    Field<&GameState::DebugMode>("DebugMode"),
+    Field<&GameState::MessageTimeLeft>("MessageTimeLeft"),
+    Field<&GameState::UsedInventory>("UsedInventory"),
+    Field<&GameState::TextReadingSpeed>("TextReadingSpeed"),
+    Field<&GameState::GlobalSpeechAnimationDelay>("GlobalSpeechAnimationDelay"),
+    Field<&GameState::InventoryItemWidth>("InventoryItemWidth"),
+    Field<&GameState::InventoryItemHeight>("InventoryItemHeight"),
+    Field<&GameState::TextShadowColor>("TextShadowColor"),
+    Field<&GameState::SwapPortraitSide>("SwapPortraitSide"),
+    Field<&GameState::SpeechTextWindowGui>("SpeechTextWindowGui"),
+    Field<&GameState::FollowingRoomDelay>("FollowingRoomDelay"),
+    Field<&GameState::SkipDisplay>("SkipDisplay"),
+    Field<&GameState::NoMultiLoopRepeat>("NoMultiLoopRepeat"),
+    Field<&GameState::InventoryActivated>("InventoryActivated"),
+    Field<&GameState::NoTextBackgroundWhenVoice>("NoTextBackgroundWhenVoice"),
+    Field<&GameState::MaxDialogOptionWidth>("MaxDialogOptionWidth"),
+    Field<&GameState::NoHighColorFadeIn>("NoHighColorFadeIn"),
+    Field<&GameState::BackgroundSpeechGameSpeed>("BackgroundSpeechGameSpeed"),
+    Field<&GameState::KeepBackgroundSpeechOnDisplay>("KeepBackgroundSpeechOnDisplay"),
+    Field<&GameState::UnfactorSpeechFromTextLength>("UnfactorSpeechFromTextLength"),
+    Field<&GameState::SpeechMusicDrop>("SpeechMusicDrop"),
+    Field<&GameState::RunningCutsceneSkipStyle>("RunningCutsceneSkipStyle"),
+    Field<&GameState::FastForward>("FastForward"),
+    Field<&GameState::GameSpeedModifier>("GameSpeedModifier"),
+    Field<&GameState::PreviousGameData>("PreviousGameData"),
+    Field<&GameState::ReplayHotkeyUnused>("ReplayHotkeyUnused"),
+    Field<&GameState::DialogOptionsPaddingX>("DialogOptionsPaddingX"),
+    Field<&GameState::DialogOptionsPaddingY>("DialogOptionsPaddingY"),
+    Field<&GameState::NarratorSpeech>("NarratorSpeech"),
+    Field<&GameState::LipSyncSpeed>("LipSyncSpeed"),
+    Field<&GameState::SpeechAnimationStopTimeMargin>("SpeechAnimationStopTimeMargin"),
+    Field<&GameState::DisableAntialiasing>("DisableAntialiasing"),
+    Field<&GameState::TextReadingSpeedModifier>("TextReadingSpeedModifier"),
+    Field<&GameState::TextAlignment>("TextAlignment"),
+    Field<&GameState::SpeechBubbleWidth>("SpeechBubbleWidth"),
+    Field<&GameState::MinDialogOptionWidth>("MinDialogOptionWidth"),
+    Field<&GameState::DisableDialogParser>("DisableDialogParser"),
+    Field<&GameState::TopBarBackColor>("TopBarBackColor"),
+    Field<&GameState::TopBarTextColor>("TopBarTextColor"),
+    Field<&GameState::TopBarBorderColor>("TopBarBorderColor"),
+    Field<&GameState::TopBarBorderWidth>("TopBarBorderWidth"),
+    Field<&GameState::TopBarY>("TopBarY"),
+    Field<&GameState::ScreenshotWidth>("ScreenshotWidth"),
+    Field<&GameState::ScreenshotHeight>("ScreenshotHeight"),
+    Field<&GameState::TopBarFont>("TopBarFont"),
+    Field<&GameState::SpeechTextAlignment>("SpeechTextAlignment"),
+    Field<&GameState::AutoUseWalkToPoints>("AutoUseWalkToPoints"),
+    Field<&GameState::GreyOutInventory>("GreyOutInventory"),
+    Field<&GameState::SpeechSkipKey>("SpeechSkipKey"),
+    Field<&GameState::AbortKey>("AbortKey"),
+    Field<&GameState::FadeColorRed>("FadeColorRed"),
+    Field<&GameState::FadeColorGreen>("FadeColorGreen"),
+    Field<&GameState::FadeColorBlue>("FadeColorBlue"),
+    Field<&GameState::ShowSingleDialogOption>("ShowSingleDialogOption"),
+    Field<&GameState::KeepScreenDuringInstantTransition>("KeepScreenDuringInstantTransition"),
+    Field<&GameState::ReadDialogOptionColor>("ReadDialogOptionColor"),
+    // during a "dialog_request" callback only; a restore leaves it
+    Field<&GameState::DialogRequestResult>("DialogRequestResult", FieldRole::Transient),
+    Field<&GameState::IsSpeechCustomPortraitPlacement>("IsSpeechCustomPortraitPlacement"),
+    Field<&GameState::SpeechPortraitOffsetX>("SpeechPortraitOffsetX"),
+    Field<&GameState::SpeechPortraitY>("SpeechPortraitY"),
+    Field<&GameState::SpeechDisplayPostTimeMs>("SpeechDisplayPostTimeMs"),
+    Field<&GameState::DialogOptionsHighlightColor>("DialogOptionsHighlightColor"),
+    Field<&GameState::RandomSeed>("RandomSeed"),
+    Field<&GameState::PlayerRegionID>("PlayerRegionID"),
+    // the fades and the transitions; a restore leaves it
+    Field<&GameState::IsScreenFadedOut>("IsScreenFadedOut", FieldRole::Transient),
+    Field<&GameState::CheckInteractionOnly>("CheckInteractionOnly"),
+    Field<&GameState::BgAnimWait>("BgAnimWait"),
+    Field<&GameState::WaitCounter>("WaitCounter"),
+    // how the last blocking wait ended (SetWaitSkipResult); a restore leaves them
+    Field<&GameState::WaitSkippedBy>("WaitSkippedBy", FieldRole::Transient),
+    Field<&GameState::WaitSkippedByData>("WaitSkippedByData", FieldRole::Transient),
+    Field<&GameState::MouseBounds>("MouseBounds"),
+    Field<&GameState::FadeEffect>("FadeEffect"),
+    Field<&GameState::AudioMasterVolume>("AudioMasterVolume"),
+    Field<&GameState::ScreenFlip>("ScreenFlip"),
+    Field<&GameState::SpeechVoiceMode>("SpeechVoiceMode"),
+    Field<&GameState::SpeechSkipStyle>("SpeechSkipStyle"),
+    Field<&GameState::AlwaysWaitForSpeechText>("AlwaysWaitForSpeechText"),
+    Field<&GameState::SpeechOverlayZOrder>("SpeechOverlayZOrder"),
+    Field<&GameState::SpeechVolume>("SpeechVolume"),
+    Field<&GameState::NormalFont>("NormalFont"),
+    Field<&GameState::SpeechFont>("SpeechFont"),
+    // the height of font 0 (InitGameState)
+    Field<&GameState::StandardGuiTextHeight>("StandardGuiTextHeight", FieldRole::Derived),
+    Field<&GameState::WaitSkipType>("WaitSkipType"),
+    Field<&GameState::SwapPortraitLastCharacter>("SwapPortraitLastCharacter"),
+    // the speech portrait's side; a restore sets it to -1 (unload_old_room)
+    Field<&GameState::SwapPortraitLastLastCharacter>("SwapPortraitLastLastCharacter", FieldRole::Transient),
+    Field<&GameState::ConversationDepth>("ConversationDepth"),
+    Field<&GameState::ScreenTint>("ScreenTint"),
+    Field<&GameState::ParsedWords>("ParsedWords"),
+    Field<&GameState::BadParsedWord>("BadParsedWord"),
+    // counts the rooms loaded; a restore adds one (load_new_room)
+    Field<&GameState::RoomChanges>("RoomChanges", FieldRole::Transient),
+    Field<&GameState::IsMouseInputEnabled>("IsMouseInputEnabled"),
+    Field<&GameState::IsMouseCursorShown>("IsMouseCursorShown"),
+    Field<&GameState::ShakeScreenDelay>("ShakeScreenDelay"),
+    Field<&GameState::ShakeScreenAmount>("ShakeScreenAmount"),
+    Field<&GameState::ShakeScreenLength>("ShakeScreenLength"),
+    Field<&GameState::AmbientTintRed>("AmbientTintRed"),
+    Field<&GameState::AmbientTintGreen>("AmbientTintGreen"),
+    Field<&GameState::AmbientTintBlue>("AmbientTintBlue"),
+    Field<&GameState::AmbientTintLevel>("AmbientTintLevel"),
+    Field<&GameState::AmbientTintLight>("AmbientTintLight"),
+    Field<&GameState::IsAmbientTintEnabled>("IsAmbientTintEnabled"),
+    Field<&GameState::SkipUntilCharacterStops>("SkipUntilCharacterStops"),
+    // the location under the mouse (GetLocationName, the cursor's update); a restore leaves them
+    Field<&GameState::LastNamedLocation>("LastNamedLocation", FieldRole::Transient),
+    Field<&GameState::LocationNameSaveCursor>("LocationNameSaveCursor", FieldRole::Transient),
+    Field<&GameState::RestoreCursorModeTo>("RestoreCursorModeTo"),
+    Field<&GameState::RestoreCursorImageTo>("RestoreCursorImageTo"),
+    Field<&GameState::CrossfadingOutChannel>("CrossfadingOutChannel"),
+    Field<&GameState::CrossfadeStep>("CrossfadeStep"),
+    Field<&GameState::CrossfadeOutVolumePerStep>("CrossfadeOutVolumePerStep"),
+    Field<&GameState::CrossfadeInitialVolumeOut>("CrossfadeInitialVolumeOut"),
+    Field<&GameState::CrossfadingInChannel>("CrossfadingInChannel"),
+    Field<&GameState::CrossfadeInVolumePerStep>("CrossfadeInVolumePerStep"),
+    Field<&GameState::CrossfadeFinalVolumeIn>("CrossfadeFinalVolumeIn"),
+    Field<&GameState::NewMusicQueueSize>("NewMusicQueueSize"),
+    Field<&GameState::NewMusicQueue>("NewMusicQueue"),
+    Field<&GameState::LastParserEntry>("LastParserEntry"),
+    Field<&GameState::GameName>("GameName"),
+    Field<&GameState::GroundLevelAreasDisabled>("GroundLevelAreasDisabled"),
+    Field<&GameState::NextScreenTransition>("NextScreenTransition"),
+    // written, and dropped by the reader on purpose: the running game's gamma stays
+    Field<&GameState::GammaAdjustment>("GammaAdjustment"),
+    Field<&GameState::TemporarilyTurnedOffCharacter>("TemporarilyTurnedOffCharacter"),
+    // the GUIs by their z-order (prepare_gui_runtime, which a restore calls, and update_gui_zorder)
+    Field<&GameState::GuiDrawOrder>("GuiDrawOrder", FieldRole::Derived),
+    Field<&GameState::DoOnceTokens>("DoOnceTokens"),
+    Field<&GameState::MinimumTextDisplayTimeMs>("MinimumTextDisplayTimeMs"),
+    Field<&GameState::IgnoreUserInputAfterTextTimeoutMs>("IgnoreUserInputAfterTextTimeoutMs"),
+    // by the "Audio" component
+    Field<&GameState::DefaultAudioTypeVolumes>("DefaultAudioTypeVolumes"),
+    Field<&GameState::DialogOptionsGuiX>("DialogOptionsGuiX"),
+    Field<&GameState::DialogOptionsGuiY>("DialogOptionsGuiY"),
+    Field<&GameState::DialogOptionsTextAlignment>("DialogOptionsTextAlignment"),
+    Field<&GameState::DialogOptionsFont>("DialogOptionsFont"),
+    Field<&GameState::DialogOptionsZOrder>("DialogOptionsZOrder"),
+    Field<&GameState::FaceDirectionRatio>("FaceDirectionRatio"),
+    // by the "GUI" component
+    Field<&GameState::GuiProperties>("GuiProperties"),
+    Field<&GameState::GuiControlProperties>("GuiControlProperties"),
+    Field<&GameState::HasSpeechVoice>("HasSpeechVoice"),
+    Field<&GameState::IsSpeechVoiceBlocking>("IsSpeechVoiceBlocking"),
+    // the speech's time on screen after its text or voice (update.cpp); a restore leaves it
+    Field<&GameState::IsSpeechInPostState>("IsSpeechInPostState", FieldRole::Transient),
+    // counted as overlays are added and removed; a restore removes them all (to 0) and does not count the restored ones
+    Field<&GameState::OverlayCount>("OverlayCount", FieldRole::Transient),
+    // the overlays on screen and the speech's script handles (add_screen_overlay, remove_screen_overlay); a restore
+    // removes all overlays, which sets them to 0, and the restored overlays do not set them
+    Field<&GameState::CompleteOverlayID>("CompleteOverlayID", FieldRole::Transient),
+    Field<&GameState::TextOverlayID>("TextOverlayID", FieldRole::Transient),
+    Field<&GameState::SpeechTextScriptHandle>("SpeechTextScriptHandle", FieldRole::Transient),
+    Field<&GameState::SpeechPortraitScriptHandle>("SpeechPortraitScriptHandle", FieldRole::Transient),
+    // from the shake's fields and the loop counter, at every update (update_shakescreen)
+    Field<&GameState::ShakeScreenOffsetY>("ShakeScreenOffsetY", FieldRole::Derived),
+    // the game's "dev_error_text", translated (InitGameState, a change of translation)
+    Field<&GameState::GameErrorText>("GameErrorText", FieldRole::Derived),
+    // from the engine's configuration (ApplyBehaviorOptions, which a restore calls)
+    Field<&GameState::RBSwitches>("RBSwitches", FieldRole::Derived),
+    Field<&GameState::ScreenShaderID>("ScreenShaderID"),
+    Field<&GameState::ScreenShaderHandle>("ScreenShaderHandle"),
+    Field<&GameState::CursorShaderID>("CursorShaderID"),
+    Field<&GameState::CursorShaderHandle>("CursorShaderHandle"),
+    // a point in real time (SetIgnoreInput); a restore sets it to now (ClearIgnoreInput)
+    Field<&GameState::IgnoreUserInputUntilTime>("IgnoreUserInputUntilTime", FieldRole::Transient),
+    Field<&GameState::ScriptTimers>("ScriptTimers"),
+};
+static_assert(FieldsCoverStruct(kGameStateFields), "GameState: a field has no row in kGameStateFields");
+
+} // namespace
+
+FieldTable<GameState> GameState::Fields()
+{
+    return kGameStateFields;
+}
 
 void GameState::SetRBSwitches(const std::array<bool, kNum_RBS> &overrides)
 {
-    std::copy(overrides.begin(), overrides.end(), _rbSwitches.begin());
+    std::copy(overrides.begin(), overrides.end(), RBSwitches.begin());
 }
 
 void GameState::SetScreenShader(int shader_id, int shader_handle)
 {
-    _screenShaderID = shader_id;
-    _screenShaderHandle = shader_handle;
+    ScreenShaderID = shader_id;
+    ScreenShaderHandle = shader_handle;
 }
 
 void GameState::SetCursorShader(int shader_id, int shader_handle)
 {
-    _cursorShaderID = shader_id;
-    _cursorShaderHandle = shader_handle;
+    CursorShaderID = shader_id;
+    CursorShaderHandle = shader_handle;
 }
 
 bool GameState::IsIgnoringInput() const
 {
-    return Clock::now() < _ignoreUserInputUntilTime;
+    return Clock::now() < IgnoreUserInputUntilTime;
 }
 
 void GameState::SetIgnoreInput(int timeout_ms)
 {
-    if (Clock::now() + std::chrono::milliseconds(timeout_ms) > _ignoreUserInputUntilTime)
-        _ignoreUserInputUntilTime = Clock::now() + std::chrono::milliseconds(timeout_ms);
+    if (Clock::now() + std::chrono::milliseconds(timeout_ms) > IgnoreUserInputUntilTime)
+        IgnoreUserInputUntilTime = Clock::now() + std::chrono::milliseconds(timeout_ms);
 }
 
 void GameState::ClearIgnoreInput()
 {
-    _ignoreUserInputUntilTime = Clock::now();
+    IgnoreUserInputUntilTime = Clock::now();
 }
 
 bool GameState::IsInWait() const
@@ -93,7 +306,7 @@ int GameState::GetWaitCounter() const
 
 int GameState::GetWaitSkipType() const
 {
-    return Game::Current().Play.WaitSkipType;
+    return WaitSkipType;
 }
 
 void GameState::SetWaitSkipResult(int skipped_by, int data)
@@ -120,14 +333,12 @@ bool GameState::IsNonBlockingVoiceSpeech() const
 
 bool GameState::ShouldPlayVoiceSpeech() const
 {
-    Game &game = Game::Current();
-    return !game.Play.FastForward && (game.Play.SpeechVoiceMode != kSpeech_TextOnly) &&
-           EngineServices::Current().VoiceAvail;
+    return !FastForward && (SpeechVoiceMode != kSpeech_TextOnly) && EngineServices::Current().VoiceAvail;
 }
 
 bool GameState::ShouldPlayVoiceSpeechNonBlocking() const
 {
-    return !Game::Current().Play.FastForward && EngineServices::Current().VoiceAvail;
+    return !FastForward && EngineServices::Current().VoiceAvail;
 }
 
 bool GameState::ShouldAASprites() const
@@ -140,22 +351,22 @@ void GameState::StartScriptTimer(int timer_id, int timeout)
     assert(timer_id >= 0 && timeout > 0);
     if (timer_id >= 0 && timeout > 0)
     {
-        _scriptTimers[timer_id] = timeout;
+        ScriptTimers[timer_id] = timeout;
     }
 }
 
 void GameState::StopScriptTimer(int timer_id)
 {
     assert(timer_id >= 0);
-    auto it = _scriptTimers.find(timer_id);
-    if (it != _scriptTimers.end())
-        _scriptTimers.erase(it);
+    auto it = ScriptTimers.find(timer_id);
+    if (it != ScriptTimers.end())
+        ScriptTimers.erase(it);
 }
 
 int GameState::GetScriptTimerPos(int timer_id)
 {
-    auto it = _scriptTimers.find(timer_id);
-    if (it != _scriptTimers.end())
+    auto it = ScriptTimers.find(timer_id);
+    if (it != ScriptTimers.end())
         return it->second;
     return 0;
 }
@@ -165,12 +376,12 @@ bool GameState::CheckScriptTimer(int timer_id)
     // The timer logic is that it counts down to 1, where stays
     // *until* user checks for its expiration in script.
     // Only then the timer is removed.
-    auto it = _scriptTimers.find(timer_id);
-    if (it != _scriptTimers.end())
+    auto it = ScriptTimers.find(timer_id);
+    if (it != ScriptTimers.end())
     {
         if (it->second == 1)
         {
-            _scriptTimers.erase(it);
+            ScriptTimers.erase(it);
             return true;
         }
     }
@@ -181,7 +392,7 @@ void GameState::UpdateScriptTimers()
 {
     // The timer logic is that it counts down to 1, where stays
     // *until* user checks for its expiration in script.
-    for (auto &timer : _scriptTimers)
+    for (auto &timer : ScriptTimers)
     {
         if (timer.second > 1)
             timer.second--;
@@ -305,7 +516,7 @@ void GameState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameState
         for (int timer_id = 1; timer_id < LEGACY_MAX_TIMERS; ++timer_id)
         {
             if (old_script_timers[timer_id] > 0)
-                _scriptTimers[timer_id] = old_script_timers[timer_id];
+                ScriptTimers[timer_id] = old_script_timers[timer_id];
         }
     }
     in->ReadInt32(); // [DEPRECATED]
@@ -450,13 +661,13 @@ void GameState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameState
     if (svg_ver >= kGSSvgVersion_400_26)
     {
         uint32_t timer_count = in->ReadInt32();
-        _scriptTimers.clear();
+        ScriptTimers.clear();
         for (uint32_t i = 0; i < timer_count; ++i)
         {
             int timer_id = in->ReadInt32();
             int timer_time = in->ReadInt32();
             if (timer_id >= 0 && timer_time > 0)
-                _scriptTimers[timer_id] = timer_time;
+                ScriptTimers[timer_id] = timer_time;
         }
     }
 
@@ -464,20 +675,20 @@ void GameState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameState
     {
         FaceDirectionRatio = in->ReadFloat32();
         // used since kGSSvgVersion_400_18
-        _screenShaderID = in->ReadInt32();
-        _screenShaderHandle = in->ReadInt32();
-        _cursorShaderID = in->ReadInt32();
-        _cursorShaderHandle = in->ReadInt32();
+        ScreenShaderID = in->ReadInt32();
+        ScreenShaderHandle = in->ReadInt32();
+        CursorShaderID = in->ReadInt32();
+        CursorShaderHandle = in->ReadInt32();
         // reserve few more 32-bit values (for a total of 10)
         in->Seek(sizeof(int32_t) * 5);
     }
     else
     {
         FaceDirectionRatio = 1.f;
-        _screenShaderID = 0;
-        _screenShaderHandle = 0;
-        _cursorShaderID = 0;
-        _cursorShaderHandle = 0;
+        ScreenShaderID = 0;
+        ScreenShaderHandle = 0;
+        CursorShaderID = 0;
+        CursorShaderHandle = 0;
     }
 }
 
@@ -683,8 +894,8 @@ void GameState::WriteForSavegame(Stream *out) const
     out->WriteInt32(0); // reserved
 
     // kGSSvgVersion_400_26
-    out->WriteInt32(_scriptTimers.size());
-    for (const auto &timer : _scriptTimers)
+    out->WriteInt32(ScriptTimers.size());
+    for (const auto &timer : ScriptTimers)
     {
         out->WriteInt32(timer.first);
         out->WriteInt32(timer.second);
@@ -692,10 +903,10 @@ void GameState::WriteForSavegame(Stream *out) const
 
     // kGSSvgVersion_400_03
     out->WriteFloat32(FaceDirectionRatio);
-    out->WriteInt32(_screenShaderID); // used since kGSSvgVersion_400_18
-    out->WriteInt32(_screenShaderHandle);
-    out->WriteInt32(_cursorShaderID);
-    out->WriteInt32(_cursorShaderHandle);
+    out->WriteInt32(ScreenShaderID); // used since kGSSvgVersion_400_18
+    out->WriteInt32(ScreenShaderHandle);
+    out->WriteInt32(CursorShaderID);
+    out->WriteInt32(CursorShaderHandle);
     // reserve few more 32-bit values (for a total of 10)
     out->WriteByteCount(0, sizeof(int32_t) * 5);
 }

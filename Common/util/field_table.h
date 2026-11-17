@@ -33,17 +33,23 @@
 // build. The count works for an aggregate (no private or protected data, no constructor written out, no
 // virtual function); a base class is one row, BaseFields.
 //
-// A member's type needs its operations (FieldValue below): numbers, enums, String, points, rectangles, vectors,
-// maps and arrays of those have them, and so has every struct with a table of its own.
+// A member's type needs its operations (FieldValue below): numbers, enums, String, points, rectangles, time points,
+// vectors, maps, sets and arrays (plain and std::array) of those have them, and so has every struct with a table of
+// its own.
 //
 //=============================================================================
 #pragma once
 
 #include <algorithm>
+#include <array>
+#include <chrono>
 #include <cstddef>
 #include <cstdint>
+#include <iterator>
+#include <limits>
 #include <type_traits>
 #include <unordered_map>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -62,7 +68,10 @@ enum class FieldRole : uint8_t
     FromDefinition, // the definition gives it again whenever the object is loaded (a room's entity: at every load of
                     // the room); play may change it meanwhile, a save does not hold it
     Derived,        // computed from other fields; a restore computes it again
-    Opaque          // not a value to compare or store (a cache, a pointer); listed so that the table is whole
+    Opaque,         // not a value to compare or store (a cache, a pointer); listed so that the table is whole
+    Transient       // what the running game is doing now (a blocking wait, an overlay on screen, a fade): a save
+                    // does not hold it, a restore leaves the running game's value or sets one of its own; compared
+                    // as a saved one
 };
 
 // The operations on a value of one type; every row whose member has the type shares them
@@ -389,10 +398,13 @@ struct FieldValue<V, std::enable_if_t<std::is_arithmetic_v<V> || std::is_enum_v<
         else
             return String::FromFormat("%lld", static_cast<long long>(value));
     }
+    // Adds one, or takes one from the largest value of an integer type (so that it does not overflow)
     static void Alter(V &value)
     {
         if constexpr (std::is_same_v<V, bool>)
             value = !value;
+        else if constexpr (std::is_integral_v<V>)
+            value = (value == std::numeric_limits<V>::max()) ? static_cast<V>(value - 1) : static_cast<V>(value + 1);
         else
             value = static_cast<V>(static_cast<std::conditional_t<std::is_enum_v<V>, int, V>>(value) + 1);
     }
@@ -434,6 +446,42 @@ struct FieldValue<Rect>
     static void Alter(Rect &value) { value = Rect(value.Left + 1, value.Top + 1, value.Right + 2, value.Bottom + 2); }
 };
 
+namespace FieldDetail
+{
+
+// "[a, b]": the items of a sequence, each printed with the operations of its type
+template <typename V, typename Iterator>
+String PrintItems(Iterator begin, Iterator end)
+{
+    String text = "[";
+    for (Iterator item = begin; item != end; ++item)
+    {
+        if (item != begin)
+            text.Append(", ");
+        text.Append(FieldValue<V>::Print(*item));
+    }
+    text.AppendChar(']');
+    return text;
+}
+
+// The operations of an array of a fixed size (a plain one or a std::array): element by element
+template <typename Array, typename V>
+struct ArrayValue
+{
+    static bool Equal(const Array &a, const Array &b)
+    {
+        return std::equal(std::begin(a), std::end(a), std::begin(b), &FieldValue<V>::Equal);
+    }
+    static String Print(const Array &value) { return PrintItems<V>(std::begin(value), std::end(value)); }
+    static void Alter(Array &value)
+    {
+        for (V &item : value)
+            FieldValue<V>::Alter(item);
+    }
+};
+
+} // namespace FieldDetail
+
 template <typename V>
 struct FieldValue<std::vector<V>>
 {
@@ -441,18 +489,7 @@ struct FieldValue<std::vector<V>>
     {
         return std::equal(a.begin(), a.end(), b.begin(), b.end(), &FieldValue<V>::Equal);
     }
-    static String Print(const std::vector<V> &value)
-    {
-        String text = "[";
-        for (const V &item : value)
-        {
-            if (text.GetLength() > 1)
-                text.Append(", ");
-            text.Append(FieldValue<V>::Print(item));
-        }
-        text.AppendChar(']');
-        return text;
-    }
+    static String Print(const std::vector<V> &value) { return FieldDetail::PrintItems<V>(value.begin(), value.end()); }
     static void Alter(std::vector<V> &value)
     {
         value.emplace_back();
@@ -461,27 +498,13 @@ struct FieldValue<std::vector<V>>
 };
 
 template <typename V, size_t N>
-struct FieldValue<V[N]>
+struct FieldValue<V[N]> : FieldDetail::ArrayValue<V[N], V>
 {
-    using Array = V[N];
-    static bool Equal(const Array &a, const Array &b) { return std::equal(a, a + N, b, &FieldValue<V>::Equal); }
-    static String Print(const Array &value)
-    {
-        String text = "[";
-        for (size_t i = 0; i < N; ++i)
-        {
-            if (i > 0)
-                text.Append(", ");
-            text.Append(FieldValue<V>::Print(value[i]));
-        }
-        text.AppendChar(']');
-        return text;
-    }
-    static void Alter(Array &value)
-    {
-        for (V &item : value)
-            FieldValue<V>::Alter(item);
-    }
+};
+
+template <typename V, size_t N>
+struct FieldValue<std::array<V, N>> : FieldDetail::ArrayValue<std::array<V, N>, V>
+{
 };
 
 // A map prints in the order of its keys, so that two equal maps print alike; a map with a hash and a comparison of
@@ -525,6 +548,51 @@ struct FieldValue<std::unordered_map<K, V, Hash, KeyEqual, Allocator>>
         FieldValue<K>::Alter(key);
         FieldValue<V>::Alter(value[key]);
     }
+};
+
+// A set prints in the order of its keys, as a map; Alter adds a key it does not have
+template <typename K, typename Hash, typename KeyEqual, typename Allocator>
+struct FieldValue<std::unordered_set<K, Hash, KeyEqual, Allocator>>
+{
+    using Set = std::unordered_set<K, Hash, KeyEqual, Allocator>;
+    static bool Equal(const Set &a, const Set &b)
+    {
+        if (a.size() != b.size())
+            return false;
+        for (const K &key : a)
+        {
+            if (b.find(key) == b.end())
+                return false;
+        }
+        return true;
+    }
+    static String Print(const Set &value)
+    {
+        std::vector<K> keys(value.begin(), value.end());
+        std::sort(keys.begin(), keys.end());
+        return FieldDetail::PrintItems<K>(keys.begin(), keys.end());
+    }
+    static void Alter(Set &value)
+    {
+        K key{};
+        do
+            FieldValue<K>::Alter(key);
+        while (value.find(key) != value.end());
+        value.insert(key);
+    }
+};
+
+// A point in time prints as the count of its clock's ticks; Alter moves it one tick on
+template <typename Clock, typename Duration>
+struct FieldValue<std::chrono::time_point<Clock, Duration>>
+{
+    using TimePoint = std::chrono::time_point<Clock, Duration>;
+    static bool Equal(const TimePoint &a, const TimePoint &b) { return a == b; }
+    static String Print(const TimePoint &value)
+    {
+        return String::FromFormat("%lld", static_cast<long long>(value.time_since_epoch().count()));
+    }
+    static void Alter(TimePoint &value) { value += Duration(1); }
 };
 
 } // namespace Common

@@ -38,6 +38,8 @@ namespace Common
 class Bitmap;
 class Stream;
 typedef std::shared_ptr<Bitmap> PBitmap;
+template <typename T>
+struct FieldTable;
 } // namespace Common
 namespace Engine
 {
@@ -91,7 +93,8 @@ struct SceneLocationRef
 // Not saved by them: DialogRequestResult, IsScreenFadedOut, WaitSkippedBy, WaitSkippedByData,
 // StandardGuiTextHeight, SwapPortraitLastLastCharacter, RoomChanges,
 // IsSpeechInPostState, OverlayCount, CompleteOverlayID, TextOverlayID, SpeechTextScriptHandle,
-// SpeechPortraitScriptHandle, ShakeScreenOffsetY, LastNamedLocation, LocationNameSaveCursor and GuiDrawOrder.
+// SpeechPortraitScriptHandle, ShakeScreenOffsetY, LastNamedLocation, LocationNameSaveCursor, GuiDrawOrder,
+// GameErrorText, RBSwitches and IgnoreUserInputUntilTime.
 // Saved by other save components: DefaultAudioTypeVolumes and the custom property vectors (GuiProperties,
 // GuiControlProperties).
 // The save layout also holds the room's ScriptFinished, AnimBackgroundDelay, BgFrame, BgFrameLocked,
@@ -115,7 +118,7 @@ struct GameState
     int TextReadingSpeed = 0;           // how quickly text is removed; script: game.text_speed
     int GlobalSpeechAnimationDelay = 0; // animation speed of talking anims; script: game.talkanim_speed
     // script: game.inv_item_wid, game.inv_item_hit
-    int InventoryItemWidth, InventoryItemHeight = 0; // set by SetInvDimensions
+    int InventoryItemWidth = 0, InventoryItemHeight = 0; // set by SetInvDimensions
     int TextShadowColor = 0;     // colour of outline fonts (default black); script: game.text_shadow_color
     int SwapPortraitSide = 0;    // sierra-style speech swap sides; script: game.swap_portrait
     int SpeechTextWindowGui = 0; // textwindow used for sierra-style speech; script: game.speech_text_gui
@@ -302,28 +305,45 @@ struct GameState
     // y offset of the shaking screen
     int ShakeScreenOffsetY = 0;
 
+    // The fields below are public so that the struct is an aggregate and its fields can be counted (Fields()); they
+    // are read and changed through the methods further down, which keep them consistent
+    //
+    // Custom error text, to use when displaying a quit message (may be translated)
+    AGS::Common::String GameErrorText;
+    // Runtime behavior switches
+    std::array<bool, kNum_RBS> RBSwitches = {{0}};
+    // TODO: a RAII wrapper over managed handle, that auto releases the reference
+    int ScreenShaderID = 0;
+    int ScreenShaderHandle = 0;
+    int CursorShaderID = 0;
+    int CursorShaderHandle = 0;
+    // A time point until which the user input will be ignored
+    AGS::Engine::Clock::time_point IgnoreUserInputUntilTime{};
+    // Script Timers: simple game tick counters with arbitrary ID (not negative), each with its ticks left (above 0)
+    std::unordered_map<int32_t, int32_t> ScriptTimers;
 
-    GameState();
+    // One row per field above (util/field_table.h); the struct stays an aggregate so that they can be counted
+    static AGS::Common::FieldTable<GameState> Fields();
 
     // Custom error text, to use when displaying a quit message (may be translated)
-    const AGS::Common::String &GetGameErrorText() const { return _gameErrorText; }
+    const AGS::Common::String &GetGameErrorText() const { return GameErrorText; }
 
-    void SetGameErrorText(const AGS::Common::String &text) { _gameErrorText = text; }
+    void SetGameErrorText(const AGS::Common::String &text) { GameErrorText = text; }
 
     // Runtime behavior switches: allow to configure engine behavior
     // for modern and backwards-compatibility mode on a per-operation basis.
-    const std::array<bool, kNum_RBS> &GetRBSwitches() const { return _rbSwitches; }
+    const std::array<bool, kNum_RBS> &GetRBSwitches() const { return RBSwitches; }
     // Replaces all the switches with the given ones.
     void SetRBSwitches(const std::array<bool, kNum_RBS> &overrides);
 
     // The shader (ID and managed handle) applied to the whole screen
-    int GetScreenShaderID() const { return _screenShaderID; }
-    int GetScreenShaderHandle() const { return _screenShaderHandle; }
+    int GetScreenShaderID() const { return ScreenShaderID; }
+    int GetScreenShaderHandle() const { return ScreenShaderHandle; }
     void SetScreenShader(int shader_id, int shader_handle);
 
     // The shader (ID and managed handle) applied to the mouse cursor
-    int GetCursorShaderID() const { return _cursorShaderID; }
-    int GetCursorShaderHandle() const { return _cursorShaderHandle; }
+    int GetCursorShaderID() const { return CursorShaderID; }
+    int GetCursorShaderHandle() const { return CursorShaderHandle; }
     void SetCursorShader(int shader_id, int shader_handle);
 
     // Tells if engine should apply AA (linear) scaling to the game sprites: the config allows it and the game
@@ -416,21 +436,4 @@ struct GameState
     // TODO: restoring a game resets the state part by part (see DoBeforeRestore in savegame.cpp), reset the whole
     // object instead
     void FreeProperties();
-
-private:
-    AGS::Common::String _gameErrorText;
-
-    std::array<bool, kNum_RBS> _rbSwitches = {{0}};
-
-    // TODO: a RAII wrapper over managed handle, that auto releases the reference
-    int _screenShaderID = 0;
-    int _screenShaderHandle = 0;
-    int _cursorShaderID = 0;
-    int _cursorShaderHandle = 0;
-
-    // A time point until which the user input will be ignored
-    AGS::Engine::Clock::time_point _ignoreUserInputUntilTime{};
-
-    // Script Timers: simple game tick counters with arbitrary ID
-    std::unordered_map<int32_t, int32_t> _scriptTimers;
 };

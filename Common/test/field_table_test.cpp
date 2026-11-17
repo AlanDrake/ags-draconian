@@ -11,9 +11,12 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+#include <array>
+#include <chrono>
 #include <cstdint>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include "game/audio_clip_def.h"
@@ -97,6 +100,19 @@ struct Entity : Look
     static FieldTable<Entity> Fields();
 };
 
+// A struct with the members of the game's state that the other samples do not have: a std::array, a set, a point in
+// time, a number at the largest value of its type, and a transient field (a blocking wait's result)
+struct Session
+{
+    std::array<bool, 2> Switches = {{false, true}};
+    std::unordered_set<String> Tokens;
+    std::chrono::steady_clock::time_point Until{};
+    int ZOrder = INT32_MAX;
+    int SkippedBy = 0;
+
+    static FieldTable<Session> Fields();
+};
+
 constexpr FieldRow<Part> kPartFields[] = {
     Field<&Part::Count>("Count"),
     Field<&Part::Ratio>("Ratio"),
@@ -142,6 +158,16 @@ constexpr FieldRow<Entity> kEntityFields[] = {
 };
 static_assert(FieldsCoverStruct(kEntityFields), "Entity: a field has no row");
 
+constexpr FieldRow<Session> kSessionFields[] = {
+    Field<&Session::Switches>("Switches"),
+    Field<&Session::Tokens>("Tokens"),
+    Field<&Session::Until>("Until"),
+    Field<&Session::ZOrder>("ZOrder"),
+    Field<&Session::SkippedBy>("SkippedBy", FieldRole::Transient),
+};
+// A std::array is one initializer, as a struct
+static_assert(FieldsCoverStruct(kSessionFields), "Session: a field has no row");
+
 // The same rows without the last one leave a member out
 constexpr FieldRow<Part> kPartFieldsShort[] = {
     Field<&Part::Count>("Count"),
@@ -171,6 +197,11 @@ FieldTable<Look> Look::Fields()
 FieldTable<Entity> Entity::Fields()
 {
     return kEntityFields;
+}
+
+FieldTable<Session> Session::Fields()
+{
+    return kSessionFields;
 }
 
 std::string Lines(const std::vector<String> &lines)
@@ -361,6 +392,49 @@ TEST(FieldTable, RectanglesAndMapsWithoutCase)
     EXPECT_STREQ("{\"Colour\": \"red\", \"Weight\": \"1\"}", FieldValue<StringIMap>::Print(tags).GetCStr());
     FieldValue<StringIMap>::Alter(tags);
     EXPECT_EQ(3u, tags.size());
+}
+
+// A std::array, a set and a point in time are values: compared, printed (a set in the order of its keys) and altered;
+// a number at the largest value of its type is altered without an overflow
+TEST(FieldTable, ArraysSetsTimePointsAndLargestNumbers)
+{
+    Session a;
+    a.Tokens = {"b", "a"};
+    a.Until += std::chrono::steady_clock::duration(5);
+    EXPECT_STREQ("{Switches: [0, 1], Tokens: [\"a\", \"b\"], Until: 5, ZOrder: 2147483647, SkippedBy: 0}",
+                 PrintFields(a).GetCStr());
+
+    Session b = a;
+    EXPECT_EQ("", Lines(DiffFields(a, b)));
+    AlterFields(b);
+    EXPECT_EQ("Switches: [0, 1] != [1, 0]\n"
+              "Tokens: [\"a\", \"b\"] != [\"a\", \"b\", \"~\"]\n"
+              "Until: 5 != 6\n"
+              "ZOrder: 2147483647 != 2147483646\n",
+              Lines(DiffFields(a, b)));
+
+    // the key a set gets is one it does not have yet
+    std::unordered_set<String> tokens = {"~"};
+    FieldValue<std::unordered_set<String>>::Alter(tokens);
+    EXPECT_EQ((std::unordered_set<String>{"~", "~~"}), tokens);
+}
+
+// A transient field is compared and printed as a saved one, also without the derived fields; AlterFields changes it only
+// when asked for that role
+TEST(FieldTable, TransientFieldsAreComparedAndAlteredOnRequest)
+{
+    Session a;
+    Session b;
+    b.SkippedBy = 2;
+    EXPECT_EQ("SkippedBy: 0 != 2\n", Lines(DiffFields(a, b, false)));
+
+    Session saved;
+    AlterFields(saved);
+    EXPECT_EQ(a.SkippedBy, saved.SkippedBy);
+
+    Session transient;
+    AlterFields(transient, FieldRole::Transient);
+    EXPECT_EQ("SkippedBy: 0 != 1\n", Lines(DiffFields(a, transient)));
 }
 
 // The character's definition: each row names its own member, and the operations reach every one but the two
