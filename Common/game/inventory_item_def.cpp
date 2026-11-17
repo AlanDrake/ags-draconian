@@ -13,10 +13,45 @@
 //=============================================================================
 #include "game/inventory_item_def.h"
 
+#include <type_traits>
+
 #include "game/common_defines.h"
+#include "util/field_table.h"
 #include "util/stream.h"
 
 using namespace AGS::Common;
+
+// The struct gets a field table, so it must stay an aggregate (util/field_table.h)
+static_assert(std::is_aggregate_v<InventoryItemDef>, "InventoryItemDef must stay an aggregate");
+
+namespace
+{
+
+// The roles are those of the live item, the engine's copy of the definition made when the game starts
+// (StartFromDefinitions). Saved: the save's "Inventory Items" component holds it. FromDefinition: a save does not
+// hold it, the game's start gives the definition's; nothing writes it during play. Opaque: the event tables, which
+// have no comparison yet.
+constexpr FieldRow<InventoryItemDef> kInventoryItemDefFields[] = {
+    Field<&InventoryItemDef::Name>("Name"),
+    Field<&InventoryItemDef::Sprite>("Sprite"),
+    Field<&InventoryItemDef::CursorSprite>("CursorSprite"),
+    // in 16 bits in the save
+    Field<&InventoryItemDef::CursorHotspotX>("CursorHotspotX"),
+    Field<&InventoryItemDef::CursorHotspotY>("CursorHotspotY"),
+    Field<&InventoryItemDef::CursorHotspotAlignment>("CursorHotspotAlignment"),
+    Field<&InventoryItemDef::Flags>("Flags", FieldRole::FromDefinition),
+    OpaqueField<&InventoryItemDef::Interactions>("Interactions"),
+    OpaqueField<&InventoryItemDef::Events>("Events"),
+};
+static_assert(FieldsCoverStruct(kInventoryItemDefFields),
+              "InventoryItemDef: a field has no row in kInventoryItemDefFields");
+
+} // namespace
+
+FieldTable<InventoryItemDef> InventoryItemDef::Fields()
+{
+    return kInventoryItemDefFields;
+}
 
 /* static */ ScriptEventSchema InventoryItemDef::_eventSchema = {{{"OnAnyClick", kInventoryEvent_AnyClick}}};
 
@@ -37,7 +72,7 @@ void InventoryItemDef::RemapOldInteractions()
     new_interactions[STD_MODE_CUSTOM1] = old_interactions[4];
     new_interactions[STD_MODE_CUSTOM2] = old_interactions[4];
 
-    Interactions.SetScriptModule(_events.GetScriptModule());
+    Interactions.SetScriptModule(Events.GetScriptModule());
     Interactions.SetHandlers(std::move(new_interactions));
 }
 

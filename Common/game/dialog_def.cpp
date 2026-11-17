@@ -15,11 +15,53 @@
 
 #include <algorithm>
 
+#include "util/field_table.h"
 #include "util/stream.h"
 #include "util/string_utils.h"
 
 using namespace AGS;
 using namespace AGS::Common;
+
+namespace
+{
+
+// The roles are those of the live dialog, the engine's copy of the definition made when the game starts
+// (StartFromDefinitions). Saved: the save's "Dialogs" component holds it. FromDefinition: a save does not hold it, the
+// game's start gives the definition's; nothing writes it during play.
+constexpr FieldRow<DialogOptionDef> kDialogOptionDefFields[] = {
+    Field<&DialogOptionDef::OriginalText>("OriginalText", FieldRole::FromDefinition),
+    // held only while Flags has DFLG_TEXTSET, which the engine sets whenever the text differs from OriginalText
+    // (Dialog.SetOptionText); without it a restore gives the option OriginalText
+    Field<&DialogOptionDef::Text>("Text"),
+    Field<&DialogOptionDef::Flags>("Flags"),
+    Field<&DialogOptionDef::EntryPoint>("EntryPoint", FieldRole::FromDefinition),
+};
+static_assert(FieldsCoverStruct(kDialogOptionDefFields),
+              "DialogOptionDef: a field has no row in kDialogOptionDefFields");
+
+// The options' count is the definition's: a save holds it only to compare it with the game's (ReadDialogs,
+// HandleGameContentMismatch), and the saved fields of each option, which the option's rows say. AlterFields does not
+// reach the elements of a list (util/field_table.h): a test alters the options themselves.
+constexpr FieldRow<DialogDef> kDialogDefFields[] = {
+    Field<&DialogDef::ScriptName>("ScriptName", FieldRole::FromDefinition),
+    Field<&DialogDef::Flags>("Flags", FieldRole::FromDefinition),
+    Field<&DialogDef::Options>("Options", FieldRole::FromDefinition),
+    Field<&DialogDef::StartEntryPoint>("StartEntryPoint", FieldRole::FromDefinition),
+    Field<&DialogDef::CodeSize>("CodeSize", FieldRole::FromDefinition),
+};
+static_assert(FieldsCoverStruct(kDialogDefFields), "DialogDef: a field has no row in kDialogDefFields");
+
+} // namespace
+
+FieldTable<DialogOptionDef> DialogOptionDef::Fields()
+{
+    return kDialogOptionDefFields;
+}
+
+FieldTable<DialogDef> DialogDef::Fields()
+{
+    return kDialogDefFields;
+}
 
 void DialogDef::ReadFromFile_v321(Stream *in)
 {

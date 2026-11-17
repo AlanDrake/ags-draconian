@@ -13,10 +13,41 @@
 //=============================================================================
 #include "game/mouse_cursor_def.h"
 
+#include <type_traits>
+
+#include "util/field_table.h"
 #include "util/stream.h"
 #include "util/string_utils.h"
 
 using namespace AGS::Common;
+
+// The struct gets a field table, so it must stay an aggregate (util/field_table.h)
+static_assert(std::is_aggregate_v<MouseCursorDef>, "MouseCursorDef must stay an aggregate");
+
+namespace
+{
+
+// The roles are those of the live cursor, the engine's copy of the definition made when the game starts
+// (StartFromDefinitions). Saved: the save's "Mouse Cursors" component holds it (each value in 32 bits). FromDefinition:
+// a save does not hold it, the game's start gives the definition's; nothing writes it during play.
+constexpr FieldRow<MouseCursorDef> kMouseCursorDefFields[] = {
+    Field<&MouseCursorDef::Flags>("Flags"),
+    Field<&MouseCursorDef::Role>("Role", FieldRole::FromDefinition),
+    Field<&MouseCursorDef::Sprite>("Sprite"),
+    Field<&MouseCursorDef::HotspotX>("HotspotX"),
+    Field<&MouseCursorDef::HotspotY>("HotspotY"),
+    Field<&MouseCursorDef::View>("View"),
+    Field<&MouseCursorDef::AnimationDelay>("AnimationDelay"),
+    Field<&MouseCursorDef::ScriptName>("ScriptName", FieldRole::FromDefinition),
+};
+static_assert(FieldsCoverStruct(kMouseCursorDefFields), "MouseCursorDef: a field has no row in kMouseCursorDefFields");
+
+} // namespace
+
+FieldTable<MouseCursorDef> MouseCursorDef::Fields()
+{
+    return kMouseCursorDefFields;
+}
 
 void MouseCursorDef::ReadFromFile(Stream *in)
 {

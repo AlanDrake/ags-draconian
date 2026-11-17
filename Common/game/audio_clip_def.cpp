@@ -14,10 +14,38 @@
 
 #include "game/audio_clip_def.h"
 
+#include "util/field_table.h"
 #include "util/stream.h"
 #include "util/string_compat.h"
 
 using namespace AGS::Common;
+
+namespace
+{
+
+// The live clip is the engine's copy of the definition made when the game starts (StartFromDefinitions), and its own
+// script object: no save holds a field of it (the managed pool saves a clip's handle as its ID), the game's start
+// gives every one; nothing writes it during play
+constexpr FieldRow<AudioClipDef> kAudioClipDefFields[] = {
+    // the loader makes it the clip's index (GameDef::ReadAudioClips)
+    Field<&AudioClipDef::ID>("ID", FieldRole::FromDefinition),
+    Field<&AudioClipDef::ScriptName>("ScriptName", FieldRole::FromDefinition),
+    Field<&AudioClipDef::FileName>("FileName", FieldRole::FromDefinition),
+    Field<&AudioClipDef::BundlingType>("BundlingType", FieldRole::FromDefinition),
+    Field<&AudioClipDef::Type>("Type", FieldRole::FromDefinition),
+    Field<&AudioClipDef::FileType>("FileType", FieldRole::FromDefinition),
+    Field<&AudioClipDef::IsRepeatingByDefault>("IsRepeatingByDefault", FieldRole::FromDefinition),
+    Field<&AudioClipDef::DefaultPriority>("DefaultPriority", FieldRole::FromDefinition),
+    Field<&AudioClipDef::DefaultVolume>("DefaultVolume", FieldRole::FromDefinition),
+};
+static_assert(FieldsCoverStruct(kAudioClipDefFields), "AudioClipDef: a field has no row in kAudioClipDefFields");
+
+} // namespace
+
+FieldTable<AudioClipDef> AudioClipDef::Fields()
+{
+    return kAudioClipDefFields;
+}
 
 /*static*/ AudioFileType AudioClipDef::GetAudioFileTypeFromExt(const char *ext)
 {

@@ -25,7 +25,9 @@ namespace AGS
 namespace Common
 {
 class Stream;
-}
+template <typename T>
+struct FieldTable;
+} // namespace Common
 } // namespace AGS
 
 enum AudioFileType
@@ -64,6 +66,9 @@ public:
     char IsRepeatingByDefault = 0; // script: AudioClip.DefaultRepeat
     short DefaultPriority = 50;
     short DefaultVolume = 100;
+
+    // One row per field above (util/field_table.h); the struct stays an aggregate so that they can be counted
+    static AGS::Common::FieldTable<AudioClipDef> Fields();
 
     static AudioFileType GetAudioFileTypeFromExt(const char *ext);
     static const char *GetExtFromAudioFileType(AudioFileType filetype);

@@ -17,7 +17,9 @@
 // options and the game's values that a script changes. Every script function
 // that writes one of them during play, read back through its getter; the audio
 // clip's script handle; the save round trip of every saved field of the view
-// frames and of the inventory items; the fix-up that engine_init_game_settings
+// frames and of the inventory items, and of every field of the items, cursors,
+// view frames, dialog options and audio types by their definitions' field
+// tables (the saved ones restored, the others the definition's); the fix-up that engine_init_game_settings
 // makes at start (the loader's are Common's GameLoader tests); the values a
 // started game has, which are its definition's; ViewFrame.YOffset, which gave
 // the x offset; the sprite table, which the sprite cache writes in the game's live
@@ -85,6 +87,7 @@
 #include "script/dynobj/managed_object_pool.h"
 #include "script/runtimescript.h"
 #include "script/scriptexecutor.h"
+#include "util/field_table.h"
 #include "util/geometry.h"
 #include "util/memorystream.h"
 #include "util/stream.h"
@@ -545,6 +548,54 @@ protected:
         PreservedParams pp;
         RestoredData r_data;
         return SavegameComponents::ReadAll(&in, kSvgVersion_Current, cmp, pp, r_data);
+    }
+
+    // The round trip of the live elements of one kind (elements(game) lists them, by address), by the rows of their
+    // definition's table: in each element the saved fields are altered (AlterFields: what the game changed during play;
+    // keep, if given, then restores what the engine keeps true between two fields), which gives the expected element,
+    // and then the fields from the definition. The component cmp is saved, the game started again from its definition
+    // (RestartGame) and the save restored. Returns the fields of the restored elements that differ from the expected
+    // ones: a saved field that the save lost, or a field from the definition that the start did not give again. The
+    // start gives the definition's values back (StartFromDefinitions, from InitGameState), not the restore, which
+    // reads only the saved fields into the live elements; nothing writes the other fields during play, so a restore
+    // into a running game finds the definition's values there too.
+    template <typename T, typename Elements>
+    std::string RoundTripLosses(SaveCmpSelection cmp, Elements elements, void (*keep)(T &) = nullptr)
+    {
+        Game &game = Game::Current();
+        std::vector<T> expected;
+        for (T *element : elements(game))
+        {
+            const T started = *element;
+            AlterFields(*element, FieldRole::Saved);
+            if (keep)
+                keep(*element);
+            expected.push_back(*element);
+            EXPECT_FALSE(DiffFields(started, *element).empty()) << "the element has no saved field to alter";
+            AlterFields(*element, FieldRole::FromDefinition);
+            EXPECT_FALSE(DiffFields(expected.back(), *element).empty())
+                << "the element has no field from the definition";
+        }
+        EXPECT_FALSE(expected.empty());
+        std::vector<uint8_t> saved;
+        std::string error;
+        if (!Save(cmp, saved, error))
+            return "the save failed: " + error;
+
+        RestartGame();
+        HSaveError err = Restore(saved, cmp);
+        if (!err)
+            return std::string("the restore failed: ") + err->FullMessage().GetCStr();
+        const std::vector<T *> restored = elements(game);
+        if (restored.size() != expected.size())
+            return "the game has another count of elements";
+        std::string lost;
+        for (size_t i = 0; i < expected.size(); ++i)
+        {
+            for (const String &line : DiffFields(expected[i], *restored[i]))
+                lost += "element " + std::to_string(i) + ": " + line.GetCStr() + "\n";
+        }
+        return lost;
     }
 
     // Item i, as its getters give it, against its definition
@@ -1174,6 +1225,89 @@ TEST_F(GameEntities, AudioTypesComeBackFromASave)
     EXPECT_EQ(44, Game_GetAudioTypeCrossfadeSpeed(1));
     EXPECT_EQ(55, Game_GetAudioTypeSpeechVolumeDrop(2));
     ExpectAudioTypeTakesTheDefinition(0);
+    ExpectDefinitionAsMade();
+}
+
+// Every saved field of every inventory item comes back from a save into a game started again, and every field from the
+// definition is the definition's again (RoundTripLosses); the rows of InventoryItemDef say which field is which, so a
+// field added to the struct is checked here without a line of this test changing
+TEST_F(GameEntities, EveryInventoryItemFieldIsRestored)
+{
+    EXPECT_EQ("", RoundTripLosses<InventoryItem>(kSaveCmp_InvItems,
+                                                 [](Game &running)
+                                                 {
+                                                     std::vector<InventoryItem *> items;
+                                                     for (InventoryItem &item : running.InventoryItems)
+                                                         items.push_back(&item);
+                                                     return items;
+                                                 }));
+    ExpectDefinitionAsMade();
+}
+
+// The same for every mouse cursor (MouseCursorDef's rows)
+TEST_F(GameEntities, EveryMouseCursorFieldIsRestored)
+{
+    EXPECT_EQ("", RoundTripLosses<MouseCursor>(kSaveCmp_Cursors,
+                                               [](Game &running)
+                                               {
+                                                   std::vector<MouseCursor *> cursors;
+                                                   for (MouseCursor &cursor : running.MouseCursors)
+                                                       cursors.push_back(&cursor);
+                                                   return cursors;
+                                               }));
+    ExpectDefinitionAsMade();
+}
+
+// The same for every frame of every loop of the framed view (ViewFrameDef's rows); the loops' and the views' own fields
+// are the definition's (the save holds their counts only to compare them with the game's)
+TEST_F(GameEntities, EveryViewFrameFieldIsRestored)
+{
+    EXPECT_EQ("", RoundTripLosses<ViewFrame>(kSaveCmp_Views,
+                                             [](Game &running)
+                                             {
+                                                 std::vector<ViewFrame *> frames;
+                                                 for (ViewLoop &loop : running.Views[kFramedView].Loops)
+                                                 {
+                                                     for (int frame = 0; frame < loop.FrameCount; ++frame)
+                                                         frames.push_back(&loop.Frames[frame]);
+                                                 }
+                                                 return frames;
+                                             }));
+    ExpectDefinitionAsMade();
+}
+
+// The same for every option of every dialog (DialogOptionDef's rows). The save holds an option's text only while its
+// flags have DFLG_TEXTSET, which the engine sets whenever the text differs from the original (Dialog.SetOptionText):
+// the altered option gets the flag, as the engine would give it.
+TEST_F(GameEntities, EveryDialogOptionFieldIsRestored)
+{
+    EXPECT_EQ("", RoundTripLosses<DialogOption>(
+                      kSaveCmp_Dialogs,
+                      [](Game &running)
+                      {
+                          std::vector<DialogOption *> options;
+                          for (Dialog &dialog : running.Dialogs)
+                          {
+                              for (DialogOption &option : dialog.Options)
+                                  options.push_back(&option);
+                          }
+                          return options;
+                      },
+                      [](DialogOption &option) { option.Flags |= DFLG_TEXTSET; }));
+    ExpectDefinitionAsMade();
+}
+
+// The same for every audio type (AudioClipTypeDef's rows)
+TEST_F(GameEntities, EveryAudioTypeFieldIsRestored)
+{
+    EXPECT_EQ("", RoundTripLosses<AudioClipType>(kSaveCmp_Audio,
+                                                 [](Game &running)
+                                                 {
+                                                     std::vector<AudioClipType *> types;
+                                                     for (AudioClipType &type : running.AudioClipTypes)
+                                                         types.push_back(&type);
+                                                     return types;
+                                                 }));
     ExpectDefinitionAsMade();
 }
 

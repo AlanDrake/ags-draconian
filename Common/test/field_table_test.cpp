@@ -16,7 +16,14 @@
 #include <unordered_map>
 #include <vector>
 
+#include "game/audio_clip_def.h"
+#include "game/audio_clip_type_def.h"
 #include "game/character_def.h"
+#include "game/dialog_def.h"
+#include "game/game_struct_defines.h"
+#include "game/inventory_item_def.h"
+#include "game/mouse_cursor_def.h"
+#include "game/view_def.h"
 #include "gtest/gtest.h"
 #include "util/field_table.h"
 #include "util/geometry.h"
@@ -172,6 +179,39 @@ std::string Lines(const std::vector<String> &lines)
     for (const String &line : lines)
         text += std::string(line.GetCStr()) + "\n";
     return text;
+}
+
+// The rows of a table that have a role
+template <typename T>
+size_t RowsOfRole(FieldRole role)
+{
+    size_t count = 0;
+    for (const FieldRow<T> &row : T::Fields())
+        count += (row.Role == role) ? 1 : 0;
+    return count;
+}
+
+// A definition's table is whole: it has the rows of each role that the test expects, its rows are distinct, two new
+// objects do not differ, and AlterFields with a role changes a field per row of that role and no other (no row of these
+// tables is a struct with a table of its own, so a row gives one line; a list's row gets an element more)
+template <typename T>
+void ExpectWholeTable(size_t saved, size_t from_definition, size_t opaque)
+{
+    EXPECT_EQ(saved, RowsOfRole<T>(FieldRole::Saved));
+    EXPECT_EQ(from_definition, RowsOfRole<T>(FieldRole::FromDefinition));
+    EXPECT_EQ(0u, RowsOfRole<T>(FieldRole::Derived));
+    EXPECT_EQ(opaque, RowsOfRole<T>(FieldRole::Opaque));
+    const T a{};
+    const T b{};
+    EXPECT_TRUE(FieldsAreDistinct(a));
+    EXPECT_EQ("", Lines(DiffFields(a, b)));
+    for (const FieldRole role : {FieldRole::Saved, FieldRole::FromDefinition})
+    {
+        SCOPED_TRACE(testing::Message() << "role " << static_cast<int>(role));
+        T altered{};
+        AlterFields(altered, role);
+        EXPECT_EQ(RowsOfRole<T>(role), DiffFields(a, altered).size()) << Lines(DiffFields(a, altered));
+    }
 }
 
 } // namespace
@@ -335,4 +375,54 @@ TEST(FieldTable, CharacterDefHasARowPerField)
     EXPECT_EQ(CharacterDef::Fields().Count - 2, DiffFields(a, b).size()) << Lines(DiffFields(a, b));
     EXPECT_EQ(1, b.Baseline - a.Baseline);
     EXPECT_EQ(1, b.get_item_quantity(1));
+}
+
+// The plain entities' definitions (PLAN.md 5.1a step 3): the rows by role are those of the save code of each entity's
+// live copy (Engine/game/save/savegame_components.cpp); the engine's tests GameEntities.Every...FieldIsRestored check
+// them against it
+TEST(FieldTable, InventoryItemDefHasARowPerField)
+{
+    ExpectWholeTable<InventoryItemDef>(6, 1, 2);
+}
+
+TEST(FieldTable, MouseCursorDefHasARowPerField)
+{
+    ExpectWholeTable<MouseCursorDef>(6, 2, 0);
+}
+
+TEST(FieldTable, ViewDefsHaveARowPerField)
+{
+    ExpectWholeTable<ViewFrameDef>(7, 1, 0);
+    ExpectWholeTable<ViewLoopDef>(0, 3, 0);
+    ExpectWholeTable<ViewDef>(0, 2, 0);
+}
+
+// A list of structs with a table is compared element by element, with every field of the element
+TEST(FieldTable, ViewLoopsCompareTheirFrames)
+{
+    ViewDef a;
+    a.Initialize(1);
+    a.Loops[0].Initialize(2);
+    ViewDef b = a;
+    EXPECT_EQ("", Lines(DiffFields(a, b)));
+    b.Loops[0].Frames[1].ReservedForFuture[1] = 3;
+    EXPECT_EQ(1u, DiffFields(a, b).size()) << Lines(DiffFields(a, b));
+    EXPECT_EQ(0u, Lines(DiffFields(a, b)).find("Loops: "));
+}
+
+TEST(FieldTable, AudioDefsHaveARowPerField)
+{
+    ExpectWholeTable<AudioClipDef>(0, 9, 0);
+    ExpectWholeTable<AudioClipTypeDef>(2, 2, 0);
+}
+
+TEST(FieldTable, DialogDefsHaveARowPerField)
+{
+    ExpectWholeTable<DialogOptionDef>(2, 2, 0);
+    ExpectWholeTable<DialogDef>(0, 5, 0);
+}
+
+TEST(FieldTable, FontDefHasARowPerField)
+{
+    ExpectWholeTable<FontDef>(0, 13, 0);
 }

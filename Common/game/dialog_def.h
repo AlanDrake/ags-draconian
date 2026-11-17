@@ -25,7 +25,9 @@ namespace AGS
 namespace Common
 {
 class Stream;
-}
+template <typename T>
+struct FieldTable;
+} // namespace Common
 } // namespace AGS
 
 // Dialog Topic flags
@@ -52,6 +54,9 @@ struct DialogOptionDef
     AGS::Common::String Text;
     int Flags = 0;       // DFLG_* flags
     int EntryPoint = -1; // old-style dialog script entry point
+
+    // One row per field above (util/field_table.h); the struct stays an aggregate so that they can be counted
+    static AGS::Common::FieldTable<DialogOptionDef> Fields();
 };
 
 struct DialogDef
@@ -61,6 +66,9 @@ struct DialogDef
     std::vector<DialogOptionDef> Options;
     int StartEntryPoint = -1; // old-style dialog script entry point
     size_t CodeSize = 0u;     // old-style dialog script size
+
+    // One row per field above (util/field_table.h); the struct stays an aggregate so that they can be counted
+    static AGS::Common::FieldTable<DialogDef> Fields();
 
     uint32_t GetOptionCount() const { return Options.size(); }
 

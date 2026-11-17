@@ -16,6 +16,15 @@
 #include "util/stream.h"
 #include "util/string.h"
 
+namespace AGS
+{
+namespace Common
+{
+template <typename T>
+struct FieldTable;
+} // namespace Common
+} // namespace AGS
+
 // Cursor flags
 #define MCF_ANIMMOVE 0x01
 #define MCF_DISABLED 0x02 // enabled for the cursor-cycling and display
@@ -50,7 +59,8 @@ struct MouseCursorDef
 
     AGS::Common::String ScriptName; // script name
 
-    MouseCursorDef() = default;
+    // One row per field above (util/field_table.h); the struct stays an aggregate so that they can be counted
+    static AGS::Common::FieldTable<MouseCursorDef> Fields();
 
     void ReadFromFile(AGS::Common::Stream *in);
     void WriteToFile(AGS::Common::Stream *out);

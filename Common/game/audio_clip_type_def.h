@@ -20,7 +20,9 @@ namespace AGS
 namespace Common
 {
 class Stream;
-}
+template <typename T>
+struct FieldTable;
+} // namespace Common
 } // namespace AGS
 
 struct AudioClipTypeDef
@@ -29,6 +31,9 @@ struct AudioClipTypeDef
     int ReservedChannels = 0;
     int VolumeReductionWhileSpeechPlaying = 0;
     int CrossfadeSpeed = 0;
+
+    // One row per field above (util/field_table.h); the struct stays an aggregate so that they can be counted
+    static AGS::Common::FieldTable<AudioClipTypeDef> Fields();
 
     void ReadFromFile(AGS::Common::Stream *in);
 };

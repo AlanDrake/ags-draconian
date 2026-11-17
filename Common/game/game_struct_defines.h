@@ -20,6 +20,15 @@
 #include "util/geometry.h"
 #include "util/string.h"
 
+namespace AGS
+{
+namespace Common
+{
+template <typename T>
+struct FieldTable;
+} // namespace Common
+} // namespace AGS
+
 // CLNUP check what's actually needed
 // Palette sections
 #define PAL_GAMEWIDE   0
@@ -315,6 +324,10 @@ struct FontDef
     AutoOutlineStyle AutoOutlineStyle = kSquared;
     // When automatic outlining, thickness of the outline (0 = no auto outline)
     int AutoOutlineThickness = 0;
+
+    // One row per field above (util/field_table.h, the table in game_def.cpp); the struct stays an aggregate so that
+    // they can be counted
+    static AGS::Common::FieldTable<FontDef> Fields();
 
     inline void SetFlags(const uint32_t flags)
     {

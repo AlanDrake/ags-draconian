@@ -20,6 +20,15 @@
 #include "util/string.h"
 #include "util/string_types.h"
 
+namespace AGS
+{
+namespace Common
+{
+template <typename T>
+struct FieldTable;
+} // namespace Common
+} // namespace AGS
+
 #define IFLG_STARTWITH                   1
 #define LEGACY_MAX_INVENTORY_NAME_LENGTH 25
 
@@ -39,13 +48,18 @@ struct InventoryItemDef
     uint8_t Flags = 0u; // IFLG_STARTWITH
     // Interaction events (cursor-based)
     AGS::Common::ScriptEventHandlers Interactions = {};
+    // Common events
+    AGS::Common::ScriptEventTable Events = AGS::Common::ScriptEventTable(&InventoryItemDef::_eventSchema);
+
+    // One row per field above (util/field_table.h); the struct stays an aggregate so that they can be counted
+    static AGS::Common::FieldTable<InventoryItemDef> Fields();
 
     // Gets a events schema corresponding to this object's type
     static const AGS::Common::ScriptEventSchema &GetEventSchema() { return InventoryItemDef::_eventSchema; }
 
     // Provides a script events table
-    const AGS::Common::ScriptEventTable &GetEvents() const { return _events; }
-    AGS::Common::ScriptEventTable &GetEvents() { return _events; }
+    const AGS::Common::ScriptEventTable &GetEvents() const { return Events; }
+    AGS::Common::ScriptEventTable &GetEvents() { return Events; }
     // Remaps old-format interaction list into new event table
     void RemapOldInteractions();
 
@@ -55,6 +69,4 @@ struct InventoryItemDef
 private:
     // Script events schema
     static AGS::Common::ScriptEventSchema _eventSchema;
-    // Common events
-    AGS::Common::ScriptEventTable _events = AGS::Common::ScriptEventTable(&InventoryItemDef::_eventSchema);
 };

@@ -20,11 +20,43 @@
 #include "game/dialog_def.h"
 #include "game/view_def.h"
 #include "script/cc_script.h"
+#include "util/field_table.h"
 #include "util/stream.h"
 #include "util/string_utils.h"
 
 using namespace AGS;
 using namespace AGS::Common;
+
+namespace
+{
+
+// FontDef (game/game_struct_defines.h, which has no source file of its own), read here (read_font_infos). The live
+// font is the font module's copy (Common/font/fonts.cpp), made from the definition whenever the game's fonts are
+// loaded (at the game's start and at a change of translation, which may override some fields); no save holds a field
+// of it, and nothing writes the definition during play
+constexpr FieldRow<FontDef> kFontDefFields[] = {
+    Field<&FontDef::ID>("ID", FieldRole::FromDefinition),
+    Field<&FontDef::SourceFileName>("SourceFileName", FieldRole::FromDefinition),
+    Field<&FontDef::AssetFileName>("AssetFileName", FieldRole::FromDefinition),
+    Field<&FontDef::Flags>("Flags", FieldRole::FromDefinition),
+    Field<&FontDef::Size>("Size", FieldRole::FromDefinition),
+    Field<&FontDef::SizeMultiplier>("SizeMultiplier", FieldRole::FromDefinition),
+    Field<&FontDef::Outline>("Outline", FieldRole::FromDefinition),
+    Field<&FontDef::CustomHeight>("CustomHeight", FieldRole::FromDefinition),
+    Field<&FontDef::OffsetY>("OffsetY", FieldRole::FromDefinition),
+    Field<&FontDef::LineSpacing>("LineSpacing", FieldRole::FromDefinition),
+    Field<&FontDef::CharacterSpacing>("CharacterSpacing", FieldRole::FromDefinition),
+    Field<&FontDef::AutoOutlineStyle>("AutoOutlineStyle", FieldRole::FromDefinition),
+    Field<&FontDef::AutoOutlineThickness>("AutoOutlineThickness", FieldRole::FromDefinition),
+};
+static_assert(FieldsCoverStruct(kFontDefFields), "FontDef: a field has no row in kFontDefFields");
+
+} // namespace
+
+FieldTable<FontDef> FontDef::Fields()
+{
+    return kFontDefFields;
+}
 
 // Defined here, where the element types of the lists (ViewDef, DialogDef) are complete.
 GameDef::GameDef() = default;
