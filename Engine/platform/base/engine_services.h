@@ -161,8 +161,9 @@ public:
     std::set<AGS::Common::String> TellInfoKeys;
     AGS::Common::String LoadSaveGameOnStartup;
 
-    // A request to run another game (the mode and flags given to RunAGSGame), served by the game loop; 0 when none.
-    unsigned int LoadNewGame = 0;
+    // A request to reload the running game file and restore a save in it (ReloadGameForRestore), served by the
+    // game loop.
+    bool ReloadGameForRestore = false;
     // Counts the restore attempts, so that a script run that was in progress can tell that one happened (script.cpp)
     int GameRestoredCount = 0;
     // Whether quit checks, in a debug-mode game that exits normally, that the script deleted its dynamic sprites;

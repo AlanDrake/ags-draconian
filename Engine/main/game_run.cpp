@@ -1665,10 +1665,10 @@ void RunGameUntilAborted()
     {
         GameTick();
 
-        if (services.LoadNewGame)
+        if (services.ReloadGameForRestore)
         {
-            RunAGSGame(nullptr, services.LoadNewGame, 0);
-            services.LoadNewGame = 0;
+            ReloadGameForRestore();
+            services.ReloadGameForRestore = false;
         }
     }
 }

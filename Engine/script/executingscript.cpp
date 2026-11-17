@@ -33,7 +33,7 @@ void ExecutingScript::QueueAction(PostScriptAction &&act)
         case ePSANewRoom:
         case ePSARestoreGame:
         case ePSARestoreGameDialog:
-        case ePSARunAGSGame:
+        case ePSAReloadGameForRestore:
         case ePSARestartGame:
             debug_script_warn(
                 "!%s: Cannot run this command, since there was a %s command already queued to run in \"%s\", line %d",

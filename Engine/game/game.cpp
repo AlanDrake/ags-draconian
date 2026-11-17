@@ -164,8 +164,10 @@ String saveGameDirectory = "./";
 
 String saveGameSuffix;
 
-int load_new_game_restore = -1;
-SaveCmpSelection load_new_game_restore_cmp = kSaveCmp_All;
+// The save slot to restore after the game file is reloaded for a restore, -1 when none, and the components that the
+// save does not hold (set with the slot, not read yet)
+int reload_restore_slot = -1;
+SaveCmpSelection reload_restore_cmp = kSaveCmp_All;
 
 //=============================================================================
 // Audio
@@ -1505,25 +1507,39 @@ std::unique_ptr<Bitmap> read_savedgame_screenshot(const String &filename)
 }
 
 
-// Test if the game file contains expected GUID / legacy id
-bool test_game_guid(const String &filepath, const String &guid, int legacy_id)
+// Asks for the game file that is running to be reloaded and the save in the slot restored after it, for a save that
+// holds less than the game (missing_components: what the save does not hold). The reload is not done here, as the
+// restore may run inside a script: it follows after the script ends if called from a script, else through
+// EngineServices::ReloadGameForRestore. Quits when run from the editor's debugger.
+static void ScheduleGameReloadForRestore(int slot, SaveCmpSelection missing_components)
 {
-    std::unique_ptr<AssetManager> asset_mgr(new AssetManager());
-    if (asset_mgr->AddLibrary(filepath) != kAssetNoError)
-        return false;
-    MainGameSource src;
-    if (!OpenMainGameFileFromDefaultAsset(src, asset_mgr.get()))
-        return false;
-    GameDef loaded_game;
-    PreReadGameData(loaded_game, std::move(src.InputStream), src.DataVersion, src.CompiledWith);
-    if (!guid.IsEmpty())
-        return guid.CompareNoCase(loaded_game.Guid) == 0;
-    return legacy_id == loaded_game.UniqueID;
+    EngineServices &services = EngineServices::Current();
+    can_run_delayed_command();
+
+    if (services.Debug.EditorDebuggingInitialized)
+    {
+        quit("!Restoring this saved game requires reloading the game, which cannot be done while running the game from "
+             "within the AGS Editor. You must build the game EXE and run it from there.");
+    }
+
+    reload_restore_slot = slot;
+    reload_restore_cmp = missing_components;
+
+    if (is_inside_script())
+    {
+        get_executingscript()->QueueAction(PostScriptAction(ePSAReloadGameForRestore, 0, "RestoreGame"));
+        scriptExecutor->Abort();
+    }
+    else
+    {
+        services.ReloadGameForRestore = true;
+    }
 }
 
-// Restores the game from the save file. If the save belongs to another game (by GUID, or by the main file name when
-// there is none), schedules running that game and restoring the save there, and returns no error. Sets
-// data_overwritten once RestoreSavegame has run, after which an error means the game state is lost.
+// Restores the game from the save file. A save that belongs to another game (by GUID, or by the main file name when
+// there is none) is refused. If the save holds less than the game, schedules a reload of this game file and the
+// restore after it, and returns no error. Sets data_overwritten once RestoreSavegame has run, after which an error
+// means the game state is lost.
 HSaveError load_game(const String &path, int slot, bool startup, bool &data_overwritten)
 {
     EngineServices &services = EngineServices::Current();
@@ -1553,15 +1569,6 @@ HSaveError load_game(const String &path, int slot, bool startup, bool &data_over
     {
         if (desc.GameGuid.Compare(game_def.Guid) != 0 && desc.LegacyID != game_def.UniqueID)
         {
-            // Try to find wanted game's data using game id
-            String game_file = FindGameData(services.ResPaths.DataDir, [&desc](const String &filepath)
-                                            { return test_game_guid(filepath, desc.GameGuid, desc.LegacyID); });
-            if (!game_file.IsEmpty())
-            {
-                RunAGSGame(game_file.GetCStr(), 0, 0);
-                load_new_game_restore = slot;
-                return HSaveError::None();
-            }
             return new SavegameError(kSvgErr_GameGuidMismatch);
         }
     }
@@ -1572,11 +1579,7 @@ HSaveError load_game(const String &path, int slot, bool startup, bool &data_over
     {
         String game_file = Path::ConcatPaths(services.ResPaths.DataDir, desc.MainDataFilename);
         if (IsMainGameLibrary(game_file))
-        {
-            RunAGSGame(desc.MainDataFilename.GetCStr(), 0, 0);
-            load_new_game_restore = slot;
-            return HSaveError::None();
-        }
+            return new SavegameError(kSvgErr_GameGuidMismatch);
         // if it does not exist, continue loading savedgame in current game, and pray for the best
         Common::Debug::Printf(kDbgMsg_Warn,
                               "WARNING: the saved game '%s' references game file '%s' (title: '%s'), but it cannot be "
@@ -1601,10 +1604,7 @@ HSaveError load_game(const String &path, int slot, bool startup, bool &data_over
         // a clean game reset before trying to restore again
         if (feedback.RetryWithClearGame)
         {
-            // Schedule same game file re-run and save restore
-            RunAGSGame(services.ResPaths.GamePak.Path, 0, 0);
-            load_new_game_restore = slot;
-            load_new_game_restore_cmp = feedback.RetryWithoutComponents;
+            ScheduleGameReloadForRestore(slot, feedback.RetryWithoutComponents);
             return HSaveError::None();
         }
         // Else bail out with error
@@ -2588,85 +2588,50 @@ int GetLastSaveSlot()
     return saves[0].Slot;
 }
 
-int RunAGSGame(const String &new_game, unsigned int mode, int data)
+int RunAGSGame(const String &, unsigned int, int)
+{
+    quit("!RunAGSGame: running another game file is not supported by this engine.");
+    return 0;
+}
+
+void ReloadGameForRestore()
 {
     EngineServices &services = EngineServices::Current();
     Game &game = Game::Current();
-    can_run_delayed_command();
-
-    int allowed_modes = RAGMODE_LOADNOW;
-
-    if ((mode & (~allowed_modes)) != 0)
-        quit("!RunAGSGame: mode value unknown");
-
-    if (services.Debug.EditorDebuggingInitialized)
-    {
-        quit("!RunAGSGame cannot be used while running the game from within the AGS Editor. You must build the game "
-             "EXE and run it from there to use this function.");
-    }
-
-    if ((mode & RAGMODE_LOADNOW) == 0)
-    {
-        services.ResPaths.GamePak.Path = PathFromInstallDir(new_game);
-        services.ResPaths.GamePak.Name = new_game;
-        game.Play.PreviousGameData = data;
-        load_new_game_restore = -1;
-
-        if (is_inside_script())
-        {
-            get_executingscript()->QueueAction(PostScriptAction(ePSARunAGSGame, mode | RAGMODE_LOADNOW, "RunAGSGame"));
-            scriptExecutor->Abort();
-        }
-        else
-        {
-            services.LoadNewGame = mode | RAGMODE_LOADNOW;
-        }
-
-        return 0;
-    }
 
     unload_old_room();
     game.DisplayedRoom = -10;
 
 #if defined(AGS_AUTO_WRITE_USER_CONFIG)
-    save_config_file(); // save current user config in case engine fails to run new game
+    save_config_file(); // save current user config in case engine fails to reload the game
 #endif                  // AGS_AUTO_WRITE_USER_CONFIG
     unload_game();
-
-    // Adjust config (NOTE: normally, RunAGSGame would need a redesign to allow separate config etc per each game)
-    services.Config.Translation = ""; // reset to default, prevent from trying translation file of game A in game B
 
     services.Assets->RemoveAllLibraries();
 
     // TODO: this repeats the engine's startup steps (main/engine.cpp); share them
     if (services.Assets->AddLibrary(services.ResPaths.GamePak.Path) != Common::kAssetNoError)
-        quitprintf("!RunAGSGame: unable to load new game file '%s'", services.ResPaths.GamePak.Path.GetCStr());
+        quitprintf("!Unable to reload the game file '%s'", services.ResPaths.GamePak.Path.GetCStr());
     engine_assign_assetpaths();
 
     show_preload();
 
     HError err = load_game_file();
     if (!err)
-        quitprintf("!RunAGSGame: error loading new game file:\n%s", err->FullMessage().GetCStr());
+        quitprintf("!Error reloading the game file:\n%s", err->FullMessage().GetCStr());
     // Assign the default bitmap color depth, equals this game's color depth
     Bitmap::SetColorDepth(game.Def().GetColorDepth());
 
     err = engine_init_sprites();
     if (!err)
-        quitprintf("!RunAGSGame: error loading new sprites:\n%s", err->FullMessage().GetCStr());
+        quitprintf("!Error reloading the sprites:\n%s", err->FullMessage().GetCStr());
 
     engine_init_game_settings();
     game.Play.IsScreenFadedOut = true;
 
-    if (load_new_game_restore >= 0)
-    {
-        try_restore_save(load_new_game_restore, true);
-        load_new_game_restore = -1;
-    }
-    else
-        start_game();
-
-    return 0;
+    const int slot = reload_restore_slot;
+    reload_restore_slot = -1;
+    try_restore_save(slot, true);
 }
 
 void QuitGame(int dialog)

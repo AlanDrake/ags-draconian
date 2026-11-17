@@ -41,9 +41,6 @@ class Stream;
 } // namespace Common
 } // namespace AGS
 
-// Flag in the mode of RunAGSGame: unload the running game and load the new one now, instead of scheduling the switch.
-#define RAGMODE_LOADNOW 0x8000000
-
 // How a running cutscene may be skipped. The values are the skip_mode of StartCutscene, kept in game.Play.RunningCutsceneSkipStyle;
 // 0 (kSkipSceneUndefined) means that no cutscene is running.
 enum CutsceneSkipStyle
@@ -674,11 +671,12 @@ void PauseGame();
 void UnPauseGame();
 // Returns 1 if the game is paused, else 0.
 int IsGamePaused();
-// Runs another game file. Without RAGMODE_LOADNOW in mode, only stores the new game and data (game.Play.PreviousGameData)
-// and schedules the switch: after the script ends if called from a script, else through EngineServices::LoadNewGame. With it,
-// unloads the current game, loads new_game, and starts it or, if load_new_game_restore is set, restores that save.
-// Quits on an unknown mode or when run from the editor's debugger. Always returns 0.
+// The script function that once ran another game file. Kept registered so that a compiled game still links; the engine
+// runs one game file only, so a call quits with a game error. The arguments are ignored.
 int RunAGSGame(const AGS::Common::String &new_game, unsigned int mode, int data);
+// Serves a request to reload the running game file for a restore (made when a save holds less than the game): unloads
+// the game, loads the same game file again, and restores the requested save.
+void ReloadGameForRestore();
 // Quits the game; with a nonzero dialog first shows the quit dialog, and returns if the player chooses to keep playing.
 void QuitGame(int dialog);
 // Saves the game into the restart point slot (RESTART_POINT_SAVE_GAME_NUMBER).

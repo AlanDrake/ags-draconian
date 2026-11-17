@@ -405,8 +405,6 @@ int ags_entry_point(int argc, char *argv[])
     setup_malloc_handling();
 #endif
     services.Debug.Flags = 0;
-    // FIXME: this should be in game data init, but currently also set by cmdline
-    Game::Current().Play.PreviousGameData = 0;
 
     ConfigTree startup_opts;
     int res = main_process_cmdline(startup_opts, argc, argv);

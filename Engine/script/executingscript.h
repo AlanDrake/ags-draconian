@@ -59,17 +59,17 @@ struct ScriptFunctionRef
 enum PostScriptActionType
 {
     ePSAUndefined,
-    ePSANewRoom,           // Change to another room
-    ePSAInvScreen,         // Display InventoryScreen (built-in) [DEPRECATED]
-    ePSARestoreGame,       // Restore saved game
-    ePSARestoreGameDialog, // Display Restore Game dialog (built-in)
-    ePSARunAGSGame,        // Load and run another AGS game
-    ePSARunDialog,         // Run Dialog (conversation)
-    ePSARestartGame,       // Restart game (restore autosave slot)
-    ePSASaveGame,          // Save game
-    ePSASaveGameDialog,    // Display Save Game dialog (built-in)
-    ePSAStopDialog,        // Stop Dialog (conversation)
-    ePSAScanSaves          // Scan save slots (results in multiple chained callbacks)
+    ePSANewRoom,              // Change to another room
+    ePSAInvScreen,            // Display InventoryScreen (built-in) [DEPRECATED]
+    ePSARestoreGame,          // Restore saved game
+    ePSARestoreGameDialog,    // Display Restore Game dialog (built-in)
+    ePSAReloadGameForRestore, // Reload the running game file and restore a save in it
+    ePSARunDialog,            // Run Dialog (conversation)
+    ePSARestartGame,          // Restart game (restore autosave slot)
+    ePSASaveGame,             // Save game
+    ePSASaveGameDialog,       // Display Save Game dialog (built-in)
+    ePSAStopDialog,           // Stop Dialog (conversation)
+    ePSAScanSaves             // Scan save slots (results in multiple chained callbacks)
 };
 
 struct PostScriptAction

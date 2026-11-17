@@ -103,14 +103,13 @@ bool IsMainGameLibrary(const String &filename)
 }
 
 // Scans given directory for game data libraries, returns first found or none.
-// Uses fn_testfile callback to test the file.
 // Tracks files with standard AGS package names:
 // - *.ags is a standard cross-platform file pattern for AGS games,
 // - ac2game.dat is a legacy file name for very old games,
 // - agsgame.dat is a legacy file name used in some non-Windows releases,
 // - *.exe is a MS Win executable; it is included to this case because
 //   users often run AGS ports with Windows versions of games.
-String FindGameData(const String &path, std::function<bool(const String &)> fn_testfile)
+String FindGameData(const String &path)
 {
     String test_file;
     Debug::Printf("Searching for game data in: %s", path.GetCStr());
@@ -121,7 +120,7 @@ String FindGameData(const String &path, std::function<bool(const String &)> fn_t
             test_file.CompareNoCase("agsgame.dat") == 0 || test_file.CompareRightNoCase(".exe") == 0)
         {
             test_file = Path::ConcatPaths(path, test_file);
-            if (fn_testfile(test_file))
+            if (IsMainGameLibrary(test_file))
             {
                 Debug::Printf("Found game data pak: %s", test_file.GetCStr());
                 return test_file;
@@ -129,11 +128,6 @@ String FindGameData(const String &path, std::function<bool(const String &)> fn_t
         }
     }
     return "";
-}
-
-String FindGameData(const String &path)
-{
-    return FindGameData(path, IsMainGameLibrary);
 }
 
 // Begins reading main game file from a generic stream

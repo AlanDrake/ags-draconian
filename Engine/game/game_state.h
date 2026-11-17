@@ -173,7 +173,7 @@ struct GameState
     int RunningCutsceneSkipStyle = 0;     // we are between a StartCutscene and EndCutscene; script: game.in_cutscene
     int FastForward = 0;                  // player has elected to skip cutscene; script: game.skipping_cutscene
     int GameSpeedModifier = 0;
-    int PreviousGameData = 0;      // value passed to RunAGSGame in previous game; script: game.previous_game_data
+    int PreviousGameData = 0;      // a plain script variable, the engine never sets it; script: game.previous_game_data
     int ReplayHotkeyUnused = 0;    // (UNUSED!) StartRecording: not supported
     int DialogOptionsPaddingX = 0; // dialog options x padding within the gui; script: game.dialog_options_x
     int DialogOptionsPaddingY = 0; // dialog options y padding within the gui; script: game.dialog_options_y

@@ -100,7 +100,6 @@ CONTEXTS = {
             'justTellInfo': 'JustTellInfo',
             'tellInfoKeys': 'TellInfoKeys',
             'loadSaveGameOnStartup': 'LoadSaveGameOnStartup',
-            'load_new_game': 'LoadNewGame',
             'gameHasBeenRestored': 'GameRestoredCount',
             'check_dynamic_sprites_at_exit': 'CheckDynamicSpritesAtExit',
             'GameScaling': 'GameScaling',

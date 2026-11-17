@@ -805,9 +805,9 @@ void PostScriptProcessing()
         case ePSARestoreGameDialog:
             do_restore_game_dialog(data1 & 0xFFFF, (data1 >> 16), data2);
             return; // skip any remaining scheduled actions
-        case ePSARunAGSGame:
+        case ePSAReloadGameForRestore:
             AbortAllScripts();
-            services.LoadNewGame = data1;
+            services.ReloadGameForRestore = true;
             return; // skip any remaining scheduled actions
         case ePSARunDialog:
             if (is_in_dialog())
