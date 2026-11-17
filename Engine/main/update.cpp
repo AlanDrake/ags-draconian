@@ -90,7 +90,7 @@ void update_script_timers()
     if (game.Play.GlobalScriptTimer > 0)
         game.Play.GlobalScriptTimer--;
 
-    game.Play.UpdateScriptTimers();
+    game.Play.ScriptTimers.Update();
 }
 
 void update_cycling_views()

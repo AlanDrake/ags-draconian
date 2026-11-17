@@ -994,6 +994,92 @@ TEST_F(SavegameContent, ScriptTimersComeBackFromASave)
     EXPECT_EQ(0, GetTimerPos(0));
 }
 
+// Start takes an ID that is not negative and a timeout above 0 and starts nothing else (the assertion is off in
+// a Release build, where this runs)
+#ifdef NDEBUG
+TEST(ScriptTimersTest, StartRefusesANegativeIDAndATimeoutOfZero)
+{
+    ScriptTimerSet timers;
+    timers.Start(-1, 5);
+    timers.Start(3, 0);
+    timers.Start(4, -2);
+    EXPECT_TRUE(timers.Running().empty());
+    EXPECT_EQ(0, timers.GetPos(-1));
+    EXPECT_EQ(0, timers.GetPos(3));
+    timers.Start(3, 5);
+    timers.Start(3, 0);
+    EXPECT_EQ(5, timers.GetPos(3));
+}
+#endif
+
+TEST(ScriptTimersTest, ATimerCountsDownToOneAndStaysUntilItIsChecked)
+{
+    ScriptTimerSet timers;
+    timers.Start(2, 3);
+    EXPECT_EQ(3, timers.GetPos(2));
+    timers.Update();
+    EXPECT_EQ(2, timers.GetPos(2));
+    EXPECT_FALSE(timers.Check(2));
+    timers.Update();
+    EXPECT_EQ(1, timers.GetPos(2));
+    timers.Update();
+    timers.Update();
+    EXPECT_EQ(1, timers.GetPos(2));
+    EXPECT_TRUE(timers.Check(2));
+    EXPECT_EQ(0, timers.GetPos(2));
+    EXPECT_FALSE(timers.Check(2));
+    EXPECT_FALSE(timers.Check(7));
+}
+
+TEST(ScriptTimersTest, StopAndClearRemoveTimers)
+{
+    ScriptTimerSet timers;
+    timers.Start(1, 4);
+    timers.Start(2, 4);
+    timers.Stop(1);
+    timers.Stop(9);
+    EXPECT_EQ(0, timers.GetPos(1));
+    EXPECT_EQ(4, timers.GetPos(2));
+    timers.Clear();
+    EXPECT_TRUE(timers.Running().empty());
+}
+
+TEST(ScriptTimersTest, RestoreSkipsWhatStartWouldRefuse)
+{
+    ScriptTimerSet timers;
+    timers.Restore(-5, 3);
+    timers.Restore(5, 0);
+    timers.Restore(6, -1);
+    EXPECT_TRUE(timers.Running().empty());
+    timers.Restore(0, 2);
+    timers.Restore(0, 8);
+    EXPECT_EQ(1u, timers.Running().size());
+    EXPECT_EQ(8, timers.GetPos(0));
+}
+
+// A save and a restore give the same timers back
+TEST_F(SavegameContent, ScriptTimersCountedDownComeBackAsTheyWere)
+{
+    Game &game = Game::Current();
+    game.Play.ScriptTimers.Clear();
+    game.Play.ScriptTimers.Start(3, 10);
+    game.Play.ScriptTimers.Start(11, 2);
+    game.Play.ScriptTimers.Start(500, 1);
+    game.Play.ScriptTimers.Update();
+    const std::vector<uint8_t> saved = SaveGameState();
+    const ScriptTimerSet kept = game.Play.ScriptTimers;
+
+    game.Play.ScriptTimers.Clear();
+    game.Play.ScriptTimers.Start(8, 8);
+    RestoreGameState(saved);
+    EXPECT_EQ(kept.Running(), game.Play.ScriptTimers.Running());
+    EXPECT_EQ(9, game.Play.ScriptTimers.GetPos(3));
+    EXPECT_EQ(1, game.Play.ScriptTimers.GetPos(11));
+    EXPECT_EQ(1, game.Play.ScriptTimers.GetPos(500));
+    EXPECT_EQ(0, game.Play.ScriptTimers.GetPos(8));
+    game.Play.ScriptTimers.Clear();
+}
+
 namespace
 {
 

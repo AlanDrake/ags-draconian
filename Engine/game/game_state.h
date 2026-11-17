@@ -86,6 +86,35 @@ struct SceneLocationRef
     }
 };
 
+// Script timers: simple game tick counters with arbitrary ID (not negative), each with its ticks left (above 0).
+// The map is private so that nothing else can store a timer that Start would refuse.
+class ScriptTimerSet
+{
+public:
+    // Starts the timer (re-starts if it is running), to count down timeout game ticks; timer_id must not be
+    // negative and timeout must be positive
+    void Start(int timer_id, int timeout);
+    // Stops the timer, if it is running
+    void Stop(int timer_id);
+    // Returns the ticks left on the timer, 0 if it is not running
+    int GetPos(int timer_id) const;
+    // Tells if the timer has run out, which it does only once: the timer is stopped when it is found run out
+    bool Check(int timer_id);
+    // Counts all the running timers down by one tick; a timer stops at 1 and stays there until it is checked
+    void Update();
+
+    // Stops all the timers
+    void Clear() { _timers.clear(); }
+    // Puts a timer back from a save: the same as Start, but a timer that Start would refuse is skipped
+    // without an assertion (a save may hold any value)
+    void Restore(int timer_id, int ticks_left);
+    // The running timers (timer ID, ticks left), in the order that a save writes them
+    const std::unordered_map<int32_t, int32_t> &Running() const { return _timers; }
+
+private:
+    std::unordered_map<int32_t, int32_t> _timers;
+};
+
 
 // Runtime game state, held by the game context as Game::Play (game/game_context.h).
 // ReadFromSavegame and WriteForSavegame keep the save layout of the fields below; it is not the order of the
@@ -305,8 +334,9 @@ struct GameState
     // y offset of the shaking screen
     int ShakeScreenOffsetY = 0;
 
-    // The fields below are public so that the struct is an aggregate and its fields can be counted (Fields()); they
-    // are read and changed through the methods further down, which keep them consistent
+    // The fields below are plain values, public so that the struct is an aggregate and its fields can be counted
+    // (Fields()), as GraphicState's shader fields are; the methods further down read and change them as a
+    // whole. The script timers are a class, which keeps its own data private.
     //
     // Custom error text, to use when displaying a quit message (may be translated)
     AGS::Common::String GameErrorText;
@@ -319,8 +349,7 @@ struct GameState
     int CursorShaderHandle = 0;
     // A time point until which the user input will be ignored
     AGS::Engine::Clock::time_point IgnoreUserInputUntilTime{};
-    // Script Timers: simple game tick counters with arbitrary ID (not negative), each with its ticks left (above 0)
-    std::unordered_map<int32_t, int32_t> ScriptTimers;
+    ScriptTimerSet ScriptTimers;
 
     // One row per field above (util/field_table.h); the struct stays an aggregate so that they can be counted
     static AGS::Common::FieldTable<GameState> Fields();
@@ -404,21 +433,6 @@ struct GameState
     // if the voice is not available; the first one also not in the text-only speech mode
     bool ShouldPlayVoiceSpeech() const;
     bool ShouldPlayVoiceSpeechNonBlocking() const;
-
-    //
-    // Script Timers
-    //
-    // Starts the timer (re-starts if it is running), to count down timeout game ticks; timer_id must not be
-    // negative and timeout must be positive
-    void StartScriptTimer(int timer_id, int timeout);
-    // Stops the timer, if it is running
-    void StopScriptTimer(int timer_id);
-    // Returns the ticks left on the timer, 0 if it is not running
-    int GetScriptTimerPos(int timer_id);
-    // Tells if the timer has run out, which it does only once: the timer is stopped when it is found run out
-    bool CheckScriptTimer(int timer_id);
-    // Counts all the running timers down by one tick; a timer stops at 1 and stays there until it is checked
-    void UpdateScriptTimers();
 
     //
     // Serialization

@@ -2248,11 +2248,11 @@ void SetTimer(int tnum, int timeout)
 
     if (timeout > 0)
     {
-        game.Play.StartScriptTimer(tnum, timeout);
+        game.Play.ScriptTimers.Start(tnum, timeout);
     }
     else if (timeout == 0)
     {
-        game.Play.StopScriptTimer(tnum);
+        game.Play.ScriptTimers.Stop(tnum);
     }
     else
     {
@@ -2267,7 +2267,7 @@ int GetTimerPos(int tnum)
     if (!AssertTimerID("GetTimerPos", tnum))
         return -1;
 
-    return Game::Current().Play.GetScriptTimerPos(tnum);
+    return Game::Current().Play.ScriptTimers.GetPos(tnum);
 }
 
 int IsTimerExpired(int tnum)
@@ -2275,7 +2275,7 @@ int IsTimerExpired(int tnum)
     if (!AssertTimerID("IsTimerExpired", tnum))
         return 0;
 
-    return Game::Current().Play.CheckScriptTimer(tnum);
+    return Game::Current().Play.ScriptTimers.Check(tnum);
 }
 
 RoomAreaMask debugLastRoomMask = kRoomAreaNone;

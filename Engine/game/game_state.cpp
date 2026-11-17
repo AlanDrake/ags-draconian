@@ -65,6 +65,25 @@ struct FieldValue<SceneLocationRef>
     }
 };
 
+// The timers print and compare as their map does; Alter starts one that is not running
+template <>
+struct FieldValue<ScriptTimerSet>
+{
+    using Map = std::unordered_map<int32_t, int32_t>;
+    static bool Equal(const ScriptTimerSet &a, const ScriptTimerSet &b)
+    {
+        return FieldValue<Map>::Equal(a.Running(), b.Running());
+    }
+    static String Print(const ScriptTimerSet &value) { return FieldValue<Map>::Print(value.Running()); }
+    static void Alter(ScriptTimerSet &value)
+    {
+        int timer_id = 0;
+        while (value.GetPos(timer_id) != 0)
+            timer_id++;
+        value.Start(timer_id, 1);
+    }
+};
+
 } // namespace Common
 } // namespace AGS
 
@@ -346,57 +365,63 @@ bool GameState::ShouldAASprites() const
     return EngineServices::Current().Config.AntialiasSprites && (DisableAntialiasing == 0);
 }
 
-void GameState::StartScriptTimer(int timer_id, int timeout)
+void ScriptTimerSet::Start(int timer_id, int timeout)
 {
     assert(timer_id >= 0 && timeout > 0);
     if (timer_id >= 0 && timeout > 0)
     {
-        ScriptTimers[timer_id] = timeout;
+        _timers[timer_id] = timeout;
     }
 }
 
-void GameState::StopScriptTimer(int timer_id)
+void ScriptTimerSet::Stop(int timer_id)
 {
     assert(timer_id >= 0);
-    auto it = ScriptTimers.find(timer_id);
-    if (it != ScriptTimers.end())
-        ScriptTimers.erase(it);
+    auto it = _timers.find(timer_id);
+    if (it != _timers.end())
+        _timers.erase(it);
 }
 
-int GameState::GetScriptTimerPos(int timer_id)
+int ScriptTimerSet::GetPos(int timer_id) const
 {
-    auto it = ScriptTimers.find(timer_id);
-    if (it != ScriptTimers.end())
+    auto it = _timers.find(timer_id);
+    if (it != _timers.end())
         return it->second;
     return 0;
 }
 
-bool GameState::CheckScriptTimer(int timer_id)
+bool ScriptTimerSet::Check(int timer_id)
 {
     // The timer logic is that it counts down to 1, where stays
     // *until* user checks for its expiration in script.
     // Only then the timer is removed.
-    auto it = ScriptTimers.find(timer_id);
-    if (it != ScriptTimers.end())
+    auto it = _timers.find(timer_id);
+    if (it != _timers.end())
     {
         if (it->second == 1)
         {
-            ScriptTimers.erase(it);
+            _timers.erase(it);
             return true;
         }
     }
     return false;
 }
 
-void GameState::UpdateScriptTimers()
+void ScriptTimerSet::Update()
 {
     // The timer logic is that it counts down to 1, where stays
     // *until* user checks for its expiration in script.
-    for (auto &timer : ScriptTimers)
+    for (auto &timer : _timers)
     {
         if (timer.second > 1)
             timer.second--;
     }
+}
+
+void ScriptTimerSet::Restore(int timer_id, int ticks_left)
+{
+    if (timer_id >= 0 && ticks_left > 0)
+        _timers[timer_id] = ticks_left;
 }
 
 void GameState::ReadFromSavegame(Stream *in, GameDataVersion /*data_ver*/, GameStateSvgVersion svg_ver,
@@ -515,8 +540,7 @@ void GameState::ReadFromSavegame(Stream *in, GameDataVersion /*data_ver*/, GameS
         in->ReadArrayOfInt32(old_script_timers, LEGACY_MAX_TIMERS);
         for (int timer_id = 1; timer_id < LEGACY_MAX_TIMERS; ++timer_id)
         {
-            if (old_script_timers[timer_id] > 0)
-                ScriptTimers[timer_id] = old_script_timers[timer_id];
+            ScriptTimers.Restore(timer_id, old_script_timers[timer_id]);
         }
     }
     in->ReadInt32(); // [DEPRECATED]
@@ -661,13 +685,12 @@ void GameState::ReadFromSavegame(Stream *in, GameDataVersion /*data_ver*/, GameS
     if (svg_ver >= kGSSvgVersion_400_26)
     {
         uint32_t timer_count = in->ReadInt32();
-        ScriptTimers.clear();
+        ScriptTimers.Clear();
         for (uint32_t i = 0; i < timer_count; ++i)
         {
             int timer_id = in->ReadInt32();
             int timer_time = in->ReadInt32();
-            if (timer_id >= 0 && timer_time > 0)
-                ScriptTimers[timer_id] = timer_time;
+            ScriptTimers.Restore(timer_id, timer_time);
         }
     }
 
@@ -894,8 +917,8 @@ void GameState::WriteForSavegame(Stream *out) const
     out->WriteInt32(0); // reserved
 
     // kGSSvgVersion_400_26
-    out->WriteInt32(ScriptTimers.size());
-    for (const auto &timer : ScriptTimers)
+    out->WriteInt32(ScriptTimers.Running().size());
+    for (const auto &timer : ScriptTimers.Running())
     {
         out->WriteInt32(timer.first);
         out->WriteInt32(timer.second);
