@@ -22,6 +22,18 @@ file's fork path. Two cases the map cannot answer are reported for porting by ha
 `Script/split_bindings.py`), and a function of one of the 13 `Engine/ac/global_*.cpp` files went into a domain file
 (`docs/refactor/fold-5.3.tsv`).
 
+Since 5.1 and 5.1a (2026-11-15 to 17) about 400 struct fields and 40 types have other names in the fork than in upstream:
+`docs/refactor/fields-5.1a.tsv` maps each field of upstream's `CharacterInfo`, `CharacterExtras`, `GamePlayState`,
+`RoomObject`, `RoomStatus`, `ViewFrame`, `GameSetupStruct` and the other renamed structs to the fork struct that
+declares it now and its name there (`CharacterInfo::walking` is `MoveState::MoveListID`, `GamePlayState::bg_frame` is
+`Room::BgFrame`; `-` where the field is gone), and `docs/refactor/types-5.1a.tsv` the types (`CharacterInfo` is
+`CharacterDef`, `CharacterState` and `Character`; upstream's `GameState` is the fork's `GameLoopState`, the fork's
+`GameState` is `GamePlayState`) and the globals that became context members (`play` is `Game::Play`, `croom` is
+`Room::State`). A field that kept its name in the struct its type became is not listed. `port.py where` prints, under
+each file, the names on the change's added and removed lines that these maps know, as hints to place a hunk (a short
+field name only when its struct's type or a variable of that type is on the line or in the hunk); nothing is
+rewritten. `.compare/helpers/51a5/check_namemap.py` checks both files against `upstream/ags4` and the working tree.
+
 The readers of `Game.agf` and room `data.xml` (`Tools/data/agfreader.cpp`, `room_xml.cpp`) do not
 cherry-pick in either direction since 2026-11-08: upstream reads one `ValueParser` line per property
 (ericoporto's review of #3187), the fork reads through tables (`xml_fields.h`) with the drift guard, a

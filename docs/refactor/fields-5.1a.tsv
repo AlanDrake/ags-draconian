@@ -1,0 +1,484 @@
+# PLAN.md 5.1a: the struct fields that the fork renamed or moved against upstream/ags4, upstream's name first.
+# Columns: upstream struct<TAB>upstream field<TAB>fork struct<TAB>fork field<TAB>note (optional).
+# The fork struct is the one that declares the field now (CharacterDef, CharacterState, MoveState, GameState, Room...).
+# A fork field `-` has no counterpart (deleted or merged); the note says why. A field that kept its name in the
+# struct its type became (GamePlayState to GameState, ViewFrame to ViewFrameDef...) is not listed: types-5.1a.tsv
+# has the type. Read by `.compare/helpers/port.py where`. Made by .compare/helpers/51a5/gen_namemap.py from the local
+# maps that Script/rename_fields.py was run with and from both trees; checked by check_namemap.py.
+
+# CharacterInfo
+CharacterInfo	defview	CharacterDef	NormalView
+CharacterInfo	talkview	CharacterDef	SpeechView
+CharacterInfo	thinkview	CharacterDef	ThinkView
+CharacterInfo	blinkview	CharacterDef	BlinkView
+CharacterInfo	idleview	CharacterDef	IdleView
+CharacterInfo	view	CharacterDef	View
+CharacterInfo	room	CharacterDef	Room
+CharacterInfo	x	CharacterDef	X
+CharacterInfo	y	CharacterDef	Y
+CharacterInfo	flags	CharacterDef	Flags
+CharacterInfo	transparency	CharacterDef	Opacity	0-100 transparency became 0-255 opacity: 255 - value * 255 / 100
+CharacterInfo	baseline	CharacterDef	Baseline
+CharacterInfo	idledelay	CharacterDef	IdleDelay
+CharacterInfo	talkcolor	CharacterDef	SpeechColor
+CharacterInfo	walkspeed	CharacterDef	WalkSpeedX
+CharacterInfo	walkspeed_y	CharacterDef	WalkSpeedY
+CharacterInfo	animspeed	CharacterDef	AnimationDelay
+CharacterInfo	speech_anim_speed	CharacterDef	SpeechAnimationDelay
+CharacterInfo	idle_anim_speed	CharacterDef	IdleAnimationDelay
+CharacterInfo	blocking_x	CharacterDef	BlockingX
+CharacterInfo	blocking_y	CharacterDef	BlockingY
+CharacterInfo	blocking_width	CharacterDef	BlockingWidth
+CharacterInfo	blocking_height	CharacterDef	BlockingHeight
+CharacterInfo	index_id	CharacterDef	ID
+CharacterInfo	invq	CharacterDef	InventoryQuantity
+CharacterInfo	scrname	CharacterDef	ScriptName
+CharacterInfo	name	CharacterDef	Name
+CharacterInfo	interactions	CharacterDef	Interactions
+CharacterInfo	prevroom	CharacterState	PreviousRoom
+CharacterInfo	z	CharacterState	Z
+CharacterInfo	loop	ViewAnimState	Loop
+CharacterInfo	frame	ViewAnimState	Frame
+CharacterInfo	activeinv	CharacterState	ActiveInventory
+CharacterInfo	idleleft	CharacterState	IdleTimeLeft
+CharacterInfo	blinkinterval	CharacterState	BlinkInterval
+CharacterInfo	blinktimer	CharacterState	BlinkTimer
+CharacterInfo	blinkframe	CharacterState	BlinkFrame
+CharacterInfo	walking	MoveState	MoveListID
+CharacterInfo	walkwait	CharacterState	WalkWait
+CharacterInfo	walkwaitcounter	CharacterState	WalkWaitCounter
+CharacterInfo	wait	ViewAnimState	AnimWait
+CharacterInfo	_events	CharacterDef	Events
+
+# CharacterExtras
+CharacterExtras	slow_move_counter	CharacterState	SlowMoveCounter
+CharacterExtras	animwait	CharacterState	WalkAnimWait
+CharacterExtras	anim	ViewAnimState	Anim
+CharacterExtras	audio_volume	FrameSoundState	AnimationVolume
+CharacterExtras	audio_panning	FrameSoundState	AudioPanning
+CharacterExtras	view_offset	CharacterState	ViewOffset
+CharacterExtras	view_anchor	CharacterState	ViewAnchor
+CharacterExtras	eff_offset	CharacterState	EffectiveOffset
+CharacterExtras	eff_anchor	CharacterState	EffectiveAnchor
+CharacterExtras	pivot	GraphicState	Pivot
+CharacterExtras	pivot_offset	GraphicState	PivotOffset
+CharacterExtras	rotation	GraphicState	Rotation
+CharacterExtras	face_dir_ratio	CharacterState	FaceDirectionRatio
+CharacterExtras	spr_width	GraphicState	SpriteWidth
+CharacterExtras	spr_height	GraphicState	SpriteHeight
+CharacterExtras	frame_xoff	CharacterState	FrameOffsetX
+CharacterExtras	frame_yoff	CharacterState	FrameOffsetY
+CharacterExtras	width	GraphicState	Width
+CharacterExtras	height	GraphicState	Height
+CharacterExtras	zoom	GraphicState	Zoom
+CharacterExtras	zoom_offs	CharacterState	OffsetZoom
+CharacterExtras	xwas	CharacterState	FullStepX
+CharacterExtras	ywas	CharacterState	FullStepY
+CharacterExtras	tint_r	GraphicState	TintRed
+CharacterExtras	tint_g	GraphicState	TintGreen
+CharacterExtras	tint_b	GraphicState	TintBlue
+CharacterExtras	tint_level	GraphicState	TintLevel
+CharacterExtras	tint_light	GraphicState	TintLight
+CharacterExtras	following	CharacterState	Following
+CharacterExtras	follow_dist	CharacterState	FollowDistance
+CharacterExtras	follow_eagerness	CharacterState	FollowEagerness
+CharacterExtras	inventory	CharacterState	Inventory
+CharacterExtras	shader_id	GraphicState	ShaderID
+CharacterExtras	shader_handle	GraphicState	ShaderHandle
+CharacterExtras	movelist_handle	MoveState	MoveListHandle
+CharacterExtras	turns	CharacterState	Turns
+CharacterExtras	process_idle_this_time	CharacterState	ProcessIdleThisTime
+CharacterExtras	_gs	Character	_graphicSpace
+CharacterExtras	audio_speed	FrameSoundState	AudioSpeed
+CharacterExtras	blend_mode	CharacterDef	BlendMode	a game-file property of the character, not play state
+CharacterExtras	cur_audio_volume	-	-	dead member, deleted
+CharacterExtras	flags	CharacterState	RuntimeFlags	CharacterRuntimeFlags
+CharacterExtras	spr_anchor	CharacterDef	GraphicAnchor	a game-file property of the character
+CharacterExtras	spr_offset	CharacterDef	GraphicOffset	a game-file property of the character
+
+# RoomObject
+RoomObject	id	RoomObjectBase	ID
+RoomObject	x	RoomObjectDef	X
+RoomObject	y	RoomObjectDef	Y
+RoomObject	transparent	RoomObjectDef	Opacity	0-100 transparency became 0-255 opacity: 255 - value * 255 / 100
+RoomObject	num	RoomObjectDef	Sprite
+RoomObject	baseline	RoomObjectDef	Baseline
+RoomObject	flags	RoomObjectDef	Flags
+RoomObject	name	RoomObjectDef	Name
+RoomObject	blend_mode	RoomObjectDef	BlendMode
+RoomObject	spr_anchor	RoomObjectDef	GraphicAnchor
+RoomObject	spr_offset	RoomObjectDef	GraphicOffset
+RoomObject	tint_r	GraphicState	TintRed
+RoomObject	tint_g	GraphicState	TintGreen
+RoomObject	tint_b	GraphicState	TintBlue
+RoomObject	tint_level	GraphicState	TintLevel
+RoomObject	tint_light	GraphicState	TintLight
+RoomObject	zoom	GraphicState	Zoom
+RoomObject	pivot	GraphicState	Pivot
+RoomObject	pivot_offset	GraphicState	PivotOffset
+RoomObject	spr_width	GraphicState	SpriteWidth
+RoomObject	spr_height	GraphicState	SpriteHeight
+RoomObject	frame_xoff	RoomObjectState	FrameOffsetX
+RoomObject	frame_yoff	RoomObjectState	FrameOffsetY
+RoomObject	width	GraphicState	Width
+RoomObject	height	GraphicState	Height
+RoomObject	view	RoomObjectState	View
+RoomObject	loop	ViewAnimState	Loop
+RoomObject	frame	ViewAnimState	Frame
+RoomObject	wait	ViewAnimState	AnimWait
+RoomObject	moving	MoveState	MoveListID
+RoomObject	anim	ViewAnimState	Anim
+RoomObject	audio_volume	FrameSoundState	AnimationVolume
+RoomObject	audio_panning	FrameSoundState	AudioPanning
+RoomObject	shader_id	GraphicState	ShaderID
+RoomObject	shader_handle	GraphicState	ShaderHandle
+RoomObject	rotation	GraphicState	Rotation
+RoomObject	movelist_handle	MoveState	MoveListHandle
+RoomObject	_gs	RoomObject	_graphicSpace
+RoomObject	NoView	RoomObjectState	NoView
+RoomObject	audio_speed	FrameSoundState	AudioSpeed
+RoomObject	blocking_height	RoomObjectDef	BlockingRect	one Rect (height)
+RoomObject	blocking_width	RoomObjectDef	BlockingRect	one Rect (width)
+RoomObject	blocking_x	RoomObjectDef	BlockingRect	one Rect (left); blocking_y, _width, _height are its other parts
+RoomObject	blocking_y	RoomObjectDef	BlockingRect	one Rect (top)
+
+# RoomObjectInfo
+RoomObjectInfo	Transparency	RoomObjectDef	Opacity	0-100 transparency became 0-255 opacity: 255 - value * 255 / 100
+
+# RoomObjectBase
+RoomObjectBase	_events	RoomObjectDef	Events
+
+# RoomStatus
+RoomStatus	beenhere	RoomState	IsVisited
+RoomStatus	numobj	RoomState	ObjectCount
+RoomStatus	obj	RoomState	Objects
+RoomStatus	tsdatasize	RoomState	ScriptDataSize
+RoomStatus	tsdata	RoomState	ScriptData
+RoomStatus	face_dir_ratio	RoomState	FaceDirectionRatio
+RoomStatus	contentFormat	RoomState	ContentFormat
+RoomStatus	roomProps	RoomState	Properties
+RoomStatus	objProps	RoomState	ObjectProperties
+RoomStatus	hsProps	RoomState	HotspotProperties
+RoomStatus	regProps	RoomState	RegionProperties
+RoomStatus	waProps	RoomState	WalkAreaProperties
+RoomStatus	region_enabled	RoomHotspotState	IsEnabled
+RoomStatus	hotspot	RoomState	Hotspots	each RoomHotspot holds a RoomHotspotState (IsEnabled) and its definition (Name)
+RoomStatus	walkareas	RoomState	WalkAreas	each RoomWalkableArea holds the area's FaceDirectionRatio
+RoomStatus	walkbehind_base	RoomState	WalkBehinds	each RoomWalkBehind holds its Baseline
+
+# HotspotState
+HotspotState	Enabled	RoomHotspotState	IsEnabled
+HotspotState	Name	RoomHotspotDef	Name
+
+# WalkareaState
+WalkareaState	FaceDirectionRatio	RoomWalkableAreaDef	FaceDirectionRatio
+
+# GamePlayState
+GamePlayState	anim_background_speed	Room	AnimBackgroundDelay
+GamePlayState	usedmode	GameState	UsedMode
+GamePlayState	disabled_user_interface	GameState	UserInterfaceDisabledCount
+GamePlayState	gscript_timer	GameState	GlobalScriptTimer
+GamePlayState	debug_mode	GameState	DebugMode
+GamePlayState	messagetime	GameState	MessageTimeLeft
+GamePlayState	usedinv	GameState	UsedInventory
+GamePlayState	text_speed	GameState	TextReadingSpeed
+GamePlayState	talkanim_speed	GameState	GlobalSpeechAnimationDelay
+GamePlayState	inv_item_wid	GameState	InventoryItemWidth
+GamePlayState	inv_item_hit	GameState	InventoryItemHeight
+GamePlayState	speech_text_shadow	GameState	TextShadowColor
+GamePlayState	swap_portrait_side	GameState	SwapPortraitSide
+GamePlayState	speech_textwindow_gui	GameState	SpeechTextWindowGui
+GamePlayState	follow_change_room_timer	GameState	FollowingRoomDelay
+GamePlayState	skip_display	GameState	SkipDisplay
+GamePlayState	used_inv_on	GameState	InventoryActivated
+GamePlayState	no_textbg_when_voice	GameState	NoTextBackgroundWhenVoice
+GamePlayState	max_dialogoption_width	GameState	MaxDialogOptionWidth
+GamePlayState	no_hicolor_fadein	GameState	NoHighColorFadeIn
+GamePlayState	bgspeech_game_speed	GameState	BackgroundSpeechGameSpeed
+GamePlayState	bgspeech_stay_on_display	GameState	KeepBackgroundSpeechOnDisplay
+GamePlayState	unfactor_speech_from_textlength	GameState	UnfactorSpeechFromTextLength
+GamePlayState	speech_music_drop	GameState	SpeechMusicDrop
+GamePlayState	in_cutscene	GameState	RunningCutsceneSkipStyle
+GamePlayState	fast_forward	GameState	FastForward
+GamePlayState	game_speed_modifier	GameState	GameSpeedModifier
+GamePlayState	takeover_data	GameState	PreviousGameData
+GamePlayState	replay_hotkey_unused	GameState	ReplayHotkeyUnused
+GamePlayState	dialog_options_pad_x	GameState	DialogOptionsPaddingX
+GamePlayState	dialog_options_pad_y	GameState	DialogOptionsPaddingY
+GamePlayState	narrator_speech	GameState	NarratorSpeech
+GamePlayState	lipsync_speed	GameState	LipSyncSpeed
+GamePlayState	close_mouth_speech_time	GameState	SpeechAnimationStopTimeMargin
+GamePlayState	text_speed_modifier	GameState	TextReadingSpeedModifier
+GamePlayState	text_align	GameState	TextAlignment
+GamePlayState	speech_bubble_width	GameState	SpeechBubbleWidth
+GamePlayState	min_dialogoption_width	GameState	MinDialogOptionWidth
+GamePlayState	top_bar_backcolor	GameState	TopBarBackColor
+GamePlayState	top_bar_textcolor	GameState	TopBarTextColor
+GamePlayState	top_bar_bordercolor	GameState	TopBarBorderColor
+GamePlayState	top_bar_borderwidth	GameState	TopBarBorderWidth
+GamePlayState	top_bar_ypos	GameState	TopBarY
+GamePlayState	screenshot_width	GameState	ScreenshotWidth
+GamePlayState	screenshot_height	GameState	ScreenshotHeight
+GamePlayState	top_bar_font	GameState	TopBarFont
+GamePlayState	speech_text_align	GameState	SpeechTextAlignment
+GamePlayState	auto_use_walkto_points	GameState	AutoUseWalkToPoints
+GamePlayState	inventory_greys_out	GameState	GreyOutInventory
+GamePlayState	skip_speech_specific_key	GameState	SpeechSkipKey
+GamePlayState	abort_key	GameState	AbortKey
+GamePlayState	fade_to_red	GameState	FadeColorRed
+GamePlayState	fade_to_green	GameState	FadeColorGreen
+GamePlayState	fade_to_blue	GameState	FadeColorBlue
+GamePlayState	show_single_dialog_option	GameState	ShowSingleDialogOption
+GamePlayState	keep_screen_during_instant_transition	GameState	KeepScreenDuringInstantTransition
+GamePlayState	read_dialog_option_colour	GameState	ReadDialogOptionColor
+GamePlayState	stop_dialog_at_end	GameState	DialogRequestResult
+GamePlayState	speech_portrait_placement	GameState	IsSpeechCustomPortraitPlacement
+GamePlayState	speech_portrait_x	GameState	SpeechPortraitOffsetX
+GamePlayState	speech_portrait_y	GameState	SpeechPortraitY
+GamePlayState	speech_display_post_time_ms	GameState	SpeechDisplayPostTimeMs
+GamePlayState	dialog_options_highlight_color	GameState	DialogOptionsHighlightColor
+GamePlayState	randseed	GameState	RandomSeed
+GamePlayState	player_on_region	GameState	PlayerRegionID
+GamePlayState	screen_is_faded_out	GameState	IsScreenFadedOut
+GamePlayState	check_interaction_only	GameState	CheckInteractionOnly
+GamePlayState	bg_anim_delay	GameState	BgAnimWait
+GamePlayState	wait_counter	GameState	WaitCounter
+GamePlayState	wait_skipped_by	GameState	WaitSkippedBy
+GamePlayState	wait_skipped_by_data	GameState	WaitSkippedByData
+GamePlayState	mbounds	GameState	MouseBounds
+GamePlayState	fade_effect	GameState	FadeEffect
+GamePlayState	audio_master_volume	GameState	AudioMasterVolume
+GamePlayState	screen_flipped	GameState	ScreenFlip
+GamePlayState	speech_mode	GameState	SpeechVoiceMode
+GamePlayState	speech_skip_style	GameState	SpeechSkipStyle
+GamePlayState	speech_always_wait_for_text	GameState	AlwaysWaitForSpeechText
+GamePlayState	speech_zorder	GameState	SpeechOverlayZOrder
+GamePlayState	speech_volume	GameState	SpeechVolume
+GamePlayState	normal_font	GameState	NormalFont
+GamePlayState	speech_font	GameState	SpeechFont
+GamePlayState	std_gui_textheight	GameState	StandardGuiTextHeight
+GamePlayState	key_skip_wait	GameState	WaitSkipType
+GamePlayState	swap_portrait_lastchar	GameState	SwapPortraitLastCharacter
+GamePlayState	swap_portrait_lastlastchar	GameState	SwapPortraitLastLastCharacter
+GamePlayState	in_conversation	GameState	ConversationDepth
+GamePlayState	screen_tint	GameState	ScreenTint
+GamePlayState	parsed_words	GameState	ParsedWords
+GamePlayState	bad_parsed_word	GameState	BadParsedWord
+GamePlayState	room_changes	GameState	RoomChanges
+GamePlayState	mouse_input_enabled	GameState	IsMouseInputEnabled
+GamePlayState	mouse_cursor_shown	GameState	IsMouseCursorShown
+GamePlayState	shakesc_delay	GameState	ShakeScreenDelay
+GamePlayState	shakesc_amount	GameState	ShakeScreenAmount
+GamePlayState	shakesc_length	GameState	ShakeScreenLength
+GamePlayState	rtint_red	GameState	AmbientTintRed
+GamePlayState	rtint_green	GameState	AmbientTintGreen
+GamePlayState	rtint_blue	GameState	AmbientTintBlue
+GamePlayState	rtint_level	GameState	AmbientTintLevel
+GamePlayState	rtint_light	GameState	AmbientTintLight
+GamePlayState	rtint_enabled	GameState	IsAmbientTintEnabled
+GamePlayState	skip_until_char_stops	GameState	SkipUntilCharacterStops
+GamePlayState	get_loc_name_last_time	GameState	LastNamedLocation
+GamePlayState	get_loc_name_save_cursor	GameState	LocationNameSaveCursor
+GamePlayState	restore_cursor_mode_to	GameState	RestoreCursorModeTo
+GamePlayState	restore_cursor_image_to	GameState	RestoreCursorImageTo
+GamePlayState	crossfading_out_channel	GameState	CrossfadingOutChannel
+GamePlayState	crossfade_step	GameState	CrossfadeStep
+GamePlayState	crossfade_out_volume_per_step	GameState	CrossfadeOutVolumePerStep
+GamePlayState	crossfade_initial_volume_out	GameState	CrossfadeInitialVolumeOut
+GamePlayState	crossfading_in_channel	GameState	CrossfadingInChannel
+GamePlayState	crossfade_in_volume_per_step	GameState	CrossfadeInVolumePerStep
+GamePlayState	crossfade_final_volume_in	GameState	CrossfadeFinalVolumeIn
+GamePlayState	new_music_queue_size	GameState	NewMusicQueueSize
+GamePlayState	new_music_queue	GameState	NewMusicQueue
+GamePlayState	lastParserEntry	GameState	LastParserEntry
+GamePlayState	game_name	GameState	GameName
+GamePlayState	ground_level_areas_disabled	GameState	GroundLevelAreasDisabled
+GamePlayState	next_screen_transition	GameState	NextScreenTransition
+GamePlayState	gamma_adjustment	GameState	GammaAdjustment
+GamePlayState	temporarily_turned_off_character	GameState	TemporarilyTurnedOffCharacter
+GamePlayState	gui_draw_order	GameState	GuiDrawOrder
+GamePlayState	do_once_tokens	GameState	DoOnceTokens
+GamePlayState	text_min_display_time_ms	GameState	MinimumTextDisplayTimeMs
+GamePlayState	ignore_user_input_after_text_timeout_ms	GameState	IgnoreUserInputAfterTextTimeoutMs
+GamePlayState	default_audio_type_volumes	GameState	DefaultAudioTypeVolumes
+GamePlayState	dialog_options_gui_x	GameState	DialogOptionsGuiX
+GamePlayState	dialog_options_gui_y	GameState	DialogOptionsGuiY
+GamePlayState	dialog_options_textalign	GameState	DialogOptionsTextAlignment
+GamePlayState	dialog_options_font	GameState	DialogOptionsFont
+GamePlayState	dialog_options_zorder	GameState	DialogOptionsZOrder
+GamePlayState	face_dir_ratio	GameState	FaceDirectionRatio
+GamePlayState	guiProps	GameState	GuiProperties
+GamePlayState	guicontrolProps	GameState	GuiControlProperties
+GamePlayState	speech_has_voice	GameState	HasSpeechVoice
+GamePlayState	speech_voice_blocking	GameState	IsSpeechVoiceBlocking
+GamePlayState	speech_in_post_state	GameState	IsSpeechInPostState
+GamePlayState	overlay_count	GameState	OverlayCount
+GamePlayState	complete_overlay_on	GameState	CompleteOverlayID
+GamePlayState	text_overlay_on	GameState	TextOverlayID
+GamePlayState	speech_text_schandle	GameState	SpeechTextScriptHandle
+GamePlayState	speech_face_schandle	GameState	SpeechPortraitScriptHandle
+GamePlayState	shake_screen_yoff	GameState	ShakeScreenOffsetY
+GamePlayState	_cursorShaderHandle	GameState	CursorShaderHandle
+GamePlayState	_cursorShaderID	GameState	CursorShaderID
+GamePlayState	_gameErrorText	GameState	GameErrorText
+GamePlayState	_gameTextLanguage	EngineServices	TextLanguage
+GamePlayState	_ignoreUserInputUntilTime	GameState	IgnoreUserInputUntilTime
+GamePlayState	_isAutoRoomViewport	GameViewports	_isAutoRoomViewport
+GamePlayState	_localeNameUTF8	EngineServices	TextLocaleName
+GamePlayState	_mainViewport	GameViewports	_mainViewport
+GamePlayState	_mainViewportHasChanged	GameViewports	_mainViewportHasChanged
+GamePlayState	_rbSwitches	GameState	RBSwitches
+GamePlayState	_roomCameras	GameViewports	_roomCameras
+GamePlayState	_roomViewportZOrderChanged	GameViewports	_roomViewportZOrderChanged
+GamePlayState	_roomViewports	GameViewports	_roomViewports
+GamePlayState	_roomViewportsSorted	GameViewports	_roomViewportsSorted
+GamePlayState	_scCameraHandles	GameViewports	_scCameraHandles
+GamePlayState	_scViewportHandles	GameViewports	_scViewportHandles
+GamePlayState	_screenShaderHandle	GameState	ScreenShaderHandle
+GamePlayState	_screenShaderID	GameState	ScreenShaderID
+GamePlayState	_scriptTimers	GameState	ScriptTimers
+GamePlayState	_uiViewport	GameViewports	_uiViewport
+GamePlayState	audioclipProps	AudioClipState	PropertyOverrides	moved into each live audio clip
+GamePlayState	bg_frame	Room	BgFrame
+GamePlayState	bg_frame_locked	Room	BgFrameLocked
+GamePlayState	charProps	CharacterState	PropertyOverrides	moved into each live character (the game file's values are GameDef::CharacterProperties)
+GamePlayState	dialogProps	DialogState	PropertyOverrides	moved into each live dialog
+GamePlayState	disable_antialiasing	GameState	DisableAntialiasing	the script reads it by offset; the logic asks a positive predicate
+GamePlayState	disable_dialog_parser	GameState	DisableDialogParser	the script reads it by offset; the logic asks IsDialogParserEnabled()
+GamePlayState	enable_antialiasing	GameConfig	AntialiasSprites	was a copy of the configuration's value; reached as EngineServices::Config.AntialiasSprites
+GamePlayState	entered_at_x	Room	EnteredAtX
+GamePlayState	entered_at_y	Room	EnteredAtY
+GamePlayState	entered_edge	Room	EnteredEdge
+GamePlayState	invProps	InventoryItemState	PropertyOverrides	moved into each live inventory item
+GamePlayState	no_multiloop_repeat	GameState	NoMultiLoopRepeat	the script reads it by offset; the logic asks a positive predicate
+GamePlayState	room_bg_modified	Room	BgModified
+GamePlayState	room_height	Room	LoadedHeight	as room_width
+GamePlayState	room_mask_modified	Room	MaskModified
+GamePlayState	room_width	Room	LoadedWidth	the size of the loaded room as the script's game.room_width reports it (RoomDef::Width is the room file's)
+GamePlayState	roomscript_finished	Room	ScriptFinished
+GamePlayState	separate_music_lib	EngineServices	SeparateMusicLib
+GamePlayState	voice_avail	EngineServices	VoiceAvail
+GamePlayState	walkable_areas_on	Room	WalkableAreasOn
+
+# ViewFrame
+ViewFrame	pic	ViewFrameDef	Sprite
+ViewFrame	xoffs	ViewFrameDef	OffsetX
+ViewFrame	yoffs	ViewFrameDef	OffsetY
+ViewFrame	speed	ViewFrameDef	Delay
+ViewFrame	flags	ViewFrameDef	Flags
+ViewFrame	sound	ViewFrameDef	LinkedAudio
+ViewFrame	reserved_for_future	ViewFrameDef	ReservedForFuture
+ViewFrame	event_name	ViewFrameDef	EventName
+
+# ViewLoopNew
+ViewLoopNew	numFrames	ViewLoopDef	FrameCount
+ViewLoopNew	flags	ViewLoopDef	Flags
+ViewLoopNew	frames	ViewLoopDef	Frames
+
+# ViewStruct
+ViewStruct	numLoops	ViewDef	LoopCount
+ViewStruct	loops	ViewDef	Loops
+
+# GameSetupStructBase
+GameSetupStructBase	gamename	GameDef	Name
+GameSetupStructBase	gamedataver	GameDef	DataVersion
+GameSetupStructBase	compiled_with	GameDef	CompiledWith
+GameSetupStructBase	paluses	GameDef	PaletteUses
+GameSetupStructBase	defpal	GameDef	DefaultPalette
+GameSetupStructBase	numviews	GameDef	ViewCount
+GameSetupStructBase	numcharacters	GameDef	CharacterCount
+GameSetupStructBase	numinvitems	GameDef	InventoryItemCount
+GameSetupStructBase	numdialog	GameDef	DialogCount
+GameSetupStructBase	numdlgmessage	GameDef	DialogMessageCount
+GameSetupStructBase	numfonts	GameDef	FontCount
+GameSetupStructBase	color_depth	GameDef	BytesPerPixel
+GameSetupStructBase	target_win	GameDef	TargetWindows
+GameSetupStructBase	uniqueid	GameDef	UniqueID
+GameSetupStructBase	numgui	GameDef	GuiCount
+GameSetupStructBase	numcursors	GameDef	MouseCursorCount
+GameSetupStructBase	reserved	GameDef	Reserved
+GameSetupStructBase	dict	GameDef	ParserDictionary
+GameSetupStructBase	options	GameDef	Options
+GameSetupStructBase	playercharacter	GameDef	PlayerCharacterID
+GameSetupStructBase	dialog_bullet	GameDef	DialogBulletSprite
+GameSetupStructBase	inv_hot_sprite	GameDef	InventoryCursorHotspotSprite
+GameSetupStructBase	inv_hot_color	GameDef	InventoryCursorHotspotColor
+GameSetupStructBase	inv_hot_cross_color	GameDef	InventoryCursorHotspotCrossColor
+GameSetupStructBase	default_lipsync_frame	GameDef	DefaultLipSyncFrame
+GameSetupStructBase	chars	GameDef	Characters	the definitions; the live list is Game::Characters (the definitions through game.Def())
+
+# GameSetupStruct
+GameSetupStruct	propSchema	GameDef	CustomPropertySchema
+GameSetupStruct	viewNames	GameDef	ViewNames
+GameSetupStruct	invScriptNames	GameDef	InventoryItemScriptNames
+GameSetupStruct	dialogScriptNames	GameDef	DialogScriptNames
+GameSetupStruct	guid	GameDef	Guid
+GameSetupStruct	saveGameFileExtension	GameDef	SaveGameFileExtension
+GameSetupStruct	saveGameFolderName	GameDef	SaveGameFolderName
+GameSetupStruct	roomNumbers	GameDef	RoomNumbers
+GameSetupStruct	roomNames	GameDef	RoomNames
+GameSetupStruct	faceDirectionRatio	GameDef	FaceDirectionRatio
+GameSetupStruct	invinfo	GameDef	InventoryItems
+GameSetupStruct	mcurs	GameDef	MouseCursors
+GameSetupStruct	audioClips	GameDef	AudioClips
+GameSetupStruct	audioClipTypes	GameDef	AudioClipTypes
+GameSetupStruct	fonts	GameDef	Fonts
+GameSetupStruct	numGameChannels	Game	GameChannelCount
+GameSetupStruct	numCompatGameChannels	Game	CompatGameChannelCount
+GameSetupStruct	charProps	GameDef	CharacterProperties
+GameSetupStruct	invProps	GameDef	InventoryItemProperties
+GameSetupStruct	audioclipProps	GameDef	AudioClipProperties
+GameSetupStruct	dialogProps	GameDef	DialogProperties
+GameSetupStruct	guiProps	GameDef	GuiProperties
+GameSetupStruct	guicontrolProps	GameDef	GuiControlProperties
+
+# InventoryItemInfo
+InventoryItemInfo	name	InventoryItemDef	Name
+InventoryItemInfo	pic	InventoryItemDef	Sprite
+InventoryItemInfo	cursorPic	InventoryItemDef	CursorSprite
+InventoryItemInfo	hotx	InventoryItemDef	CursorHotspotX
+InventoryItemInfo	hoty	InventoryItemDef	CursorHotspotY
+InventoryItemInfo	hotAlign	InventoryItemDef	CursorHotspotAlignment
+InventoryItemInfo	flags	InventoryItemDef	Flags
+InventoryItemInfo	interactions	InventoryItemDef	Interactions
+InventoryItemInfo	_events	InventoryItemDef	Events
+
+# MouseCursor
+MouseCursor	flags	MouseCursorDef	Flags
+MouseCursor	role	MouseCursorDef	Role
+MouseCursor	pic	MouseCursorDef	Sprite
+MouseCursor	hotx	MouseCursorDef	HotspotX
+MouseCursor	hoty	MouseCursorDef	HotspotY
+MouseCursor	view	MouseCursorDef	View
+MouseCursor	animdelay	MouseCursorDef	AnimationDelay
+MouseCursor	name	MouseCursorDef	ScriptName
+
+# ScriptAudioClip
+ScriptAudioClip	id	AudioClipDef	ID
+ScriptAudioClip	scriptName	AudioClipDef	ScriptName
+ScriptAudioClip	fileName	AudioClipDef	FileName
+ScriptAudioClip	bundlingType	AudioClipDef	BundlingType
+ScriptAudioClip	type	AudioClipDef	Type
+ScriptAudioClip	fileType	AudioClipDef	FileType
+ScriptAudioClip	defaultRepeat	AudioClipDef	IsRepeatingByDefault
+ScriptAudioClip	defaultPriority	AudioClipDef	DefaultPriority
+ScriptAudioClip	defaultVolume	AudioClipDef	DefaultVolume
+
+# AudioClipType
+AudioClipType	id	AudioClipTypeDef	ID
+AudioClipType	reservedChannels	AudioClipTypeDef	ReservedChannels
+AudioClipType	volume_reduction_while_speech_playing	AudioClipTypeDef	VolumeReductionWhileSpeechPlaying
+AudioClipType	crossfadeSpeed	AudioClipTypeDef	CrossfadeSpeed
+
+# FontInfo
+FontInfo	FontID	FontDef	ID
+FontInfo	Filename	FontDef	SourceFileName
+FontInfo	FileName	FontDef	AssetFileName
+FontInfo	YOffset	FontDef	OffsetY
+
+# RoomData
+RoomData	StrOptions	RoomDef	StringOptions
+RoomData	BgAnimSpeed	RoomDef	BgAnimDelay
+
+# RoomOptions
+RoomOptions	PlayerCharOff	RoomOptions	ShowPlayerCharacter	positive: the value is inverted

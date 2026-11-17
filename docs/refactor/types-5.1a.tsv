@@ -1,0 +1,221 @@
+# PLAN.md 5.1 and 5.1a: the types and globals that the fork renamed or split against upstream/ags4.
+# Types: upstream type<TAB>fork type<TAB>note. A type that became two has two lines; the line's note says what the
+# fork type holds of the upstream one. A note "alias" marks a fork name that is `using X = XDef` (a live type that
+# holds nothing more than its definition).
+# Globals (second part): global<TAB>fork expression<TAB>note; the expression is relative to the context's instance
+# (`Game::Current()`, `Room::Current()`, `EngineServices::Current()`), `-` where the global is gone.
+# Read by `.compare/helpers/port.py where`. Made by .compare/helpers/51a5/gen_types.py; names checked by check_namemap.py.
+
+CharacterInfo	CharacterDef	what the game file says (x, view, name...); `CharacterInfo::walking` is MoveState::MoveListID
+CharacterInfo	CharacterState	play-only fields (prevroom, activeinv, walkwait...), with the parts below
+CharacterInfo	Character	the live class: CharacterDef and CharacterState; `game.chars[i]` is game.Characters[i]
+CharacterExtras	CharacterState	play-only fields of `charextra[i]`; the array is gone
+CharacterExtras	GraphicState	tint, zoom, pivot, sprite size: shared with RoomObjectState
+CharacterExtras	ViewAnimState	loop, frame, wait, anim: shared with RoomObjectState
+CharacterExtras	MoveState	the move list id and handle: shared with RoomObjectState
+CharacterExtras	FrameSoundState	audio volume, panning, speed: shared with RoomObjectState
+RoomObject	RoomObject	same name, other content: class RoomObject : RoomObjectDef, RoomObjectState
+RoomObject	RoomObjectState	the play-only fields of an object
+RoomObjectInfo	RoomObjectDef	what the room file says about an object
+RoomStatus	RoomState	the live entities of one room number (`croom`)
+RoomStatus	RoomHotspotState	the hotspot entries of `RoomStatus::hotspot`
+RoomStatus	RoomRegionState	the region entries (`region_enabled`)
+HotspotState	RoomHotspotState
+WalkareaState	RoomWalkableArea	the live walkable area
+RoomData	RoomDef	what the room file says; `thisroom` is Room, a RoomStruct that has a RoomDef
+RoomHotspot	RoomHotspotDef	upstream: the room file's hotspot; the fork's RoomHotspot is the live one
+RoomRegion	RoomRegionDef	upstream: the room file's region; the fork's RoomRegion is the live one
+WalkArea	RoomWalkableAreaDef	the room file's walkable area
+WalkBehind	RoomWalkBehindDef	the room file's walk-behind
+InventoryItemInfo	InventoryItemDef	what the game file says
+InventoryItemInfo	InventoryItemState	the play-only fields (`PropertyOverrides`, formerly `play.invProps[i]`)
+InventoryItemInfo	InventoryItem	the live class
+DialogTopic	DialogDef	what the game file says
+DialogTopic	Dialog	the live class (`dialog[i]` is game.Dialogs[i])
+DialogOption	DialogOptionDef	alias DialogOption
+ScriptAudioClip	AudioClipDef	what the game file says
+ScriptAudioClip	AudioClip	the live class, its own script object
+AudioClipType	AudioClipTypeDef	alias AudioClipType
+MouseCursor	MouseCursorDef	alias MouseCursor
+ViewStruct	ViewDef	alias View
+ViewLoopNew	ViewLoopDef	alias ViewLoop
+ViewFrame	ViewFrameDef	alias ViewFrame
+FontInfo	FontDef
+GameSetupStructBase	GameDef	one struct with GameSetupStruct
+GameSetupStruct	GameDef	what the game file says (`Game::Def()`)
+GameSetupStruct	Game	the live context: class Game : public GameDef (`game`)
+GamePlayState	GameState	the play state; `GameState` in the fork is not upstream's GameState (below)
+GamePlayState	GameViewports	the viewports and cameras (`_mainViewport`...), held as Game::Viewports
+GamePlayState	Room	the room fields (bg_frame, entered_at_x...)
+GamePlayState	EngineServices	voice_avail, separate_music_lib and the text language
+GameState	GameLoopState	upstream's GameState is the base class of the loops; the fork's GameState is GamePlayState
+GameSetup	EngineConfig	usetup; its GameConfig base is unchanged
+
+# Globals that became members of a context (Script/use_context.py)
+usetup	EngineServices::Config	EngineConfig
+ResPaths	EngineServices::ResPaths
+platform	EngineServices::Platform
+gfxDriver	EngineServices::GfxDriver
+AssetMgr	EngineServices::Assets
+EngineVersion	EngineServices::Version
+want_exit	EngineServices::WantExit
+abort_engine	EngineServices::AbortEngine
+switched_away	EngineServices::SwitchedAway
+switching_away_from_game	EngineServices::SwitchingAwayFromGame
+game_update_suspend	EngineServices::GameUpdateSuspend
+proper_exit	EngineServices::ProperExit
+logScriptRTTI	EngineServices::LogScriptRTTI
+logScriptTOC	EngineServices::LogScriptTOC
+appPath	EngineServices::AppPath
+appDirectory	EngineServices::AppDirectory
+cmdGameDataPath	EngineServices::CmdGameDataPath
+override_start_room	EngineServices::OverrideStartRoom
+justRunSetup	EngineServices::JustRunSetup
+justTellInfo	EngineServices::JustTellInfo
+tellInfoKeys	EngineServices::TellInfoKeys
+loadSaveGameOnStartup	EngineServices::LoadSaveGameOnStartup
+load_new_game	EngineServices::ReloadGameForRestore	a bool: RunAGSGame is an unsupported stub, only the restore's reload of the same game file is left (until PLAN.md 5.11 step 3)
+gameHasBeenRestored	EngineServices::GameRestoredCount
+check_dynamic_sprites_at_exit	EngineServices::CheckDynamicSpritesAtExit
+GameScaling	EngineServices::GameScaling
+mousex	EngineServices::Input.MouseX
+mousey	EngineServices::Input.MouseY
+ignore_bounds	EngineServices::Input.IgnoreBounds
+sys_modkeys	EngineServices::Input.ModKeys
+sys_modkeys_fired	EngineServices::Input.ModKeysFired
+sys_mouse_x	EngineServices::Input.SysMouseX
+sys_mouse_y	EngineServices::Input.SysMouseY
+sys_mouse_z	EngineServices::Input.SysMouseZ
+editor_debugging_enabled	EngineServices::Debug.EditorDebuggingEnabled
+editor_debugging_initialized	EngineServices::Debug.EditorDebuggingInitialized
+editor_debugger_instance_token	EngineServices::Debug.EditorDebuggerInstanceToken
+editor_debugger	EngineServices::Debug.EditorDebugger
+break_on_next_script_step	EngineServices::Debug.BreakOnNextScriptStep
+display_fps	EngineServices::Debug.DisplayFps
+debug_flags	EngineServices::Debug.Flags
+gl_SysConfig	EngineServices::SysConfig
+pluginsWantingDebugHooks	EngineServices::PluginsWantingDebugHooks
+spriteset	EngineServices::Sprites
+game	Game	the context itself: class Game : public GameDef
+play	Game::Play	GameState
+charextra	-	gone: the fields are members of Character (CharacterState)
+views	Game::Views
+playerchar	Game::PlayerChar
+_sc_PlayerCharPtr	Game::ScPlayerCharPtr
+char_lowest_yp	Game::CharLowestYp
+obj_lowest_yp	Game::ObjLowestYp
+displayed_room	Game::DisplayedRoom
+in_new_room	Game::RoomChange.InNewRoom
+new_room_was	Game::RoomChange.NewRoomWas
+new_room_pos	Game::RoomChange.Pos
+new_room_x	Game::RoomChange.X
+new_room_y	Game::RoomChange.Y
+new_room_loop	Game::RoomChange.Loop
+new_room_placeonwalkable	Game::RoomChange.PlaceOnWalkable
+frames_per_second	Game::FramesPerSecond
+game_paused	Game::Paused
+loaded_game_file_version	Game::LoadedDataVersion
+scrObj	Game::ScObjects
+scrHotspot	Game::ScHotspots
+scrRegion	Game::ScRegions
+scrWalkarea	Game::ScWalkableAreas
+scrWalkbehind	Game::ScWalkBehinds
+scrInv	Game::ScInvItems
+dialog	Game::Dialogs
+scrDialog	Game::ScDialogs
+char_speaking	Game::Speech.CharSpeaking
+char_speaking_anim	Game::Speech.CharSpeakingAnim
+said_speech_line	Game::Speech.SaidSpeechLine
+said_text	Game::Speech.SaidText
+face_talking	Game::Speech.FaceTalking
+facetalkview	Game::Speech.FaceTalkView
+facetalkwait	Game::Speech.FaceTalkWait
+facetalkframe	Game::Speech.FaceTalkFrame
+facetalkloop	Game::Speech.FaceTalkLoop
+facetalkrepeat	Game::Speech.FaceTalkRepeat
+facetalkAllowBlink	Game::Speech.FaceTalkAllowBlink
+facetalkBlinkLoop	Game::Speech.FaceTalkBlinkLoop
+facetalkchar	Game::Speech.FaceTalkChar
+facetalk_qfg4_override_placement_x	Game::Speech.Qfg4OverridePlacementX
+facetalk_qfg4_override_placement_y	Game::Speech.Qfg4OverridePlacementY
+loops_per_character	Game::LipSync.LoopsPerCharacter
+splipsync	Game::LipSync.Lines
+numLipLines	Game::LipSync.NumLines
+curLipLine	Game::LipSync.CurLine
+curLipLinePhoneme	Game::LipSync.CurLinePhoneme
+longestline	Game::TextLayout.LongestLine
+source_text_length	Game::TextLayout.SourceTextLength
+guis	Game::Guis
+guibuts	Game::GuiButtons
+guiinv	Game::GuiInvWindows
+guilabels	Game::GuiLabels
+guilist	Game::GuiListBoxes
+guislider	Game::GuiSliders
+guitext	Game::GuiTextBoxes
+scrGui	Game::ScGuis
+ifacepopped	Game::IfacePopped
+mouse_on_iface	Game::MouseOnIface
+scmouse	Game::ScMouse
+cursor_gstate	Game::Cursor.GState
+cur_mode	Game::Cursor.Mode
+cur_cursor	Game::Cursor.Look
+mouse_hotx	Game::Cursor.HotX
+mouse_hoty	Game::Cursor.HotY
+mouse_frame	Game::Cursor.Frame
+mouse_delay	Game::Cursor.Delay
+lastmx	Game::Cursor.LastX
+lastmy	Game::Cursor.LastY
+topwindowhandle	Game::BuiltinDialogs.TopWindowHandle
+cbuttfont	Game::BuiltinDialogs.ButtonFont
+acdialog_font	Game::BuiltinDialogs.Font
+smcode	Game::BuiltinDialogs.PostedMessage
+win_x	Game::BuiltinDialogs.WinX
+win_y	Game::BuiltinDialogs.WinY
+gamescript	Game::Scripts.Global
+dialogScriptsScript	Game::Scripts.Dialog
+scriptModules	Game::Scripts.Modules
+moduleRepExecAddr	Game::Scripts.ModuleRepExecAddr
+numScriptModules	Game::Scripts.NumModules
+repExecAlways	Game::Scripts.RepExecAlways
+lateRepExecAlways	Game::Scripts.LateRepExecAlways
+getDialogOptionsDimensionsFunc	Game::Scripts.GetDialogOptionsDimensions
+renderDialogOptionsFunc	Game::Scripts.RenderDialogOptions
+getDialogOptionUnderCursorFunc	Game::Scripts.GetDialogOptionUnderCursor
+runDialogOptionMouseClickHandlerFunc	Game::Scripts.RunDialogOptionMouseClick
+runDialogOptionKeyPressHandlerFunc	Game::Scripts.RunDialogOptionKeyPress
+runDialogOptionTextInputHandlerFunc	Game::Scripts.RunDialogOptionTextInput
+runDialogOptionRepExecFunc	Game::Scripts.RunDialogOptionRepExec
+runDialogOptionCloseFunc	Game::Scripts.RunDialogOptionClose
+scsystem	Game::ScSystem
+StaticCharacterArray	Game::Handles.Characters
+StaticObjectArray	Game::Handles.Objects
+StaticGUIArray	Game::Handles.Guis
+StaticHotspotArray	Game::Handles.Hotspots
+StaticRegionArray	Game::Handles.Regions
+StaticWalkareaArray	Game::Handles.WalkableAreas
+StaticWalkbehindArray	Game::Handles.WalkBehinds
+StaticInventoryArray	Game::Handles.InvItems
+StaticDialogArray	Game::Handles.Dialogs
+StaticGUIControlsHandles	Game::Handles.GuiControls
+events	Game::Events.Queue
+eventClaimed	Game::Events.Claimed
+in_enters_screen	Game::Events.InEntersScreen
+done_as_error	Game::Events.DoneAsError
+in_leaves_screen	Game::Events.InLeavesScreen
+in_room_transition	Game::Events.InRoomTransition
+scrAudioChannel	Game::ScAudioChannels
+palette	Game::Palette
+maincoltable	Game::MainColTable
+dynamicallyCreatedSurfaces	Game::DynamicSurfaces
+saved_viewport_bitmap	Game::SavedViewportBitmap
+thisroom	Room	the context itself: class Room : public RoomStruct
+croom	Room::State	RoomState
+troom	Room::TempState	RoomState
+objs	Room::Objects	RoomObject list
+roomscript	Room::Script
+bg_just_changed	Room::BgJustChanged
+walkareabackup	Room::WalkAreaBackup
+walkable_areas_temp	Room::WalkableAreasTemp
+noWalkBehindsAtAll	Room::NoWalkBehindsAtAll
+walkBehindsCachedForBgNum	Room::WalkBehindsCachedForBgNum
+walk_behind_baselines_changed	Room::WalkBehindBaselinesChanged
