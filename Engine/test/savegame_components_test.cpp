@@ -29,6 +29,8 @@
 //=============================================================================
 #include <algorithm>
 #include <array>
+#include <cstdint>
+#include <iterator>
 #include <memory>
 #include <string>
 #include <vector>
@@ -37,6 +39,7 @@
 #include "game/customproperties.h"
 #include "game/dialog/dialog.h"
 #include "game/dialog_def.h"
+#include "game/dynobj/script_game.h"
 #include "game/game.h"
 #include "game/game_context.h"
 #include "game/game_def.h"
@@ -53,6 +56,7 @@
 #include "platform/base/engine_services.h"
 #include "util/field_table.h"
 #include "util/memorystream.h"
+#include "util/stream.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -75,6 +79,45 @@ bool HasErrorCode(const HSaveError &err, SavegameErrorType code)
 
 const SaveCmpSelection kCharactersAndItems = static_cast<SaveCmpSelection>(kSaveCmp_Characters | kSaveCmp_InvItems);
 
+// Three variables of the script's "game" object that are flags, at their byte offsets in it (CCScriptGame,
+// script_game.cpp)
+const struct
+{
+    const char *Name;
+    int Offset;
+} kScriptFlags[] = {
+    {"no_multiloop_repeat", 72 * sizeof(int32_t)},
+    {"disable_antialiasing", 97 * sizeof(int32_t)},
+    {"disable_dialog_parser", 102 * sizeof(int32_t)},
+};
+
+// The int32 at that position of the bytes (little-endian, as a save holds it)
+int32_t Int32At(const std::vector<uint8_t> &bytes, size_t pos)
+{
+    Stream in(std::make_unique<VectorStream>(bytes));
+    in.Seek(static_cast<soff_t>(pos), kSeekBegin);
+    return in.ReadInt32();
+}
+
+// The position of the int32 in which the two saves differ, if they differ in one int32 only and in its lowest byte
+// (its first: little-endian) at least; std::string::npos if not
+size_t OnlyDifferingInt32(const std::vector<uint8_t> &a, const std::vector<uint8_t> &b)
+{
+    if (a.size() != b.size())
+        return std::string::npos;
+    size_t first = std::string::npos;
+    for (size_t i = 0; i < a.size(); ++i)
+    {
+        if (a[i] == b[i])
+            continue;
+        if (first == std::string::npos)
+            first = i;
+        else if (i >= first + sizeof(int32_t))
+            return std::string::npos;
+    }
+    return first;
+}
+
 } // namespace
 
 // Fixture for the savegame components with game content. The engine globals it touches, all reset in TearDown:
@@ -86,6 +129,7 @@ const SaveCmpSelection kCharactersAndItems = static_cast<SaveCmpSelection>(kSave
 // - game.AudioClipTypes, game.Play.default_audio_type_volumes: the audio types
 // - the game's live options and values that the game state saves (GameSetupFields)
 // - EngineServices::Current().SeparateMusicLib
+// - game.Play's flags and bits that the tests change (PlayFlags), and the script timers kTestTimers
 class SavegameContent : public ::testing::Test
 {
 protected:
@@ -93,6 +137,7 @@ protected:
     {
         _separateMusicLib = EngineServices::Current().SeparateMusicLib;
         _gameSetup = GameSetupFields::Get();
+        _playFlags = PlayFlags::Get();
     }
 
     void TearDown() override
@@ -103,6 +148,9 @@ protected:
         SetCursors(0);
         SetAudioTypes(0);
         _gameSetup.Set();
+        _playFlags.Set();
+        for (const int timer : kTestTimers)
+            SetTimer(timer, 0);
         EngineServices::Current().SeparateMusicLib = _separateMusicLib;
     }
 
@@ -144,8 +192,69 @@ protected:
         }
     };
 
+    // The game state's flags and bits that the tests change
+    struct PlayFlags
+    {
+        int NoMultiLoopRepeat = 0;
+        int DisableAntialiasing = 0;
+        int DisableDialogParser = 0;
+        bool MouseInputEnabled = true;
+        bool MouseCursorShown = true;
+        bool SpeechHasVoice = false;
+        bool SpeechVoiceBlocking = false;
+        bool SpeechAlwaysWaitForText = false;
+
+        static PlayFlags Get()
+        {
+            const GamePlayState &play = Game::Current().Play;
+            PlayFlags flags;
+            flags.NoMultiLoopRepeat = play.no_multiloop_repeat;
+            flags.DisableAntialiasing = play.disable_antialiasing;
+            flags.DisableDialogParser = play.disable_dialog_parser;
+            flags.MouseInputEnabled = play.mouse_input_enabled;
+            flags.MouseCursorShown = play.mouse_cursor_shown;
+            flags.SpeechHasVoice = play.speech_has_voice;
+            flags.SpeechVoiceBlocking = play.speech_voice_blocking;
+            flags.SpeechAlwaysWaitForText = play.speech_always_wait_for_text;
+            return flags;
+        }
+
+        void Set() const
+        {
+            GamePlayState &play = Game::Current().Play;
+            play.no_multiloop_repeat = NoMultiLoopRepeat;
+            play.disable_antialiasing = DisableAntialiasing;
+            play.disable_dialog_parser = DisableDialogParser;
+            play.mouse_input_enabled = MouseInputEnabled;
+            play.mouse_cursor_shown = MouseCursorShown;
+            play.speech_has_voice = SpeechHasVoice;
+            play.speech_voice_blocking = SpeechVoiceBlocking;
+            play.speech_always_wait_for_text = SpeechAlwaysWaitForText;
+        }
+    };
+
+    // The script timers that the tests start, stopped in TearDown
+    static constexpr int kTestTimers[] = {0, 1, 5, 1000};
+
     bool _separateMusicLib = false;
     GameSetupFields _gameSetup;
+    PlayFlags _playFlags;
+
+    // The game state component of the game as it is
+    static std::vector<uint8_t> SaveGameState()
+    {
+        std::vector<uint8_t> saved;
+        std::string error;
+        EXPECT_TRUE(Save(kSaveCmp_GameState, saved, error)) << error;
+        return saved;
+    }
+
+    static void RestoreGameState(const std::vector<uint8_t> &saved)
+    {
+        RestoredData r_data;
+        HSaveError err = Restore(saved, kSaveCmp_GameState, r_data);
+        EXPECT_TRUE(err) << err->FullMessage().GetCStr();
+    }
 
     // Makes the game's dialogs, each with the same number of options, all off; option texts are "Dialog d option o"
     static void SetDialogs(int dialog_count, int option_count)
@@ -736,6 +845,157 @@ TEST_F(SavegameContent, GameSetupIsRestored)
     EXPECT_EQ(0x00123456, game.InventoryCursorHotspotCrossColor);
     EXPECT_EQ(17, game.InventoryCursorHotspotSprite);
     EXPECT_EQ(4, game.DefaultLipSyncFrame);
+}
+
+// The script's game.no_multiloop_repeat, game.disable_antialiasing and game.disable_dialog_parser come back from a save
+// with the number the script wrote: 0, 1 and other numbers (an int is behind each today, saved as it is)
+TEST_F(SavegameContent, GameStateFlagsComeBackWithTheScriptsNumbers)
+{
+    Game &game = Game::Current();
+    for (const auto &flag : kScriptFlags)
+    {
+        for (const int value : {0, 1, 5, -1})
+        {
+            SCOPED_TRACE(testing::Message() << flag.Name << " " << value);
+            GameStaticManager.WriteInt32(&game.Play, flag.Offset, value);
+            const std::vector<uint8_t> saved = SaveGameState();
+            GameStaticManager.WriteInt32(&game.Play, flag.Offset, value == 0 ? 1 : 0);
+            RestoreGameState(saved);
+            EXPECT_EQ(value, GameStaticManager.ReadInt32(&game.Play, flag.Offset));
+        }
+    }
+}
+
+// In the game state component each of the three flags is one int32 that holds the script's number, and the three lie
+// as far apart as in the script's "game" object (the component's layout starts as the script's object)
+TEST_F(SavegameContent, GameStateFlagsAreInt32sAtTheScriptsDistances)
+{
+    Game &game = Game::Current();
+    std::vector<size_t> positions;
+    for (const auto &flag : kScriptFlags)
+    {
+        SCOPED_TRACE(flag.Name);
+        GameStaticManager.WriteInt32(&game.Play, flag.Offset, 0);
+        const std::vector<uint8_t> zero = SaveGameState();
+        GameStaticManager.WriteInt32(&game.Play, flag.Offset, -1);
+        const std::vector<uint8_t> minus_one = SaveGameState();
+        const size_t pos = OnlyDifferingInt32(zero, minus_one);
+        ASSERT_NE(std::string::npos, pos);
+        EXPECT_EQ(0, Int32At(zero, pos));
+        EXPECT_EQ(-1, Int32At(minus_one, pos));
+        for (const int value : {1, 5})
+        {
+            GameStaticManager.WriteInt32(&game.Play, flag.Offset, value);
+            const std::vector<uint8_t> saved = SaveGameState();
+            EXPECT_EQ(pos, OnlyDifferingInt32(zero, saved)) << value;
+            EXPECT_EQ(value, Int32At(saved, pos));
+        }
+        GameStaticManager.WriteInt32(&game.Play, flag.Offset, 0);
+        positions.push_back(pos);
+    }
+    EXPECT_EQ(static_cast<size_t>(kScriptFlags[1].Offset - kScriptFlags[0].Offset), positions[1] - positions[0]);
+    EXPECT_EQ(static_cast<size_t>(kScriptFlags[2].Offset - kScriptFlags[1].Offset), positions[2] - positions[1]);
+}
+
+// The fields that the game state component holds as bits of an int32 come back from a save, in every combination,
+// and the word holds them as the bits below: the mouse (0x01 the cursor hidden, 0x02 the input enabled), the voice
+// speech (0x01 a voice playing, 0x02 blocking), the speech's extra flags (0x01 always wait for the text)
+TEST_F(SavegameContent, GameStateBitsComeBackAsTheirWords)
+{
+    Game &game = Game::Current();
+    // one word of the save, at the position where the state's two saves differ in it
+    auto expect_words = [](const std::vector<std::vector<uint8_t>> &saves, const std::vector<int32_t> &words)
+    {
+        const size_t pos = OnlyDifferingInt32(saves.front(), saves.back());
+        ASSERT_NE(std::string::npos, pos);
+        for (size_t i = 0; i < saves.size(); ++i)
+        {
+            EXPECT_EQ(words[i], Int32At(saves[i], pos)) << "case " << i;
+            if (i > 0)
+                EXPECT_TRUE(saves[i] == saves[0] || OnlyDifferingInt32(saves[0], saves[i]) == pos) << "case " << i;
+        }
+    };
+
+    struct Pair
+    {
+        bool First;
+        bool Second;
+    };
+    // the mouse: (input enabled, cursor shown)
+    {
+        const Pair cases[] = {{true, true}, {false, true}, {true, false}, {false, false}};
+        std::vector<std::vector<uint8_t>> saves;
+        for (const Pair &c : cases)
+        {
+            game.Play.mouse_input_enabled = c.First;
+            game.Play.mouse_cursor_shown = c.Second;
+            saves.push_back(SaveGameState());
+            game.Play.mouse_input_enabled = !c.First;
+            game.Play.mouse_cursor_shown = !c.Second;
+            RestoreGameState(saves.back());
+            EXPECT_EQ(c.First, game.Play.mouse_input_enabled) << c.First << c.Second;
+            EXPECT_EQ(c.Second, game.Play.mouse_cursor_shown) << c.First << c.Second;
+        }
+        expect_words(saves, {0x02, 0x00, 0x03, 0x01});
+    }
+    // the voice speech: (has a voice, the voice is blocking); a blocking speech without a voice comes back as a voice:
+    // a word of 2 is a voice, as any word other than 0. The engine never has that state: it sets and clears the two
+    // together (speech.cpp, engine_init_game_settings).
+    {
+        const Pair cases[] = {{false, false}, {true, false}, {true, true}, {false, true}};
+        const Pair restored[] = {{false, false}, {true, false}, {true, true}, {true, true}};
+        std::vector<std::vector<uint8_t>> saves;
+        for (size_t i = 0; i < std::size(cases); ++i)
+        {
+            game.Play.speech_has_voice = cases[i].First;
+            game.Play.speech_voice_blocking = cases[i].Second;
+            saves.push_back(SaveGameState());
+            game.Play.speech_has_voice = !cases[i].First;
+            game.Play.speech_voice_blocking = !cases[i].Second;
+            RestoreGameState(saves.back());
+            EXPECT_EQ(restored[i].First, game.Play.speech_has_voice) << "case " << i;
+            EXPECT_EQ(restored[i].Second, game.Play.speech_voice_blocking) << "case " << i;
+        }
+        expect_words({saves[0], saves[1], saves[2]}, {0x00, 0x01, 0x03});
+        EXPECT_EQ(2, Int32At(saves[3], OnlyDifferingInt32(saves[0], saves[3])));
+        game.Play.speech_has_voice = false;
+        game.Play.speech_voice_blocking = false;
+    }
+    // always wait for the text
+    {
+        std::vector<std::vector<uint8_t>> saves;
+        for (const bool on : {false, true})
+        {
+            game.Play.speech_always_wait_for_text = on;
+            saves.push_back(SaveGameState());
+            game.Play.speech_always_wait_for_text = !on;
+            RestoreGameState(saves.back());
+            EXPECT_EQ(on, game.Play.speech_always_wait_for_text);
+        }
+        expect_words(saves, {0x00, 0x01});
+    }
+}
+
+// The script timers come back from a save with their ticks left, a timer that has run out (1 tick: IsTimerExpired
+// tells it once) included; a timer started after the save is gone, and one stopped after it runs again
+TEST_F(SavegameContent, ScriptTimersComeBackFromASave)
+{
+    SetTimer(1, 40);
+    SetTimer(1000, 7);
+    SetTimer(0, 1);
+    const std::vector<uint8_t> saved = SaveGameState();
+    SetTimer(1, 0);
+    SetTimer(1000, 3);
+    SetTimer(5, 99);
+
+    RestoreGameState(saved);
+    EXPECT_EQ(40, GetTimerPos(1));
+    EXPECT_EQ(7, GetTimerPos(1000));
+    EXPECT_EQ(0, GetTimerPos(5));
+    EXPECT_EQ(1, GetTimerPos(0));
+    EXPECT_EQ(1, IsTimerExpired(0));
+    EXPECT_EQ(0, IsTimerExpired(0));
+    EXPECT_EQ(0, GetTimerPos(0));
 }
 
 TEST(SavegameState, AnimatedOverlayWaitIsRestored)

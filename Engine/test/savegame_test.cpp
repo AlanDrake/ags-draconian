@@ -120,10 +120,25 @@ std::vector<uint8_t> MakeComponentList(const char *name, int32_t version)
     return buf;
 }
 
-// Some of the state that the game state component saves, with values that no new game has
+// The script timer that SetPlayState starts, and its ticks left
+const int kTimerId = 3;
+const int kTimerTicks = 40;
+
+// Some of the state that the game state component saves, with values that no new game has: among them the three
+// script variables that are flags (game.no_multiloop_repeat, game.disable_antialiasing, game.disable_dialog_parser), the
+// fields that the save holds as bits of a word, and a script timer
 void SetPlayState()
 {
     Game &game = Game::Current();
+    game.Play.no_multiloop_repeat = 1;
+    game.Play.disable_antialiasing = 1;
+    game.Play.disable_dialog_parser = 1;
+    game.Play.mouse_input_enabled = false;
+    game.Play.mouse_cursor_shown = false;
+    game.Play.speech_always_wait_for_text = true;
+    game.Play.speech_has_voice = true;
+    game.Play.speech_voice_blocking = true;
+    SetTimer(kTimerId, kTimerTicks);
     game.Play.usedmode = 7;
     game.Play.messagetime = 321;
     game.Play.usedinv = 4;
@@ -142,9 +157,19 @@ void SetPlayState()
     game.Play.bgspeech_game_speed = 1;
 }
 
+// The state that SetPlayState sets, as a new game has it
 void ClearPlayState()
 {
     Game &game = Game::Current();
+    game.Play.no_multiloop_repeat = 0;
+    game.Play.disable_antialiasing = 0;
+    game.Play.disable_dialog_parser = 0;
+    game.Play.mouse_input_enabled = true;
+    game.Play.mouse_cursor_shown = true;
+    game.Play.speech_always_wait_for_text = false;
+    game.Play.speech_has_voice = false;
+    game.Play.speech_voice_blocking = false;
+    SetTimer(kTimerId, 0);
     game.Play.usedmode = 0;
     game.Play.messagetime = 0;
     game.Play.usedinv = 0;
@@ -166,6 +191,15 @@ void ClearPlayState()
 void ExpectPlayState()
 {
     Game &game = Game::Current();
+    EXPECT_EQ(1, game.Play.no_multiloop_repeat);
+    EXPECT_EQ(1, game.Play.disable_antialiasing);
+    EXPECT_EQ(1, game.Play.disable_dialog_parser);
+    EXPECT_FALSE(game.Play.mouse_input_enabled);
+    EXPECT_FALSE(game.Play.mouse_cursor_shown);
+    EXPECT_TRUE(game.Play.speech_always_wait_for_text);
+    EXPECT_TRUE(game.Play.speech_has_voice);
+    EXPECT_TRUE(game.Play.speech_voice_blocking);
+    EXPECT_EQ(kTimerTicks, GetTimerPos(kTimerId));
     EXPECT_EQ(7, game.Play.usedmode);
     EXPECT_EQ(321, game.Play.messagetime);
     EXPECT_EQ(4, game.Play.usedinv);

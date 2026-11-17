@@ -24,6 +24,13 @@
 // started game has, which are its definition's; ViewFrame.YOffset, which gave
 // the x offset; the sprite table, which the sprite cache writes in the game's live
 // copy (sizes, dynamic sprites, deleted sprites, flags), with Game::IsSpriteValid.
+// The custom properties of the characters, inventory items, dialogs, audio clips,
+// GUIs and GUI controls through their script functions: the value set during
+// play, else the definition's, else the schema's default; the save round trip,
+// the restore and the unload; the bytes a save holds for them. Three script
+// variables of the game state (game.disable_antialiasing,
+// game.disable_dialog_parser, game.no_multiloop_repeat) and what they switch;
+// the wait's skip type and the voice speech checks of the game state.
 // The game is made by hand, in a Game, a Room and an EngineServices of the
 // fixture's own: no game file is read.
 //
@@ -33,11 +40,16 @@
 // makes textures of the frames, which needs a graphics driver: the cursors use a
 // view without frames); the option commands of a dialog script (they need a
 // compiled dialog script); the marker that the inventory cursor draws on its
-// image (it needs the sprite's image).
+// image (it needs the sprite's image); a custom property name that the schema
+// does not have, or a text property read as a number (the engine quits the game:
+// get_property_desc calls quitprintf, which ends the process); the dialog parser
+// shown when game.disable_dialog_parser is 0 (the options are then shown, a
+// blocking loop that needs a graphics driver and input).
 //
 //=============================================================================
 #include <algorithm>
 #include <cstdint>
+#include <functional>
 #include <initializer_list>
 #include <iterator>
 #include <memory>
@@ -46,11 +58,15 @@
 
 #include <allegro.h> // get_palette, set_palette_range, get_uformat, set_uformat
 
+#include "game/anim_flow.h"
+#include "game/audio/audio_clip.h"
 #include "game/audio_clip_def.h"
 #include "game/audio_clip_type_def.h"
+#include "game/customproperties.h"
 #include "game/dialog/dialog.h"
 #include "game/dialog_def.h"
 #include "game/dynobj/cc_audio_clip.h"
+#include "game/dynobj/script_game.h"
 #include "game/dynobj/script_objects.h"
 #include "game/dynobj/script_view_frame.h"
 #include "game/game.h"
@@ -67,18 +83,31 @@
 #include "game/save/savegame_components.h"
 #include "game/save/savegame_internal.h"
 #include "game/script.h"
+#include "game/ui/gui.h"
+#include "game/ui/gui_control.h"
 #include "game/ui/mouse.h"
 #include "game/view_def.h"
 #include "game/world/character.h"
 #include "game/world/inventory_item.h"
+#include "game/world/object.h"
 #include "game/world/room_context.h"
 #include "game/world/view_frame.h"
 #include "gfx/bitmap.h"
 #include "gfx/gfx_def.h"
 #include "gfx/sprite_cache.h"
 #include "gtest/gtest.h"
+#include "gui/guibutton.h"
+#include "gui/guicontrol.h"
+#include "gui/guidefines.h"
+#include "gui/guiinv.h"
+#include "gui/guilabel.h"
+#include "gui/guilistbox.h"
 #include "gui/guimain.h"
+#include "gui/guislider.h"
+#include "gui/guitextbox.h"
 #include "main/engine.h"
+#include "platform/base/engine_config.h"
+#include "platform/base/engine_defines.h"
 #include "platform/base/engine_services.h"
 #include "script/cc_common.h"
 #include "script/cc_script.h"
@@ -92,6 +121,7 @@
 #include "util/memorystream.h"
 #include "util/stream.h"
 #include "util/string.h"
+#include "util/string_types.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -103,6 +133,10 @@ namespace Engine
 // game_init.cpp: makes each audio clip's id its index and registers the audio channels and the clips with the managed
 // pool, at their elements' addresses. Part of InitGameState; no header declares it.
 void InitAndRegisterAudioObjects(Game &game);
+// savegame.cpp: what a restore into the running game does before it reads the components (RestoreGameState): frees
+// the state that the components do not overwrite, the custom property values set during play among it. No header
+// declares it.
+void DoBeforeRestore(PreservedParams &pp, SaveCmpSelection select_cmp);
 } // namespace Engine
 } // namespace AGS
 
@@ -140,6 +174,22 @@ const int kFileSpriteCount = 10;
 const int kFileSpriteSize = 16;
 const int kKeepDepthSprite = 3;
 const int kMissingSprite = 5;
+// The GUIs: each has one control of each of the six types; GUI g's control of a type has the per-type id g, so the
+// controls of GUI 1 are its controls 0 to 5 and the elements 1 of the six control lists
+const int kGuiCount = 2;
+const GUIControlType kControlTypes[] = {kGUIButton, kGUILabel, kGUIInvWindow, kGUISlider, kGUITextBox, kGUIListBox};
+// The custom properties of the game's schema: a number and a text, with their defaults. The definition gives element 1
+// of every kind values of its own and the other elements none.
+const char *const kNumberProperty = "Weight";
+const char *const kTextProperty = "Colour";
+const int kNumberDefault = 7;
+const char *const kTextDefault = "grey";
+const int kNumberOfElement1 = 11;
+const char *const kTextOfElement1 = "red";
+// The byte offsets of three variables of the script's "game" object (CCScriptGame, script_game.cpp)
+const int kNoMultiLoopRepeatOffset = 72 * sizeof(int32_t);
+const int kDisableAntialiasingOffset = 97 * sizeof(int32_t);
+const int kDisableDialogParserOffset = 102 * sizeof(int32_t);
 
 // The sprite file of StartWithSpriteFile, made in memory
 std::vector<uint8_t> MakeSpriteFile()
@@ -214,6 +264,269 @@ ScriptDialog DialogObject(int id)
     return dialog;
 }
 
+ScriptGUI GuiObject(int id)
+{
+    ScriptGUI gui;
+    gui.id = id;
+    return gui;
+}
+
+// Element i of the game's list of controls of that type
+GUIControl *ControlOf(GameDef &game, GUIControlType type, int i)
+{
+    switch (type)
+    {
+    case kGUIButton: return &game.GuiButtons[i];
+    case kGUILabel: return &game.GuiLabels[i];
+    case kGUIInvWindow: return &game.GuiInvWindows[i];
+    case kGUISlider: return &game.GuiSliders[i];
+    case kGUITextBox: return &game.GuiTextBoxes[i];
+    case kGUIListBox: return &game.GuiListBoxes[i];
+    default: return nullptr;
+    }
+}
+
+// The text a script function returned (nullptr as an empty text)
+std::string TextOf(const char *text)
+{
+    return text ? text : "";
+}
+
+// The bytes of a property map as a save holds it (Properties::WriteValues)
+std::vector<uint8_t> PropertyMapBytes(const StringIMap &map)
+{
+    std::vector<uint8_t> bytes;
+    {
+        Stream out(std::make_unique<VectorStream>(bytes, kStream_Write));
+        Properties::WriteValues(map, &out);
+    }
+    return bytes;
+}
+
+// The data of the save's component of that name: after its opening tag, the component's header (its size, flags,
+// format version, data size, uncompressed size, checksum: SavegameComponents::WriteComponent), then the data. Empty
+// if the save does not have the component.
+std::vector<uint8_t> ComponentData(const std::vector<uint8_t> &save, const std::string &name)
+{
+    const std::string tag = "<" + name + ">";
+    const auto at = std::search(save.begin(), save.end(), tag.begin(), tag.end());
+    if (at == save.end())
+        return {};
+    const soff_t header_pos = static_cast<soff_t>(at - save.begin()) + static_cast<soff_t>(tag.size());
+    Stream in(std::make_unique<VectorStream>(save));
+    in.Seek(header_pos, kSeekBegin);
+    const int32_t header_size = in.ReadInt32();
+    in.ReadInt32(); // flags
+    in.ReadInt32(); // format version
+    const int32_t data_size = in.ReadInt32();
+    const size_t data_pos = static_cast<size_t>(header_pos + header_size);
+    if (data_size < 0 || data_pos + data_size > save.size())
+        return {};
+    return std::vector<uint8_t>(save.begin() + data_pos, save.begin() + data_pos + data_size);
+}
+
+// One kind of game entity that has custom properties, as a script reaches it: how many the game has, the script
+// functions that get and set a number and a text property of element i, the definition's values of element i, and the
+// save component that holds the values set during play (none for the audio clips)
+struct PropertyKind
+{
+    std::string Name;
+    int Count = 0;
+    std::function<int(int, const char *)> GetNumber;
+    std::function<std::string(int, const char *)> GetText;
+    std::function<bool(int, const char *, int)> SetNumber;
+    std::function<bool(int, const char *, const char *)> SetText;
+    std::function<const StringIMap &(const GameDef &, int)> Definition;
+    SaveCmpSelection Component = kSaveCmp_None;
+    const char *ComponentName = nullptr;
+};
+
+// The kinds of game entities that have custom properties: characters, inventory items, dialogs, audio clips, GUIs and
+// the six types of GUI control
+std::vector<PropertyKind> PropertyKinds()
+{
+    std::vector<PropertyKind> kinds;
+    {
+        PropertyKind kind;
+        kind.Name = "character";
+        kind.Count = kCharacterCount;
+        kind.GetNumber = [](int i, const char *name)
+        { return Character_GetProperty(&Game::Current().Characters[i], name); };
+        kind.GetText = [](int i, const char *name)
+        { return TextOf(Character_GetTextProperty(&Game::Current().Characters[i], name)); };
+        kind.SetNumber = [](int i, const char *name, int value)
+        { return Character_SetProperty(&Game::Current().Characters[i], name, value); };
+        kind.SetText = [](int i, const char *name, const char *value)
+        { return Character_SetTextProperty(&Game::Current().Characters[i], name, value); };
+        kind.Definition = [](const GameDef &def, int i) -> const StringIMap & { return def.charProps[i]; };
+        kind.Component = kSaveCmp_Characters;
+        kind.ComponentName = "Characters";
+        kinds.push_back(kind);
+    }
+    {
+        PropertyKind kind;
+        kind.Name = "inventory item";
+        kind.Count = kItemCount;
+        kind.GetNumber = [](int i, const char *name)
+        {
+            ScriptInvItem item = ItemObject(i);
+            return InventoryItem_GetProperty(&item, name);
+        };
+        kind.GetText = [](int i, const char *name)
+        {
+            ScriptInvItem item = ItemObject(i);
+            return TextOf(InventoryItem_GetTextProperty(&item, name));
+        };
+        kind.SetNumber = [](int i, const char *name, int value)
+        {
+            ScriptInvItem item = ItemObject(i);
+            return InventoryItem_SetProperty(&item, name, value);
+        };
+        kind.SetText = [](int i, const char *name, const char *value)
+        {
+            ScriptInvItem item = ItemObject(i);
+            return InventoryItem_SetTextProperty(&item, name, value);
+        };
+        kind.Definition = [](const GameDef &def, int i) -> const StringIMap & { return def.invProps[i]; };
+        kind.Component = kSaveCmp_InvItems;
+        kind.ComponentName = "Inventory Items";
+        kinds.push_back(kind);
+    }
+    {
+        PropertyKind kind;
+        kind.Name = "dialog";
+        kind.Count = kDialogCount;
+        kind.GetNumber = [](int i, const char *name)
+        {
+            ScriptDialog dialog = DialogObject(i);
+            return Dialog_GetProperty(&dialog, name);
+        };
+        kind.GetText = [](int i, const char *name)
+        {
+            ScriptDialog dialog = DialogObject(i);
+            return TextOf(Dialog_GetTextProperty(&dialog, name));
+        };
+        kind.SetNumber = [](int i, const char *name, int value)
+        {
+            ScriptDialog dialog = DialogObject(i);
+            return Dialog_SetProperty(&dialog, name, value);
+        };
+        kind.SetText = [](int i, const char *name, const char *value)
+        {
+            ScriptDialog dialog = DialogObject(i);
+            return Dialog_SetTextProperty(&dialog, name, value);
+        };
+        kind.Definition = [](const GameDef &def, int i) -> const StringIMap & { return def.dialogProps[i]; };
+        kind.Component = kSaveCmp_Dialogs;
+        kind.ComponentName = "Dialogs";
+        kinds.push_back(kind);
+    }
+    {
+        PropertyKind kind;
+        kind.Name = "audio clip";
+        kind.Count = kAudioClipCount;
+        kind.GetNumber = [](int i, const char *name)
+        { return AudioClip_GetProperty(&Game::Current().AudioClips[i], name); };
+        kind.GetText = [](int i, const char *name)
+        { return TextOf(AudioClip_GetTextProperty(&Game::Current().AudioClips[i], name)); };
+        kind.SetNumber = [](int i, const char *name, int value)
+        { return AudioClip_SetProperty(&Game::Current().AudioClips[i], name, value); };
+        kind.SetText = [](int i, const char *name, const char *value)
+        { return AudioClip_SetTextProperty(&Game::Current().AudioClips[i], name, value); };
+        kind.Definition = [](const GameDef &def, int i) -> const StringIMap & { return def.audioclipProps[i]; };
+        kinds.push_back(kind);
+    }
+    {
+        PropertyKind kind;
+        kind.Name = "GUI";
+        kind.Count = kGuiCount;
+        kind.GetNumber = [](int i, const char *name)
+        {
+            ScriptGUI gui = GuiObject(i);
+            return GUI_GetProperty(&gui, name);
+        };
+        kind.GetText = [](int i, const char *name)
+        {
+            ScriptGUI gui = GuiObject(i);
+            return TextOf(GUI_GetTextProperty(&gui, name));
+        };
+        kind.SetNumber = [](int i, const char *name, int value)
+        {
+            ScriptGUI gui = GuiObject(i);
+            return GUI_SetProperty(&gui, name, value);
+        };
+        kind.SetText = [](int i, const char *name, const char *value)
+        {
+            ScriptGUI gui = GuiObject(i);
+            return GUI_SetTextProperty(&gui, name, value);
+        };
+        kind.Definition = [](const GameDef &def, int i) -> const StringIMap & { return def.guiProps[i]; };
+        kind.Component = kSaveCmp_GUI;
+        kind.ComponentName = "GUI";
+        kinds.push_back(kind);
+    }
+    for (GUIControlType type : kControlTypes)
+    {
+        PropertyKind kind;
+        kind.Name = "GUI control of type " + std::to_string(type);
+        kind.Count = kGuiCount;
+        kind.GetNumber = [type](int i, const char *name)
+        { return GUIControl_GetProperty(ControlOf(Game::Current(), type, i), name); };
+        kind.GetText = [type](int i, const char *name)
+        { return TextOf(GUIControl_GetTextProperty(ControlOf(Game::Current(), type, i), name)); };
+        kind.SetNumber = [type](int i, const char *name, int value)
+        { return GUIControl_SetProperty(ControlOf(Game::Current(), type, i), name, value); };
+        kind.SetText = [type](int i, const char *name, const char *value)
+        { return GUIControl_SetTextProperty(ControlOf(Game::Current(), type, i), name, value); };
+        kind.Definition = [type](const GameDef &def, int i) -> const StringIMap &
+        { return def.guicontrolProps[type][i]; };
+        kind.Component = kSaveCmp_GUI;
+        kind.ComponentName = "GUI";
+        kinds.push_back(kind);
+    }
+    return kinds;
+}
+
+// The kinds whose values set during play a save holds: all but the audio clips
+std::vector<PropertyKind> SavedPropertyKinds()
+{
+    std::vector<PropertyKind> kinds = PropertyKinds();
+    kinds.erase(std::remove_if(kinds.begin(), kinds.end(),
+                               [](const PropertyKind &kind) { return kind.Component == kSaveCmp_None; }),
+                kinds.end());
+    return kinds;
+}
+
+bool IsGuiControlKind(const PropertyKind &kind)
+{
+    return kind.Name.find("GUI control") == 0;
+}
+
+// The components that hold the values of the custom properties set during play
+const SaveCmpSelection kPropertyComponents =
+    static_cast<SaveCmpSelection>(kSaveCmp_Characters | kSaveCmp_InvItems | kSaveCmp_Dialogs | kSaveCmp_GUI);
+
+// Element i of the kind has the schema's defaults
+void ExpectDefaults(const PropertyKind &kind, int i)
+{
+    SCOPED_TRACE(testing::Message() << kind.Name << " " << i);
+    EXPECT_EQ(kNumberDefault, kind.GetNumber(i, kNumberProperty));
+    EXPECT_EQ(kTextDefault, kind.GetText(i, kTextProperty));
+}
+
+// Element i of the kind has the values that the definition gives element 1, or the defaults
+void ExpectDefinitionsValues(const PropertyKind &kind, int i)
+{
+    if (i != 1)
+    {
+        ExpectDefaults(kind, i);
+        return;
+    }
+    SCOPED_TRACE(testing::Message() << kind.Name << " " << i);
+    EXPECT_EQ(kNumberOfElement1, kind.GetNumber(i, kNumberProperty));
+    EXPECT_EQ(kTextOfElement1, kind.GetText(i, kTextProperty));
+}
+
 // A script executor and an empty global script of their own, while a test runs a function that runs the script
 // event "on_event": the event finds no handler. The engine's executor is put back after.
 class EmptyScripts
@@ -250,7 +563,9 @@ private:
 // - Game::Current(), Room::Current(), EngineServices::Current(): the fixture's own
 // - the managed pool (pool): the audio clips and the script strings that the getters return
 // - the script error state (cc_get_error)
-// The tests that call engine_init_game_settings reset the globals it sets (RunEngineInitGameSettings).
+// The tests that call engine_init_game_settings reset the globals it sets (RunEngineInitGameSettings). StartGame sets
+// GUI::Options.ClipControls while it links the GUIs, and puts it back. RestoreIntoTheRunningGame runs DoBeforeRestore,
+// which empties the engine's overlays, drawing caches, button animations and managed pool, all empty in these tests.
 class GameEntities : public ::testing::Test
 {
 protected:
@@ -380,6 +695,67 @@ protected:
         def.SpriteInfos.resize(100);
         def.SpriteInfos[kCursorSprite] = SpriteInfo(kCursorSpriteWidth, kCursorSpriteHeight, 32, 0u);
         def.ResolveStandardModes();
+
+        MakeGuis(def);
+        MakeCustomProperties(def);
+    }
+
+    // The GUIs of MakeDefinition, as the loader reads them: each GUI's references to its controls in the six control
+    // lists (kGuiCount, kControlTypes); StartGame links them (GUI::RebuildGUI)
+    static void MakeGuis(GameDef &def)
+    {
+        def.GuiCount = kGuiCount;
+        def.Guis.clear();
+        def.Guis.resize(kGuiCount);
+        def.GuiButtons.clear();
+        def.GuiButtons.resize(kGuiCount);
+        def.GuiLabels.clear();
+        def.GuiLabels.resize(kGuiCount);
+        def.GuiInvWindows.clear();
+        def.GuiInvWindows.resize(kGuiCount);
+        def.GuiSliders.clear();
+        def.GuiSliders.resize(kGuiCount);
+        def.GuiTextBoxes.clear();
+        def.GuiTextBoxes.resize(kGuiCount);
+        def.GuiListBoxes.clear();
+        def.GuiListBoxes.resize(kGuiCount);
+        for (int g = 0; g < kGuiCount; ++g)
+        {
+            def.Guis[g].SetID(g);
+            for (GUIControlType type : kControlTypes)
+                def.Guis[g].AddControl(type, g, nullptr);
+        }
+    }
+
+    // The custom property schema of MakeDefinition (kNumberProperty, kTextProperty) and the definition's values of
+    // every kind of entity: element 1 has values of its own, the others none
+    static void MakeCustomProperties(GameDef &def)
+    {
+        def.CustomPropertySchema.clear();
+        PropertyDesc number;
+        number.Name = kNumberProperty;
+        number.Type = kPropertyInteger;
+        number.DefaultValue = String::FromFormat("%d", kNumberDefault);
+        def.CustomPropertySchema[number.Name] = number;
+        PropertyDesc text;
+        text.Name = kTextProperty;
+        text.Type = kPropertyString;
+        text.DefaultValue = kTextDefault;
+        def.CustomPropertySchema[text.Name] = text;
+
+        auto give_values = [](std::vector<StringIMap> &lists, size_t count)
+        {
+            lists.assign(count, StringIMap());
+            lists[1][kNumberProperty] = String::FromFormat("%d", kNumberOfElement1);
+            lists[1][kTextProperty] = kTextOfElement1;
+        };
+        give_values(def.charProps, kCharacterCount);
+        give_values(def.invProps, kItemCount);
+        give_values(def.dialogProps, kDialogCount);
+        give_values(def.audioclipProps, kAudioClipCount);
+        give_values(def.guiProps, kGuiCount);
+        for (GUIControlType type : kControlTypes)
+            give_values(def.guicontrolProps[type], kGuiCount);
     }
 
     // The views of MakeDefinition: in the framed view, frame n of FramePic(n)... with an event name "step<n>"
@@ -405,39 +781,70 @@ protected:
                 vf.EventName = String::FromFormat("step%d", n);
             }
         }
+        // the first loop runs into the second: an animation of the two loops is one sequence
+        def.Views[kFramedView].Loops[0].Flags = LOOPFLAG_RUNNEXTLOOP;
         def.Views[kEmptyView].Initialize(1);
         def.Views[kEmptyView].Loops[0].Initialize(0);
     }
 
     // Does what InitGameState does for these entities that a test can run without fonts, plugins, scripts and a
-    // graphics driver: the live copies of the definitions (StartFromDefinitions, as InitGameState), the player, the
-    // custom property lists, the audio clips' ids and their registration with the managed pool
+    // graphics driver: the live copies of the definitions (StartFromDefinitions, as InitGameState), the GUIs linked to
+    // their controls (GUI::RebuildGUI; with the controls' graphics clipped to their rectangles, so that no font or
+    // sprite is measured), the player, the lists of the custom property values set during play sized as InitGameState
+    // sizes them (a list that has values keeps them: InitGameState runs on a game that unload_game emptied), the audio
+    // clips' ids and their registration with the managed pool
     void StartGame()
     {
         Game &game = *_game;
         StartFromDefinitions(game);
         for (int i = 0; i < game.CharacterCount; ++i)
             game.Characters[i].ID = i;
-        game.Play.charProps.clear();
-        game.Play.charProps.resize(game.CharacterCount);
-        game.Play.invProps.clear();
-        game.Play.invProps.resize(game.InventoryItemCount);
-        game.Play.dialogProps.clear();
-        game.Play.dialogProps.resize(game.DialogCount);
-        game.Play.audioclipProps.clear();
+        const bool clip_controls = GUI::Options.ClipControls;
+        GUI::Options.ClipControls = true;
+        GUIRefCollection gui_control_refs(game.GuiButtons, game.GuiInvWindows, game.GuiLabels, game.GuiListBoxes,
+                                          game.GuiSliders, game.GuiTextBoxes);
+        HError err = GUI::RebuildGUI(game.Guis, gui_control_refs);
+        GUI::Options.ClipControls = clip_controls;
+        EXPECT_TRUE(err) << err->FullMessage().GetCStr();
         game.Play.audioclipProps.resize(game.AudioClips.size());
+        game.Play.charProps.resize(game.CharacterCount);
+        game.Play.dialogProps.resize(game.DialogCount);
+        game.Play.guiProps.resize(game.GuiCount);
+        game.Play.guicontrolProps[kGUIButton].resize(game.GuiButtons.size());
+        game.Play.guicontrolProps[kGUILabel].resize(game.GuiLabels.size());
+        game.Play.guicontrolProps[kGUIInvWindow].resize(game.GuiInvWindows.size());
+        game.Play.guicontrolProps[kGUISlider].resize(game.GuiSliders.size());
+        game.Play.guicontrolProps[kGUITextBox].resize(game.GuiTextBoxes.size());
+        game.Play.guicontrolProps[kGUIListBox].resize(game.GuiListBoxes.size());
+        game.Play.invProps.resize(game.InventoryItemCount);
         game.Play.default_audio_type_volumes.assign(game.AudioClipTypes.size(), -1);
         InitAndRegisterAudioObjects(game);
         setup_player_character(game.PlayerCharacterID);
     }
 
     // Starts the game again from its definition: the managed pool emptied, the definition made again, the game
-    // started
+    // started. No test sets a custom property before it: StartGame keeps the values set during play, as InitGameState,
+    // which runs on a game that unload_game emptied (UnloadedGameKeepsNoPropertyValues).
     void RestartGame()
     {
         pool.Reset();
         MakeDefinition(Definition());
         StartGame();
+    }
+
+    // Restores the components of the save into the running game as RestoreGameState does before it runs the game
+    // again: DoBeforeRestore (which frees what the components do not overwrite: the custom property values set during
+    // play among it, GamePlayState::FreeProperties), then the components. DoBeforeRestore reads the global script's
+    // data size: the game has an empty one meanwhile (EmptyScripts).
+    HSaveError RestoreIntoTheRunningGame(const std::vector<uint8_t> &buf, SaveCmpSelection cmp)
+    {
+        Game &game = *_game;
+        EmptyScripts scripts(game);
+        PreservedParams pp;
+        DoBeforeRestore(pp, cmp);
+        Stream in(std::make_unique<VectorStream>(buf));
+        RestoredData r_data;
+        return SavegameComponents::ReadAll(&in, kSvgVersion_Current, cmp, pp, r_data);
     }
 
     // The definition of StartWithSpriteFile: MakeDefinition's, with the game file's flag SPF_KEEPDEPTH for
@@ -1518,4 +1925,397 @@ TEST_F(GameEntities, SecondStartTakesTheSpriteTableAgain)
     StartWithSpriteFile();
     ExpectSpritesStartedWithTheFile();
     ExpectSameSpriteInfos(LoadedSpriteInfos(), game.Def().SpriteInfos);
+}
+
+// A custom property of an element that nothing set has the definition's value, and the schema's default where the
+// definition has none: element 1 of every kind has the definition's values, the others the defaults
+TEST_F(GameEntities, PropertiesAreTheDefinitionsOrTheSchemasDefault)
+{
+    for (const PropertyKind &kind : PropertyKinds())
+    {
+        for (int i = 0; i < kind.Count; ++i)
+            ExpectDefinitionsValues(kind, i);
+    }
+}
+
+// A value set during play hides the definition's value and the schema's default, for a number and a text property;
+// it is the element's own: the other elements of the kind keep theirs, and the definition's values stay as loaded. A
+// property's name is not case-sensitive.
+TEST_F(GameEntities, PropertySetDuringPlayIsTheElementsOwn)
+{
+    GameDef made;
+    MakeDefinition(made);
+    for (const PropertyKind &kind : PropertyKinds())
+    {
+        SCOPED_TRACE(kind.Name);
+        EXPECT_TRUE(kind.SetNumber(1, kNumberProperty, 12));
+        EXPECT_TRUE(kind.SetText(1, kTextProperty, "blue"));
+        EXPECT_EQ(12, kind.GetNumber(1, kNumberProperty));
+        EXPECT_EQ("blue", kind.GetText(1, kTextProperty));
+        ExpectDefaults(kind, 0);
+
+        EXPECT_TRUE(kind.SetNumber(0, kNumberProperty, 3));
+        EXPECT_EQ(3, kind.GetNumber(0, kNumberProperty));
+        EXPECT_EQ(kTextDefault, kind.GetText(0, kTextProperty));
+        EXPECT_EQ(12, kind.GetNumber(1, kNumberProperty));
+        for (int i = 2; i < kind.Count; ++i)
+            ExpectDefinitionsValues(kind, i);
+
+        EXPECT_TRUE(kind.SetNumber(1, "WEIGHT", 13));
+        EXPECT_EQ(13, kind.GetNumber(1, "weight"));
+        EXPECT_EQ("blue", kind.GetText(1, "COLOUR"));
+
+        for (int i = 0; i < kind.Count; ++i)
+            EXPECT_EQ(kind.Definition(made, i), kind.Definition(Game::Current().Def(), i)) << "element " << i;
+    }
+}
+
+// The older functions that copy a character's or an inventory item's text property into a buffer make the same lookup
+TEST_F(GameEntities, PropertyTextIntoABufferIsTheSameLookup)
+{
+    Game &game = Game::Current();
+    char buffer[MAX_MAXSTRLEN];
+    Character_GetPropertyText(&game.Characters[0], kTextProperty, buffer);
+    EXPECT_STREQ(kTextDefault, buffer);
+    Character_GetPropertyText(&game.Characters[1], kTextProperty, buffer);
+    EXPECT_STREQ(kTextOfElement1, buffer);
+    Character_SetTextProperty(&game.Characters[1], kTextProperty, "blue");
+    Character_GetPropertyText(&game.Characters[1], kTextProperty, buffer);
+    EXPECT_STREQ("blue", buffer);
+
+    ScriptInvItem item0 = ItemObject(0);
+    ScriptInvItem item1 = ItemObject(1);
+    InventoryItem_GetPropertyText(&item0, kTextProperty, buffer);
+    EXPECT_STREQ(kTextDefault, buffer);
+    InventoryItem_GetPropertyText(&item1, kTextProperty, buffer);
+    EXPECT_STREQ(kTextOfElement1, buffer);
+    InventoryItem_SetTextProperty(&item1, kTextProperty, "blue");
+    InventoryItem_GetPropertyText(&item1, kTextProperty, buffer);
+    EXPECT_STREQ("blue", buffer);
+}
+
+// The values set during play come back from a save into the running game, for every kind that a save holds: the
+// values set after the save are replaced by the saved ones
+TEST_F(GameEntities, PropertiesSetDuringPlayComeBackFromASave)
+{
+    const std::vector<PropertyKind> kinds = SavedPropertyKinds();
+    for (const PropertyKind &kind : kinds)
+    {
+        kind.SetNumber(0, kNumberProperty, 20);
+        kind.SetNumber(1, kNumberProperty, 21);
+        kind.SetText(1, kTextProperty, "saved");
+    }
+    std::vector<uint8_t> saved;
+    std::string error;
+    ASSERT_TRUE(Save(kPropertyComponents, saved, error)) << error;
+    for (const PropertyKind &kind : kinds)
+    {
+        kind.SetNumber(0, kNumberProperty, 30);
+        kind.SetNumber(1, kNumberProperty, 31);
+        kind.SetText(1, kTextProperty, "changed");
+    }
+
+    HSaveError err = RestoreIntoTheRunningGame(saved, kPropertyComponents);
+    ASSERT_TRUE(err) << err->FullMessage().GetCStr();
+    for (const PropertyKind &kind : kinds)
+    {
+        SCOPED_TRACE(kind.Name);
+        EXPECT_EQ(20, kind.GetNumber(0, kNumberProperty));
+        EXPECT_EQ(kTextDefault, kind.GetText(0, kTextProperty));
+        EXPECT_EQ(21, kind.GetNumber(1, kNumberProperty));
+        EXPECT_EQ("saved", kind.GetText(1, kTextProperty));
+        for (int i = 2; i < kind.Count; ++i)
+            ExpectDefinitionsValues(kind, i);
+    }
+    ExpectDefinitionAsMade();
+}
+
+// A restore into the running game takes away a value set after the save where the save held none for that property:
+// the element has the definition's value or the schema's default again (DoBeforeRestore clears the lists, then the
+// components read the saved values into them). For every kind but the GUI controls (see the disabled test below);
+// the audio clips' values, which no save holds, are cleared too.
+TEST_F(GameEntities, RestoreTakesAwayPropertiesSetAfterTheSave)
+{
+    std::vector<uint8_t> saved;
+    std::string error;
+    ASSERT_TRUE(Save(kPropertyComponents, saved, error)) << error;
+    std::vector<PropertyKind> kinds = PropertyKinds();
+    kinds.erase(std::remove_if(kinds.begin(), kinds.end(), IsGuiControlKind), kinds.end());
+    for (const PropertyKind &kind : kinds)
+    {
+        for (int i = 0; i < kind.Count; ++i)
+        {
+            kind.SetNumber(i, kNumberProperty, 40 + i);
+            kind.SetText(i, kTextProperty, "after");
+        }
+    }
+
+    HSaveError err = RestoreIntoTheRunningGame(saved, kPropertyComponents);
+    ASSERT_TRUE(err) << err->FullMessage().GetCStr();
+    for (const PropertyKind &kind : kinds)
+    {
+        for (int i = 0; i < kind.Count; ++i)
+            ExpectDefinitionsValues(kind, i);
+    }
+}
+
+// The same for the six types of GUI control. Disabled: today a value set after the save stays after the restore, as
+// GamePlayState::FreeProperties (called by DoBeforeRestore) clears the lists of the characters, inventory items,
+// dialogs, audio clips and GUIs but not the GUI controls' (guicontrolProps), and the "GUI" component only adds the
+// saved values to a list (Properties::ReadValues does not clear the map). Upstream's FreeProperties is the same.
+TEST_F(GameEntities, DISABLED_RestoreTakesAwayGuiControlPropertiesSetAfterTheSave)
+{
+    std::vector<uint8_t> saved;
+    std::string error;
+    ASSERT_TRUE(Save(kPropertyComponents, saved, error)) << error;
+    std::vector<PropertyKind> kinds = PropertyKinds();
+    kinds.erase(
+        std::remove_if(kinds.begin(), kinds.end(), [](const PropertyKind &kind) { return !IsGuiControlKind(kind); }),
+        kinds.end());
+    ASSERT_EQ(std::size(kControlTypes), kinds.size());
+    for (const PropertyKind &kind : kinds)
+    {
+        for (int i = 0; i < kind.Count; ++i)
+        {
+            kind.SetNumber(i, kNumberProperty, 40 + i);
+            kind.SetText(i, kTextProperty, "after");
+        }
+    }
+
+    HSaveError err = RestoreIntoTheRunningGame(saved, kPropertyComponents);
+    ASSERT_TRUE(err) << err->FullMessage().GetCStr();
+    for (const PropertyKind &kind : kinds)
+    {
+        for (int i = 0; i < kind.Count; ++i)
+            ExpectDefinitionsValues(kind, i);
+    }
+}
+
+// No save holds the audio clips' values set during play (on purpose, game_state.h says): they change no byte of the
+// components that hold the other kinds' values, the audio and the game state. A restore clears them, whichever
+// components it restores (DoBeforeRestore): the clips have the definition's values or the schema's defaults again.
+TEST_F(GameEntities, AudioClipPropertiesAreNotSavedAndARestoreClearsThem)
+{
+    const SaveCmpSelection cmp =
+        static_cast<SaveCmpSelection>(kPropertyComponents | kSaveCmp_Audio | kSaveCmp_GameState);
+    std::vector<uint8_t> without, with;
+    std::string error;
+    ASSERT_TRUE(Save(cmp, without, error)) << error;
+    for (int i = 0; i < kAudioClipCount; ++i)
+    {
+        AudioClip_SetProperty(&Game::Current().AudioClips[i], kNumberProperty, 50 + i);
+        AudioClip_SetTextProperty(&Game::Current().AudioClips[i], kTextProperty, "saved");
+    }
+    ASSERT_TRUE(Save(cmp, with, error)) << error;
+    EXPECT_TRUE(without == with);
+
+    HSaveError err = RestoreIntoTheRunningGame(with, kSaveCmp_Characters);
+    ASSERT_TRUE(err) << err->FullMessage().GetCStr();
+    const std::vector<PropertyKind> kinds = PropertyKinds();
+    const auto clips =
+        std::find_if(kinds.begin(), kinds.end(), [](const PropertyKind &kind) { return kind.Name == "audio clip"; });
+    ASSERT_NE(kinds.end(), clips);
+    for (int i = 0; i < kAudioClipCount; ++i)
+        ExpectDefinitionsValues(*clips, i);
+}
+
+// A game that has a value set during play on two elements of every kind that a save holds, saved, restored into the
+// running game and saved again gives the same bytes
+TEST_F(GameEntities, PropertiesSavedRestoredAndSavedAgainGiveTheSameBytes)
+{
+    // one value per element: a map of several values is written in the hash map's iteration order
+    // (Properties::WriteValues), which a restored map need not have again, so only the set of entries is the same
+    for (const PropertyKind &kind : SavedPropertyKinds())
+    {
+        kind.SetNumber(0, kNumberProperty, 60);
+        kind.SetText(1, kTextProperty, "saved");
+    }
+    std::vector<uint8_t> first, second;
+    std::string error;
+    ASSERT_TRUE(Save(kPropertyComponents, first, error)) << error;
+    HSaveError err = RestoreIntoTheRunningGame(first, kPropertyComponents);
+    ASSERT_TRUE(err) << err->FullMessage().GetCStr();
+    ASSERT_TRUE(Save(kPropertyComponents, second, error)) << error;
+    EXPECT_EQ(first.size(), second.size());
+    EXPECT_TRUE(first == second);
+}
+
+// In its save component, the values set during play on an element are one property map (Properties::WriteValues) in
+// place of the empty map that the element has without them; nothing else in the component changes. For every kind
+// that a save holds.
+TEST_F(GameEntities, PropertiesSetDuringPlayAreAPropertyMapInTheirComponent)
+{
+    const std::vector<uint8_t> empty_map = PropertyMapBytes(StringIMap());
+    StringIMap values;
+    values[kNumberProperty] = "21";
+    values[kTextProperty] = "saved";
+    const std::vector<uint8_t> map = PropertyMapBytes(values);
+    // the kinds one after the other: a kind's save with and without its values also holds the values of the kinds
+    // before it, the same in both
+    for (const PropertyKind &kind : SavedPropertyKinds())
+    {
+        SCOPED_TRACE(kind.Name);
+        std::vector<uint8_t> without, with;
+        std::string error;
+        ASSERT_TRUE(Save(kind.Component, without, error)) << error;
+        kind.SetNumber(1, kNumberProperty, 21);
+        kind.SetText(1, kTextProperty, "saved");
+        ASSERT_TRUE(Save(kind.Component, with, error)) << error;
+
+        const std::vector<uint8_t> data_without = ComponentData(without, kind.ComponentName);
+        const std::vector<uint8_t> data_with = ComponentData(with, kind.ComponentName);
+        ASSERT_FALSE(data_without.empty());
+        ASSERT_EQ(data_without.size() + map.size() - empty_map.size(), data_with.size());
+        const auto differ = std::mismatch(data_without.begin(), data_without.end(), data_with.begin());
+        ASSERT_NE(data_without.end(), differ.first);
+        // the maps differ first in their count, after the format version (an int32)
+        const size_t at = static_cast<size_t>(differ.first - data_without.begin()) - sizeof(int32_t);
+        std::vector<uint8_t> expected(data_without.begin(), data_without.begin() + at);
+        EXPECT_TRUE(std::equal(empty_map.begin(), empty_map.end(), data_without.begin() + at));
+        expected.insert(expected.end(), map.begin(), map.end());
+        expected.insert(expected.end(), data_without.begin() + at + empty_map.size(), data_without.end());
+        EXPECT_TRUE(expected == data_with);
+    }
+}
+
+// unload_game keeps nothing of the values set during play: after it, the game started again from its definition has
+// the definition's values and the schema's defaults, for every kind
+TEST_F(GameEntities, UnloadedGameKeepsNoPropertyValues)
+{
+    for (const PropertyKind &kind : PropertyKinds())
+    {
+        for (int i = 0; i < kind.Count; ++i)
+        {
+            kind.SetNumber(i, kNumberProperty, 70 + i);
+            kind.SetText(i, kTextProperty, "first game");
+        }
+    }
+
+    unload_game();
+    MakeDefinition(Definition());
+    StartGame();
+    for (const PropertyKind &kind : PropertyKinds())
+    {
+        for (int i = 0; i < kind.Count; ++i)
+            ExpectDefinitionsValues(kind, i);
+    }
+}
+
+// The script's game.no_multiloop_repeat, game.disable_antialiasing and game.disable_dialog_parser read back what the
+// script wrote: 0, 1 and any other number (an int behind each today; the engine tests each for 0 only, so a number
+// other than 0 acts as 1)
+TEST_F(GameEntities, ScriptFlagsReadBackWhatTheScriptWrote)
+{
+    Game &game = Game::Current();
+    for (const int offset : {kNoMultiLoopRepeatOffset, kDisableAntialiasingOffset, kDisableDialogParserOffset})
+    {
+        for (const int value : {0, 1, 5, -1, 0})
+        {
+            GameStaticManager.WriteInt32(&game.Play, offset, value);
+            EXPECT_EQ(value, GameStaticManager.ReadInt32(&game.Play, offset)) << "offset " << offset;
+        }
+    }
+}
+
+// game.disable_antialiasing: 0 lets the sprites be antialiased where the player's setup asks for it, any other number
+// does not (GamePlayState::ShouldAASprites, which the drawing code asks)
+TEST_F(GameEntities, DisableAntialiasingTurnsSpriteAntialiasingOff)
+{
+    Game &game = Game::Current();
+    EngineServices &services = EngineServices::Current();
+    for (const bool setup : {true, false})
+    {
+        services.Config.AntialiasSprites = setup;
+        for (const int value : {0, 1, 5, -1})
+        {
+            GameStaticManager.WriteInt32(&game.Play, kDisableAntialiasingOffset, value);
+            EXPECT_EQ(setup && value == 0, game.Play.ShouldAASprites()) << "setup " << setup << ", value " << value;
+        }
+    }
+}
+
+// game.disable_dialog_parser: a number other than 0 hides the parser of a dialog that shows one, so that a dialog with
+// a single option on chooses it at once without showing the options. (With 0 the options and the parser would be
+// shown, a blocking loop: not reached here.) A dialog without a parser chooses its single option at once whatever the
+// value.
+TEST_F(GameEntities, DisableDialogParserLetsASingleOptionBeChosenAtOnce)
+{
+    Game &game = Game::Current();
+    ScriptDialog dialog0 = DialogObject(0);
+    ScriptDialog dialog1 = DialogObject(1);
+    // the dialogs' third options off: the first is the only one on
+    Dialog_SetOptionState(&dialog0, 3, 0);
+    Dialog_SetOptionState(&dialog1, 3, 0);
+    game.Dialogs[0].Flags |= DTFLG_SHOWPARSER; // as the game file gives it
+    ASSERT_EQ(0, game.Play.show_single_dialog_option);
+    for (const int value : {1, 5, -1})
+    {
+        GameStaticManager.WriteInt32(&game.Play, kDisableDialogParserOffset, value);
+        EXPECT_EQ(0, show_dialog_options(0, false)) << "value " << value;
+    }
+    for (const int value : {0, 1})
+    {
+        GameStaticManager.WriteInt32(&game.Play, kDisableDialogParserOffset, value);
+        EXPECT_EQ(0, show_dialog_options(1, false)) << "value " << value;
+    }
+}
+
+// game.no_multiloop_repeat: with 0 a repeated animation of a loop that the loop before runs into starts again from the
+// first loop of the sequence; any other number starts it again from its own loop (CycleViewAnim, which animates the
+// characters, objects, overlays and buttons)
+TEST_F(GameEntities, NoMultiLoopRepeatKeepsTheRepeatInItsLoop)
+{
+    Game &game = Game::Current();
+    ASSERT_TRUE(game.Views[kFramedView].Loops[0].RunNextLoop());
+    for (const int value : {0, 1, 5, -1})
+    {
+        SCOPED_TRACE(testing::Message() << "value " << value);
+        GameStaticManager.WriteInt32(&game.Play, kNoMultiLoopRepeatOffset, value);
+        uint16_t loop = 1;
+        uint16_t frame = kFrameCount - 1;
+        AnimFlowParams anim(kAnimFlow_Repeat, kAnimDirForward);
+        EXPECT_TRUE(CycleViewAnim(game, kFramedView, loop, frame, anim));
+        EXPECT_EQ(value == 0 ? 0 : 1, loop);
+        EXPECT_EQ(0, frame);
+    }
+}
+
+// The kinds of input that may skip the current wait are the running game's (GamePlayState::GetWaitSkipType), which
+// Game.BlockingWaitSkipType gives as the script's InputType flags
+TEST_F(GameEntities, WaitSkipTypeIsTheRunningGames)
+{
+    Game &game = Game::Current();
+    game.Play.key_skip_wait = SKIP_KEYPRESS | SKIP_MOUSECLICK;
+    EXPECT_EQ(SKIP_KEYPRESS | SKIP_MOUSECLICK, game.Play.GetWaitSkipType());
+    EXPECT_EQ((SKIP_KEYPRESS | SKIP_MOUSECLICK) << SKIP_RESULT_TYPE_SHIFT, Game_BlockingWaitSkipType());
+    game.Play.key_skip_wait = SKIP_NONE;
+    EXPECT_EQ(SKIP_NONE, game.Play.GetWaitSkipType());
+}
+
+// Voice speech is played when the voice files are there and the game is not skipping a cutscene, and, for a blocking
+// speech, the speech mode is not text only (GamePlayState::ShouldPlayVoiceSpeech, ShouldPlayVoiceSpeechNonBlocking)
+TEST_F(GameEntities, VoiceSpeechPlaysWithTheVoiceFilesAndNoSkipping)
+{
+    Game &game = Game::Current();
+    EngineServices &services = EngineServices::Current();
+    struct Case
+    {
+        bool VoiceAvail;
+        int FastForward;
+        SpeechMode Mode;
+        bool Blocking;
+        bool NonBlocking;
+    };
+    for (const Case &c : {Case{true, 0, kSpeech_VoiceText, true, true}, Case{true, 0, kSpeech_VoiceOnly, true, true},
+                          Case{true, 0, kSpeech_TextOnly, false, true}, Case{true, 1, kSpeech_VoiceText, false, false},
+                          Case{false, 0, kSpeech_VoiceText, false, false}})
+    {
+        SCOPED_TRACE(testing::Message() << "voice " << c.VoiceAvail << ", fast forward " << c.FastForward << ", mode "
+                                        << c.Mode);
+        services.VoiceAvail = c.VoiceAvail;
+        game.Play.fast_forward = c.FastForward;
+        game.Play.speech_mode = c.Mode;
+        EXPECT_EQ(c.Blocking, game.Play.ShouldPlayVoiceSpeech());
+        EXPECT_EQ(c.NonBlocking, game.Play.ShouldPlayVoiceSpeechNonBlocking());
+    }
 }
