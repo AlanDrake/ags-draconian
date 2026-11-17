@@ -266,6 +266,37 @@ cancel. This run's "before" is the tree that the morning's reading had as "after
 1,659 and 1,688 s now, about 5% less): readings of different hours are not compared, only the pairs of one
 run. GCC was not measured.
 
+**After 5.1a steps 2 to 4** (2026-11-17, MSVC only; four revisions, each in a worktree, built clean in turn,
+twice round, on an idle machine with nothing beside it: `9101535c8` before step 2, `512a7bdce` after it,
+`35c6d5a8f` after step 3, `0eda178d5` after step 4; `.compare/helpers/51a4/ct_run4.sh`, the result sets in
+`.compare/ct/51a-s<N>r<round>`). The two readings of a revision differ by 0.1% or less in total, so the
+differences between the revisions are real.
+
+| | before step 2 | after step 2 | after step 3 | after step 4 | steps 2 to 4 |
+|---|---:|---:|---:|---:|---:|
+| all (561, 562, 562, 562 objects): total s, both readings | 1655.3, 1655.0 | 1674.5, 1675.0 | 1683.4, 1685.2 | 1704.5, 1705.5 | +3.0% |
+| all: median s per object | 2.57 | 2.55 | 2.55 | 2.58 | +0.5% |
+| `Engine` (255, 256, 256, 256): total s | 721.9 | 739.6 | 747.6 | 763.8 | +5.8% |
+| `Engine` median s | 2.65 | 2.65 | 2.60 | 2.60 | -2.0% |
+| `Engine/game` (154): total s | 434.5 | 435.8 | 428.2 | 431.8 | -0.6% |
+| `Engine/game` median s | 2.77 | 2.71 | 2.69 | 2.66 | -3.7% |
+| `Engine/game/script_api` (46): total s | 119.3 | 120.1 | 116.9 | 117.2 | -1.7% |
+| `Common` (200): total s | 502.3 | 506.4 | 508.8 | 513.8 | +2.3% |
+| `Tools` (59): total s | 263.5 | 261.1 | 259.7 | 260.4 | -1.2% |
+| wall-clock of the whole build, s, both readings | 198.8, 198.7 | 200.6, 200.6 | 201.8, 202.1 | 203.8, 203.7 | +2.5% |
+
+**The game's sources compile a little faster, the total grows by the tests.** `Engine/game`, where the three
+steps did their work, is at -0.6% in total and -3.7% in the median: the header trims (`room_def.h` out of 82
+translation units, `speech.h`, `move_list.h` and `graphicsdriver.h` out of `game_state.h`, three entity
+headers out of `game_def.h`) outweigh the classes, the state structs and the tables that came in. The total
+grows 49.9 s, of which the two new test sources are 27.6 s (`room_state_test.cpp` 12.8 s,
+`game_entities_test.cpp` 14.7 s) and the tests these steps extended a few seconds more
+(`savegame_components_test.cpp`, `field_table_test.cpp`); a single object's time varies by about a second
+between readings, so only the totals and the groups are firm. Per step: +1.2% (step 2, one new test source and
+`room_state.cpp`), +0.6% (step 3, one new test source of 11.9 s, more than the whole difference), +1.2%
+(step 4: `game_entities_test.cpp` +2.9 s, `game_state.cpp` with its 154-row counted table 1.45 to 1.77 s,
+and the live classes of three entities in headers that were forward declarations). GCC was not measured.
+
 **With the precompiled header** (2.10b item 2, 2026-11-16, MSVC only; `95c9e7e09` with the change in a
 worktree). **Indicative: taken while another session built on the same machine**, and accepted so by the user;
 no reading on an idle machine was taken. The readings of this file above and below stay without the

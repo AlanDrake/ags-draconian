@@ -134,16 +134,17 @@ A new process-wide value is a member there, not a global; `Script/use_context.py
 to a context's member (`--check` fails on a converted global that is named again).
 The game's and the room's globals are members of two more contexts (5.1 step 3, 2026-11-15): `Game`
 (`Engine/game/game_context.h`; `class Game : public GameDef`, where `GameDef` in `Common/game/game_def.h` is
-upstream's `GameSetupStruct` and its base; `Game::Current()`, local `Game &game`): `game.Characters`, `game.options`,
-`game.Play` (upstream's `play`, less its room fields and its viewports), `game.Viewports` (`GameViewports`: the
-viewports and cameras that upstream's `GamePlayState` holds), `game.Views`, `game.Guis` (members of `GameDef`: the
-loader reads into them), `game.DisplayedRoom`, `game.Palette`,
+upstream's `GameSetupStruct` and its base; `Game::Current()`, local `Game &game`): `game.Characters`, `game.Options`,
+`game.Play` (a `GameState`: upstream's `GamePlayState play`, less its room fields, its viewports and its per-object
+property lists), `game.Viewports` (`GameViewports`: the viewports and cameras that upstream's `GamePlayState`
+holds), `game.Views`, `game.Guis` (a member of `GameDef` still: the loader reads into it), `game.DisplayedRoom`,
+`game.Palette`,
 the script objects and handles, and state structs such as `game.Cursor`, `game.Speech`, `game.Scripts`,
 `game.Events`; and `Room` (`Engine/game/world/room_context.h`; `class Room : public RoomStruct`,
 `Room::Current()`, local `Room &room`): `room.Width`, `room.Options` (upstream's `thisroom`), `room.State`
 (`croom`), `room.Objects` (`objs`), `room.BgFrame`, `room.WalkableAreasOn`, `room.EnteredAtX` (upstream's
 `play.bg_frame`...). The sprite cache is `EngineServices::Sprites`, the mouse position
-`services.Input.MouseX`. A function that uses a context once takes the direct form (`Game::Current().numviews`);
+`services.Input.MouseX`. A function that uses a context once takes the direct form (`Game::Current().ViewCount`);
 more than once, or once inside a loop, the local as its first statement; a helper called per drawn or updated
 entity takes the context from its caller as its first parameter(s), in the order `Game &`, `Room &`,
 `EngineServices &`. The context headers stay light (RUNTIME-SPLIT.md 9): a member whose type needs a module header
@@ -151,43 +152,59 @@ is a `std::vector` of a forward-declared type or a reference member, never a new
 its like. A new value of the game or of the room is a member of its context; the few globals that stay are listed
 with a reason in `Script/check_layers.py` (`EXTERN_ALLOWED`: constants, stateless script managers, the script
 ring's own state, crash handler values), which fails on any other `extern` variable in an engine header.
-A definition is kept apart from its live object (5.1a, RUNTIME-SPLIT.md 2 and 3; the character first, step 1,
-2026-11-16): `XDef` is the record the game file holds (Common, never written after load), `XState` the fields that
-exist only during play, `X` the live class that derives from both. So upstream's `CharacterInfo` is
-`CharacterDef` (`Common/game/character_def.h`, less the play-only fields, plus `BlendMode`, `GraphicAnchor`,
-`GraphicOffset`), its `CharacterExtras` is `CharacterState`, and the engine's character is `class Character`
-(`Engine/game/world/character.h`): one list, `game.Characters`, where upstream has `game.chars` and `charextra`;
-no `chex`, the fields under their STYLE.md names (`ch->NormalView`, `ch->MoveListID`, `ch->AnimWait`; upstream's
-`defview`, `walking`, `wait`). `Game::Characters` hides `GameDef::Characters` on purpose: the definitions are
-`game.Def().Characters`, read where the live list is built (`InitGameState`). A field of a struct is renamed with
-`Script/rename_fields.py` (a map of `Struct::old<TAB>New`; it resolves each reference through libclang, never by
-spelling), as a `[rename]` commit of its own.
-The room's entities are split the same way (5.1a step 2, 2026-11-16). Upstream's `RoomData` is `RoomDef`
-(`Common/game/room_def.h`, with `RoomObjectDef`, `RoomHotspotDef`, `RoomRegionDef`, `RoomWalkableAreaDef`,
-`RoomWalkBehindDef`; upstream's `RoomObjectInfo`, `RoomHotspot`, `RoomRegion`, `WalkArea`, `WalkBehind`), its
-`RoomStatus` is `RoomState` (`Engine/game/world/room_state.h`), which holds the live entities of one room number:
-`class RoomObject : RoomObjectDef, RoomObjectState` (`room_object.h`; no second copy of `x`, `y`, `num`,
-`baseline`: `obj.X`, `obj.Sprite`, `obj.Baseline`, one `Rect BlockingRect`), `RoomHotspot`, `RoomRegion`,
-`RoomWalkableArea`, `RoomWalkBehind`. `room.Objects`, `room.Hotspots`, `room.Regions`, `room.WalkAreas` and
-`room.WalkBehinds` are the live lists of the bound room state and hide `RoomDef`'s lists of the same names; the
-engine reads the room file's values through `room.Def()` and never writes them. A live entity has two kinds of
-definition field: the ones a room state keeps between visits and a save holds (an object's position and sprite, a
-hotspot's `Name`, a walk-behind's `Baseline`, a walkable area's `FaceDirectionRatio`), and the ones the room file
-gives again at every load (`RebindDefinition`, called by `BindRoomState`: a region's light and tint, a walkable
-area's scaling, script names, events, properties). The play fields that a character and a room object both have
-are declared once, in `Engine/game/world/entity_state.h` (`GraphicState`, `ViewAnimState`, `MoveState`,
-`FrameSoundState`), as bases of `CharacterState` and `RoomObjectState`; the logic that uses them is still each
-type's own (5.10).
-Every data member of an `XDef` or `XState` has one row in the struct's field table (5.9 step 1, 2026-11-16,
-RUNTIME-SPLIT.md 6; `Common/util/field_table.h`; the character's structs, the room's entity structs and the shared
-parts so far, not yet `RoomDef` and `RoomState` themselves): the table is in the struct's
-source file (`kCharacterDefFields` in `character_def.cpp`, `kCharacterStateFields` in `character.cpp`), and a field
-added without a row does not build (`static_assert(FieldsCoverStruct(...))`), so these structs stay aggregates (no
-private data, no constructor written out). A row is a name, a member and a role (`Saved`; `FromDefinition`: the
-definition gives it again at every load, a save does not hold it; `Derived`: computed; `Opaque`), nothing more; a
-base that has a table is one `BaseFields` row; `DiffFields`, `PrintFields` and `AlterFields` work on any struct
-with a table and descend into its bases and members that have one, and a test that checks a save uses them rather
-than naming fields.
+A definition is kept apart from its live object (5.1a steps 1 to 4, 2026-11-17; RUNTIME-SPLIT.md 2 and 3): `XDef`
+is the record the game or room file holds (Common, never written by the engine after load), `XState` the fields
+that exist only during play, `X` the live class that derives from both; a live type that holds nothing more than
+its definition is an alias of it until it does. The live list has the definition's name and hides it; the
+definition is read through `game.Def()` or `room.Def()`.
+
+| Upstream | Definition (`Common/game/*_def.h`) | Live (Engine) | Live list |
+|---|---|---|---|
+| `CharacterInfo`, `CharacterExtras`; `game.chars`, `charextra` | `CharacterDef` | `class Character : CharacterDef, CharacterState` | `game.Characters` |
+| `RoomData`, `RoomStatus` (`thisroom`, `croom`) | `RoomDef` | `RoomState`: the live entities of one room number | `room.State` |
+| `RoomObjectInfo` and the engine's `RoomObject` (`objs`) | `RoomObjectDef` | `class RoomObject : RoomObjectDef, RoomObjectState` | `room.Objects` |
+| `RoomHotspot`, `RoomRegion`, `WalkArea`, `WalkBehind` | `RoomHotspotDef`, `RoomRegionDef`, `RoomWalkableAreaDef`, `RoomWalkBehindDef` | `RoomHotspot`, `RoomRegion`, `RoomWalkableArea`, `RoomWalkBehind` | `room.Hotspots`, `Regions`, `WalkAreas`, `WalkBehinds` |
+| `InventoryItemInfo` (`game.invinfo`) | `InventoryItemDef` | `class InventoryItem : InventoryItemDef, InventoryItemState` | `game.InventoryItems` |
+| `DialogTopic` and its option | `DialogDef`, `DialogOptionDef` | `class Dialog`, alias `DialogOption` | `game.Dialogs` |
+| `ScriptAudioClip`, `AudioClipType` | `AudioClipDef`, `AudioClipTypeDef` | `class AudioClip` (its own script object), alias `AudioClipType` | `game.AudioClips`, `AudioClipTypes` |
+| `MouseCursor` (`game.mcurs`) | `MouseCursorDef` | alias `MouseCursor` | `game.MouseCursors` |
+| `ViewStruct`, `ViewLoopNew`, `ViewFrame` | `ViewDef`, `ViewLoopDef`, `ViewFrameDef` | aliases `View`, `ViewLoop`, `ViewFrame` | `game.Views` |
+| `FontInfo` | `FontDef` | the font module's own copy | `game.Fonts` (the definition's) |
+| `game.options`, `playercharacter`, `SpriteInfos`... | members of `GameDef` | members of `Game` | `game.Options`, `PlayerCharacterID`, `SpriteInfos` (the table the sprite cache writes) |
+| `GamePlayState play`; the loops' base `GameState` | | `GameState` (`Engine/game/game_state.h`); `GameLoopState` (`game_loop_state.h`) | `game.Play` |
+
+- **Fields have STYLE.md names**, named for what they do, the script's or the Editor's name in a trailing comment
+  where it differs: `ch->NormalView`, `ch->MoveListID`, `obj.Sprite`, `item.CursorSprite`, `frame.Delay`,
+  `game.ViewCount`, `game.Play.MessageTimeLeft` (upstream's `defview`, `walking`, `num`, `cursorPic`, `speed`,
+  `numviews`, `messagetime`). A field is renamed with `Script/rename_fields.py` (a map of `Struct::old<TAB>New`;
+  it resolves each reference through libclang, never by spelling), as a `[rename]` commit of its own. The script
+  reaches the state by offset (`Engine/game/dynobj/script_game.cpp`), whatever the C++ names; a script switch with
+  a negative name stays the script's `int` and the logic asks a positive predicate (`IsDialogParserEnabled()`).
+- **The game's live copies** are made by `StartFromDefinitions` (`Engine/game/game_init.cpp`, the first statement
+  of `InitGameState`) and cleared by `unload_game`; what runs before the game starts reads `game.Def()`. The
+  engine writes no member of `GameDef` after load but the GUI lists (5.1a step 5).
+- **The room's live entities** have two kinds of definition field: the ones a room state keeps between visits and
+  a save holds (an object's position and sprite, a hotspot's `Name`, a walk-behind's `Baseline`, a walkable area's
+  `FaceDirectionRatio`), and the ones the room file gives again at every load (`RebindDefinition`, called by
+  `BindRoomState`: a region's light and tint, a walkable area's scaling, script names, events, properties). An
+  object has no second copy of its definition's fields (`obj.X`, `obj.Baseline`, one `Rect BlockingRect`).
+- **Shared parts**: the play fields a character and a room object both have are declared once, in
+  `Engine/game/world/entity_state.h` (`GraphicState`, `ViewAnimState`, `MoveState` with `kNoMoveList` and
+  `IsMoving()`, `FrameSoundState`), as bases of `CharacterState` and `RoomObjectState`; the logic is still each
+  type's own (5.10).
+- **Custom properties**: the values a script sets during play are the live object's `PropertyOverrides`
+  (character, inventory item, dialog, audio clip); the game file's are `GameDef`'s lists
+  (`game.CharacterProperties[i]`...); the GUI's play values are still `game.Play.GuiProperties` and
+  `GuiControlProperties`, the room's are lists of `RoomState`.
+- **Field tables** (5.9, RUNTIME-SPLIT.md 6; `Common/util/field_table.h`): every data member of an `XDef` or
+  `XState`, and of `GameState`, has one row in the struct's table, in its source file (`kCharacterDefFields` in
+  `character_def.cpp`); a field added without a row does not build (`static_assert(FieldsCoverStruct(...))`), so
+  these structs stay aggregates (no private data, no constructor written out). Not yet: `RoomDef`, `RoomState`,
+  `GameDef`. A row is a name, a member and a role, nothing more: `Saved`; `FromDefinition` (the definition gives it
+  again, a save does not hold it); `Derived` (computed); `Transient` (play state that a save does not hold and a
+  restore does not give back); `Opaque`. A base that has a table is one `BaseFields` row; `DiffFields`,
+  `PrintFields` and `AlterFields` work on any struct with a table and descend into its bases and members that have
+  one, and a test that checks a save uses them rather than naming fields.
 `Engine/game/` holds the game logic in `world`, `navigation`, `dialog`, `ui`, `render`, `audio`, `video`,
 `input`, `save`, `lib` and `dynobj`, and the script bindings in `script_api/`. `docs/context/repository.md`
 describes upstream's tree, so its `Engine/ac/` and `Common/ac/` paths map through

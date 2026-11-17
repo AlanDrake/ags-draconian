@@ -241,7 +241,73 @@ draw loops before the first batch lands (STYLE.md "Performance").
   to 4 instructions (one pointer load, the live list being reached through `Room`); `sizeof(RoomObject)` went
   from 336 to 608 bytes, because the object now holds its definition part (strings, the property map, the
   event tables) where the definition was a separate array, and `sizeof(RoomState)` from 7,136 to 30,608, the
-  four entity arrays having moved into it from the room. No timing run yet (PLAN.md "Next up").
+  four entity arrays having moved into it from the room. The order of the object's members was then measured
+  (LOG.md "5.1a step 3"): it costs nothing that a timing run can see.
+
+**What 5.1a step 3 built (2026-11-17): the plain entities, the options and the sprite table.**
+
+- **Definitions** (`Common/game/*_def.h`, upstream's names in brackets): `InventoryItemDef`
+  (`InventoryItemInfo`), `MouseCursorDef` (`MouseCursor`), `AudioClipDef` (`ScriptAudioClip`),
+  `AudioClipTypeDef` (`AudioClipType`), `ViewDef`, `ViewLoopDef`, `ViewFrameDef` (`ViewStruct`, `ViewLoopNew`,
+  `ViewFrame`), `DialogDef` and `DialogOptionDef` (`DialogTopic` and its nested `DialogOption`), `FontDef`
+  (`FontInfo`). All are aggregates with field tables; their fields have the STYLE.md names (`Sprite`,
+  `CursorHotspotX`, `Delay`, `LinkedAudio`, `IsRepeatingByDefault`...), as have `GameDef`'s own (`Name`,
+  `ViewCount`, `BytesPerPixel`, `UniqueID`...).
+- **A live copy in `Game` for everything the game changes**, under the definition's name, which it hides:
+  `InventoryItems`, `MouseCursors`, `AudioClips`, `AudioClipTypes`, `Views`, `Dialogs`, `SpriteInfos`,
+  `Options`, and six values (`PlayerCharacterID`, `DialogBulletSprite`, the three `InventoryCursorHotspot*`,
+  `DefaultLipSyncFrame`). `StartFromDefinitions(Game &)` makes the copies, as the first statement of
+  `InitGameState` (and in the tests' fixture); `unload_game` clears them. A live type is an alias of its
+  definition while it holds nothing more (`using View = ViewDef;`); it becomes a class the day it gains a
+  member (step 4: the item, the dialog, the audio clip). None has a state struct of fields that exist only
+  during play, but those three.
+- **The engine writes no member of `GameDef` after load but the GUI lists** (step 5). Shown by scratch builds
+  with the members `const`: no error in the engine outside the tests' own loader. What is read from the
+  definition on purpose: what runs before the game starts (`fill_game_properties`, `apply_debug_config`),
+  `GameInfo`, and the member functions about cursor roles (the role is never changed).
+- **The audio clip is its own script object**: the managed pool, the script exports and the audio code hold
+  the addresses of the live list's elements, so it is built once per game and not resized, as the characters'.
+- **The sprite table**: `Game::SpriteInfos` is the table the sprite cache is attached to and writes (sizes
+  from the sprite file, dynamic sprites, `SPF_SURFACEACQUIRED`); `GameDef::SpriteInfos` keeps the game file's
+  flags. It is copied in `StartFromDefinitions`, before the cache first writes it, and cleared in
+  `unload_game` at the base's reset (the overlays freed before that read it). The full separation of sprite
+  definitions from loaded sprites is section 8's.
+- **Fix-ups of loaded data are the loader's**: a cursor's view past the game's views (`UpdateGameData`), an
+  audio clip's id (`GameDef::ReadAudioClips`). The two channel counts, which no game file gives, are members of
+  `Game`. `OPT_GLOBALTALKANIMSPD` is still split at start, on the live options.
+- **Roles of a plain entity's fields**: `Saved` where a save holds it, `FromDefinition` for the rest, which
+  here means "as the game start gave it": a live plain entity is rebuilt from the definition when the game
+  starts, not when a save is restored, and nothing writes those fields during play (checked field by field).
+  A list of structs (`Loops`, `Frames`, `Options`) is `FromDefinition`: a save cannot hold another count.
+
+**What 5.1a step 4 built (2026-11-17): the game's own state.**
+
+- **`GameState`** (`Engine/game/game_state.h`, upstream's `GamePlayState`, held as `Game::Play`) is what
+  section 5 leaves: the settings the script changes, play progress, blocking and transient state. The base
+  class of the six blocking loops, which had that name, is `GameLoopState` (`Engine/game/game_loop_state.h`).
+  The script's struct `GameState` (`agsdefns.sh`) and the save component "Game State" are other things with
+  frozen names; the script reaches the fields through `CCScriptGame`'s offset switch, whatever they are
+  called in C++.
+- **The play values of a custom property are a member of the live object**, `PropertyOverrides` (a map by
+  property name): of `CharacterState`, and of the new `InventoryItemState`, `DialogState` and
+  `AudioClipState`, so `InventoryItem`, `Dialog` and `AudioClip` are classes of a definition and a state
+  struct like `Character`. The lookup is unchanged: the override, then the definition's value
+  (`GameDef::CharacterProperties`...), then the schema's default. The GUI's and the GUI controls' lists
+  (`GameState::GuiProperties`, `GuiControlProperties`) wait for the GUI's live classes (step 5); the room's
+  lists stay in `RoomState`. Not done: the definition's values as a `Properties` member of each `XDef`, the
+  room's shape.
+- **Its fields have their names** (STYLE.md "Naming"; the script's variable or API property in a trailing
+  comment where it differs). Three script switches with negative names stay the script's `int` in the
+  script's sense, `DisableAntialiasing`, `DisableDialogParser`, `NoMultiLoopRepeat`, and the engine's logic
+  asks `ShouldAASprites()`, `IsDialogParserEnabled()`, `ShouldRepeatMultiLoop()` (the user, 2026-11-17: a
+  `bool` in the positive sense would be turned round twice per switch, at the script and at the save, and
+  would not give a script back the number it wrote).
+- **It is an aggregate with a counted field table** (154 rows): no constructor, its eight formerly private
+  members public data that its methods still guard. 134 rows are `Saved` (three of them by other save
+  components), 5 `Derived`, 15 `Transient` (section 6). `SavegameContent.EveryGameStateFieldIsRestored`
+  alters every saved row, saves, resets, restores and compares.
+- **Its header is lighter**: `game_state.h`, which the game context holds by value, no longer brings
+  `speech.h`, `move_list.h` and `graphicsdriver.h` to every user of the context.
 
 ## 3. Names
 
@@ -353,7 +419,7 @@ classes keep their save methods until their data is plain records (5.1a step 5):
 | Settings the script changes, play progress | `text_speed`, `speech_mode`, the dialog-options and top-bar fields, `do_once_tokens`, `randseed`, the music queue | stays: the game's own state |
 | Blocking and transient state | `wait_counter`, `messagetime`, `in_cutscene`, `fast_forward`, `shakesc_*` | stays for now; some later to the blocking-loop classes |
 | The current room | `room_width`, `room_height`, `bg_frame`, `walkable_areas_on`, `room_bg_modified`, `entered_at_x` | done 2026-11-16: all to `Room` (`LoadedWidth`, `LoadedHeight`, `BgFrame`, `BgFrameLocked`, `AnimBackgroundDelay`, `WalkableAreasOn`, `EnteredAtX`, `EnteredAtY`, `EnteredEdge`, `BgModified`, `MaskModified`, `ScriptFinished`); none to `RoomState`: none is kept per room between visits, and moving one there would make it persist. `LoadedWidth` and `LoadedHeight` are not the room's `Width` and `Height`: they are 0 until the first room is loaded and after `unload_game`, which the script's `game.room_width` shows in `game_start` |
-| Per-object custom properties | `charProps`, `invProps`, `guiProps`, `dialogProps`, `guicontrolProps` | each live object |
+| Per-object custom properties | `charProps`, `invProps`, `guiProps`, `dialogProps`, `guicontrolProps` | done 2026-11-17 for the character, the inventory item, the dialog and the audio clip: `PropertyOverrides` of each live object; the GUI's and the GUI controls' with the GUI's live classes (5.1a step 5) |
 | What outlives a restore | `voice_avail`, `separate_music_lib`, `enable_antialiasing`, the text language | done 2026-11-15: `EngineServices::VoiceAvail`, `SeparateMusicLib`, `TextLanguage`, `TextLocaleName`; `ShouldAASprites()` reads `Config.AntialiasSprites`. The save keeps the `separate_music_lib` slot: read and dropped, written from the engine's value |
 | Viewports and cameras | `_roomViewports`, `_roomCameras` | done 2026-11-16: `GameViewports`, held as `Game::Viewports` |
 
@@ -392,10 +458,15 @@ static_assert(FieldsCoverStruct(kCharacterDefFields), "CharacterDef: a field has
   hold it: a region's light and tint, a walkable area's scaling, the script names of a room's entities, which
   the room file gives again at every load of the room), `Derived` (computed from
   other fields; a restore computes it again: the character's `EffectiveOffset`, `EffectiveAnchor`,
-  `SpriteWidth`, `SpriteHeight`, `FrameOffsetX`, `FrameOffsetY`, `OffsetZoom`) or `Opaque` (not a value that can
-  be compared or stored; listed so that the table is whole: the two event tables for now, which have no
-  comparison). `FromDefinition` was added with the room's tables (the user, 2026-11-16): until then such a row
-  borrowed `Derived`, and a test had to tell "given again by the file" from "computed" by the kind of struct.
+  `SpriteWidth`, `SpriteHeight`, `FrameOffsetX`, `FrameOffsetY`, `OffsetZoom`), `Transient` (play state that a
+  save does not hold and a restore does not give back: how the last wait was skipped, the location last
+  named, the overlay bookkeeping; compared and printed like any field, altered only on request) or `Opaque`
+  (not a value that can be compared or stored; listed so that the table is whole: the two event tables for
+  now, which have no comparison). `FromDefinition` was added with the room's tables (the user, 2026-11-16):
+  until then such a row borrowed `Derived`, and a test had to tell "given again by the file" from "computed"
+  by the kind of struct. `Transient` was added with `GameState`'s table (5.1a step 4, 2026-11-17, the
+  supervisor's proposal): its 15 rows there are also the list of what a restore into a running game leaves
+  from the game played before, which 5.11's restore into a fresh `Game` settles.
   The comparison, the print and the alteration descend into a base or a member that has a table, so a
   difference is reported by field (`TintRed: 0 != 1`, `Anim.Delay: 0 != 1`) and a role applies at every depth;
   `AlterFields(object, role)` alters the rows of one role, which is how a test of a load shows both halves: a

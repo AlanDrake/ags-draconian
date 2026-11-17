@@ -2272,9 +2272,10 @@ snapshots are grouped by theme and a rename's own proof is in the message). One 
 102 files, of them 82 under `Common`, `Engine`, `Tools` and `Editor`. Designed and supervised by Fable 5.2
 (`.compare/briefs/brief-51a2-*.md`); the batches by Sonnet 5.5 (`names`, `objnames`, `fieldnames`, `names2`,
 `trim`, `movestate`, the code comparison, the pre-push fixes) and Opus 5.5 `high` (`net`, `types`, `object`,
-`entities`, `parts`, `tables`, `role`), each built once per batch in `.tidy/dev`. **Open:** the auto-test
-game and a timing run (the user was using the machine and allowed both at the end of the day: next), the
-GCC comparison of the linked engine.
+`entities`, `parts`, `tables`, `role`), each built once per batch in `.tidy/dev`. Closed on 2026-11-17
+("5.1a step 3" below): the auto-test game (2414 of 2414 on four renderers), the compile-time reading (total
++1.2%, median -0.6%) and the order of `RoomObject`'s members. **Open:** the GCC comparison of the linked
+engine.
 
 - **The design, where it was decided here** (RUNTIME-SPLIT.md 2, "What 5.1a step 2 built"):
   - **Two lifetimes in one live entity.** A definition field of a room entity is either kept by the room
@@ -2355,14 +2356,179 @@ GCC comparison of the linked engine.
   and on the finished tree: `format`, `helpers`, `layers`, `buildlists`, `build`, `headers`, `libcxx` (342
   headers), `emscripten`, `linux` (GCC, 1,266 tests) and `msbuild` (5 solutions, the Editor's NUnit tests,
   `agsnative.cpp`) passed; `tidy` had one finding, the constant's name (`kNoMoveList` now).
-- **Not verified:** the auto-test game on any renderer (held: it opens a window); compile time; the GCC
-  Release comparison; sanitizers; macOS, iOS, Android, the Xcode project's two new entries; a real game's
+- **Not verified:** the GCC Release comparison; sanitizers; macOS, iOS, Android, the Xcode project's two new entries; a real game's
   saves before and after (the round-trip tests pass); the corpus game.
 - **Lessons:** the tests written before the surgery found five defects that had nothing to do with it; a
   hand-kept mirror struct with a `sizeof` assert is a fair stand-in for a table for a few batches, and goes
   when the table comes; MSVC accepts an odr-used in-class `static const` that GCC does not link (`constexpr`);
   a predicate that exists twice is bypassed about thirty times: one definition, and no literal left to
   compare with.
+
+### 5.1a step 3: the plain entities
+
+*Definition:* PLAN.md 5.1a step 3: the inventory item, the mouse cursor, the audio clip and its type, the view,
+the dialog, the options and the sprite table as definitions with live copies in `Game`; with 4.3 and 5.9 step
+5 for these structs, and step 2's open items (the auto-test game, the order of `RoomObject`'s members).
+
+**Status (2026-11-17): built, verified and committed, not pushed** (`b635a47d7` for the first three batches,
+then `449e40175`..`35c6d5a8f`, 7 commits cut from the snapshots `refs/wip/51a3/*` by
+`.compare/helpers/commit_snaps.py`). Designed and supervised by Fable 5.2 in a session the user left
+unattended (`.compare/briefs/brief-51a3-*.md`); the batches by Sonnet 5.5 (`names`, `lists`, `headers`,
+`fieldnames`, `trim`) and Opus 5.5 `high` (`net`, `live`, `sprites`, `tables`, the layout benchmark), one at a
+time in the main tree, each built once per batch in `.tidy/dev`.
+
+- **The design** (RUNTIME-SPLIT.md 2, "What 5.1a step 3 built"): every list the game changes has a live copy
+  in `Game` that hides the definition's by name, so no use site changed its text; the live types are aliases
+  of their definitions until they hold more (the user, 2026-11-16); `Game::SpriteInfos` is the live sprite
+  table and the cache is attached to it (the user: "table in Game now").
+- **The batches:**
+  1. `names`, `net`, `lists` (2026-11-16, in `b635a47d7`): the ten type names, the engine's aliases,
+     `DialogOptionsState`; `Engine/test/game_entities_test.cpp` with the fixture `GameEntities`; `GameDef`'s
+     lists and values under the names both copies have.
+  2. `headers`: a room object starts at `MoveState::kNoMoveList` (the user: one constant, so that changing the
+     value is redefining it), and the move list table names the constant; `Engine/game/anim_flow.h` and
+     `Common/game/room_limits.h` split out. Translation units that see `room_def.h`: 128 to 46.
+     `compare_objects.py` on the two moves: mechanical (642 identical; 2 objects lost an unreferenced
+     `std::locale::id` constructor).
+  3. `live`: `StartFromDefinitions`, the live lists, options and values; the save code takes `Game &`; two
+     readers that run before the game starts read `Def().Options`; the fix-ups in the loader; `GameInfo` read
+     without `operator[]`. The scratch build with 14 members `const`: no error in the engine.
+  4. `sprites`: the live sprite table. The order of events at start was read first: `init_sprite_cache`
+     (attaches the still empty live table), the loader (writes the definition), `StartFromDefinitions` (the
+     copy), `EnlargeTo`, then the sprite file's sizes; nothing touches the table between the first and the
+     third.
+  5. `fieldnames`: 74 fields by `Script/rename_fields.py`, no refusal; `compare_objects.py`: 671 objects
+     identical, no code generation difference. `Editor/AGS.Native`: 49 lines by hand.
+  6. `tables`: ten tables with the count check; the structs made aggregates (three constructors now generated
+     inline where the structs are built, load-time code only); five "every saved field is restored" tests
+     from the rows; with six roles flipped on purpose all five fail and name the field.
+  7. `trim`: `game_def.h` drops three includes (about 90 translation units lose each).
+- **Visible changes:** a save holds 0 where it held -1 as the move list of an object that has not moved (a
+  restored -1 still means "not moving"); a cursor whose view is past the game's views has none from the
+  loader on, for the tools too; `GameChannelCount` is 32 from the start, where it was 0 until the game was
+  initialised (nothing read it then).
+- **Found, not changed** ("Open items" below): `GameDef::IsSpriteValid` has no caller;
+  `AudioClipDef::IsRepeatingByDefault` is a `char`; `CharacterDef::ScriptName` is a `Saved` row that no save
+  holds; two includes of `game_def.h` that a small move would free.
+- **The order of `RoomObject`'s members** (step 2's open item): measured, and left as it is. A benchmark
+  (a disabled test injected into `engine_full_test`, kept local in `.compare/helpers/layout/` with the
+  candidate patch and `run_bench.py`) makes a room of 256 live objects and runs the engine's own per-frame
+  update over it (`update_cycling_views`, `update_object_scale`), warm and after the cache was flushed, in
+  three mixes; a synthetic loop reads the fields the draw preparation reads (the real one needs a graphics
+  driver). The candidate order puts the definition's hot fields first and the bounding box before the
+  matrices of `GraphicSpace` (one cache line fewer per object for the scale update, 1.5 fewer for the draw
+  read; sizes unchanged, 608 and 752 bytes). MSVC x64 Release on an idle machine, pinned to one core, five
+  alternated runs, run-to-run spread 0.7 to 2.5% warm:
+
+  | Per pass over the room | as it is, warm / cold | candidate, warm / cold |
+  |---|---:|---:|
+  | update, all idle | 49.9 / 66.2 µs | 50.3 / 65.6 µs (+0.8% / -0.9%) |
+  | update, all animating | 56.4 / 75.9 µs | 57.1 / 76.4 µs (+1.2% / +0.7%) |
+  | update, half the objects off | 25.3 / 40.5 µs | 25.6 / 36.5 µs (+1.4% / -9.9%) |
+  | draw read (synthetic), all idle | 1.38 / 9.1 µs | 1.32 / 8.6 µs (-4.6% / -5.5%) |
+
+  A full room's update is 0.3 to 0.45% of a 16.7 ms game loop and is computation (the two transforms of
+  `UpdateGraphicSpace`, the walk-mask lookup), about 200 ns per object. Everything memory costs is the gap
+  between cold and warm, 15 to 20 µs per pass (0.1% of a loop): that bounds what step 2's growth from 336 to
+  608 bytes can cost, and the reorder moves it by at most 4 µs one way (half the objects off) and half a
+  microsecond the other (warm, in every run). No case for reordering; GCC was not measured.
+- **Verified:** per batch, the MSVC build with the header check and `ctest` (1,283 to 1,305 tests). On the
+  finished tree: `prepush.py --auto --emsdk`, every stage (`format`, `helpers`, `layers`, `buildlists`,
+  `build`, `headers`, `libcxx` with 344 headers, `emscripten`, `linux` with GCC and 1,305 tests, `msbuild`
+  with 5 solutions and the Editor's tests); `tidy` had 5 findings on renamed lines, fixed (`35c6d5a8f`) and
+  rerun clean. The auto-test game: 2414 of 2414 on Software, Direct3D 9, Direct3D 11 and OpenGL, at
+  `b635a47d7` (which also closes step 2's) and on the finished tree.
+- **Compile time** (BASELINE.md "After 5.1a steps 2 to 4"; MSVC, an idle machine, two readings a side that
+  agree within 0.1%): against the tree after step 2, total +0.6% (1,674.8 to 1,684.3 s), the median
+  unchanged at 2.55 s per object, `Engine/game` -1.7%; the new test source alone compiles in 11.9 s, more
+  than the whole difference. **Step 2's own reading**, which was open, comes from the same run: total +1.2%
+  (1,655.1 to 1,674.8 s), median 2.57 to 2.55 s, `Engine` +2.5%, wall-clock 198.8 to 200.6 s.
+- **Not verified:** the GCC Release comparison of the linked engine; sanitizers; macOS, iOS, Android, the
+  Xcode project's new entries; a real game's saves before and after (the round-trip tests pass); the corpus
+  game.
+- **Lessons:** a live copy that hides its definition by name moves hundreds of uses without touching them,
+  and the compiler proves the rest (`const` in a scratch build); what runs before the copy exists must be
+  looked for by hand (two readers of the options, found by reading the start order, not by the build); a
+  role has to say what a restore does, and for a list of structs that is the elements' business.
+
+### 5.1a step 4: what was left of `GamePlayState`
+
+*Definition:* PLAN.md 5.1a step 4: the per-object custom property lists go to the live objects; the rest is
+the game's own state, renamed `GameState`, the blocking-loop base class of that name renamed with it; with
+4.3 and 5.9 step 5 for the struct.
+
+**Status (2026-11-17): built, verified and committed, not pushed** (`532891144`..`0eda178d5`, 9 commits, cut from the snapshots
+`refs/wip/51a4/*` by `.compare/helpers/commit_snaps.py`). Designed and supervised by Fable 5.2
+(`.compare/briefs/brief-51a4-*.md`), partly while the user was away; the batches by Opus 5.5 `high` (`net`,
+`props`, `tables`) and Sonnet 5.5 (`names`, `fieldnames`, `trim`, `positive`).
+
+- **The design** (RUNTIME-SPLIT.md 2, "What 5.1a step 4 built"), with what was decided here:
+  - The play values of a custom property are a member of the live object, **`PropertyOverrides`** (the
+    supervisor's name, told to the user: it is what the lookup does with them, and it leaves `Properties` to
+    the definition's values, as the room's definitions have it).
+  - **The GUI's two lists stay in the state** until the GUI has live classes (step 5); the definition's six
+    lists stay in `GameDef` (renamed); the room's lists stay in `RoomState`.
+  - **The three script switches with negative names stay the script's `int`** (the user, 2026-11-17, after
+    seeing both versions side by side): `DisableAntialiasing`, `DisableDialogParser`, `NoMultiLoopRepeat`,
+    with positive predicates for the engine's logic (`ShouldAASprites()`, `IsDialogParserEnabled()`,
+    `ShouldRepeatMultiLoop()`). The ruling of 2026-11-16 had made them positive `bool` fields; that costs two
+    inversions per switch at the script and at the save, and a script that wrote 5 would read back 1.
+    `NoMultiLoopRepeat` has a `CHECKME`: only a script can set it (no game option, no Editor setting;
+    upstream `ags4` has it too; neither private game nor the test game names it).
+  - **A fifth field role, `Transient`** (the supervisor's, told to the user): play state that a save does
+    not hold and a restore does not give back. 15 rows of `GameState` have it; no other table yet.
+- **The batches:**
+  1. `net` (ground rule 3): 19 tests; the fixture `GameEntities` gains GUIs with controls and a property
+     schema. The property functions of the eleven kinds, their save round trip and bytes, the three
+     switches at the script and in the save, the state's bit fields, the script timers.
+  2. `props`: `CharacterState::PropertyOverrides`; `InventoryItem`, `Dialog` and `AudioClip` become classes
+     of a definition and a state struct; playback takes `const AudioClipDef *` and the playing clip is found
+     by id; `FreePropertyOverrides` before a restore. Save bytes unchanged.
+  3. `names`: `GamePlayState` to `GameState`, the loop base to `GameLoopState`; proved by tokens (10 and 53
+     replacements in 18 files, nothing else).
+  4. `fieldnames`: 143 fields of `GameState` and `GameDef`'s six lists by `Script/rename_fields.py`, no
+     refusal; 58 declarations name the script's variable or API property; `compare_objects.py`: 673 objects
+     identical, no code generation difference.
+  5. `trim`: `Engine/game/game_loop_state.h`; `game_state.h` no longer includes `speech.h` (107 to 22
+     translation units), `move_list.h` (118 to 53), `graphicsdriver.h` (112 to 36). `compare_objects.py`: no
+     code difference.
+  6. `positive`: the three switches named and asked through predicates. `compare_objects.py` (MinSizeRel):
+     the two predicates emitted as functions, one caller changed (`DialogOptionsState::Begin`), the
+     per-frame reader unchanged.
+  7. `tables`: `GameState` an aggregate (constructor gone, the eight private members public under plain
+     names, used through their methods), 154 counted rows (134 `Saved`, 5 `Derived`, 15 `Transient`);
+     `field_table.h` gains `std::array`, `std::unordered_set`, a time point, and an integer alteration that
+     steps down at the type's maximum; `SavegameContent.EveryGameStateFieldIsRestored` (four exclusions,
+     each checked to be still needed); three methods read `this`.
+- **Defects found.** Fixed, with its test seen failing first (also in upstream `ags4`): **a restore kept
+  the GUI controls' custom property values set after the save** (`FreeProperties` did not clear their
+  lists). Recorded, not fixed ("Open items"): a restore appends the saved parsed words (a disabled test);
+  `OverlayCount` after restoring a save that had overlays (not tested); the transient fields that a restore
+  leaves from the game played before.
+- **Visible changes:** the fix above; `InventoryItemWidth` is 0 instead of indeterminate between a `Game`'s
+  construction and `engine_init_game_settings` (which sets 40).
+- **Sizes** (MSVC x64): `Character` 752 to 824, `InventoryItem` 216 to 280, `Dialog` and `AudioClip` 72 to
+  136 (one map each).
+- **Verified:** per batch, the MSVC build with the header check and `ctest` (1,305 to 1,330 tests); a
+  syntax check of the counted 154-row table with GCC 8.3 in the builder image. On the finished tree:
+  `prepush.py --auto --emsdk`, every stage (`libcxx` with 345 headers, `emscripten`, `linux` with GCC and
+  1,330 tests, `msbuild` with 5 solutions and the Editor's tests). Its first run found three `tidy` findings
+  on changed lines and, with GCC only, a byte test that compared two saves of property maps with two values
+  (the hash map's order, "Open items"); both fixed, the second in the commit that adds the test, and
+  `format`, `build`, `tidy` and `linux` rerun clean. The auto-test game: 2414 of 2414 on Software, Direct3D
+  9, Direct3D 11 and OpenGL.
+- **Compile time** (BASELINE.md "After 5.1a steps 2 to 4"): against the tree after step 3, total +1.2%
+  (1,684.3 to 1,705.0 s), median 2.55 to 2.58 s per object, `Engine/game` +0.8%, wall-clock 202.0 to
+  203.8 s. Over steps 2 to 4 together: total +3.0%, of which more than half is two new test sources;
+  `Engine/game` -0.6% in total and -3.7% in the median, the header trims outweighing what came into the
+  headers.
+- **Not verified:** the GCC Release comparison of the linked engine; sanitizers; macOS, iOS, Android, the
+  Xcode project's new entry; a real game's saves before and after (the round-trip and byte tests pass); the
+  corpus game.
+- **Lessons:** a question put to the user with a recommendation is not yet a question they can answer: the
+  three switches were settled only when both versions were shown as code, and the answer reversed an
+  earlier ruling; a table for a 150-field struct pays at once (one test replaces a hand-written check of 16
+  fields and names what a restore leaves behind); a role that is missing shows as rows nobody can label.
 
 ### 5.8 step 1: Common's save code into the engine
 
@@ -2589,18 +2755,56 @@ user kept it local and took the readings of a busy machine as good enough.
   - `walkbehinds_cropout` indexes its 16 entries with a mask value up to 255 unchecked;
   - `Walkarea_GetScalingMin/Max` return the stored `ScalingFar`/`ScalingNear` as they are (noted by the batch
     `net`; to look at when the scaling is next touched);
-  - `RoomState::ReadFromSavegame` trusts the counts a save gives; read from the code and not confirmed by a
-    test: `inv_item_wid` is not initialised and `parsed_words` is appended to on a restore;
-  - `ViewFrame_GetYOffset` returns the x offset (to be fixed with a test in step 3's `net` batch);
+  - `RoomState::ReadFromSavegame` trusts the counts a save gives;
   - upstream candidates from the fixes of this step: the `SetAreaLightLevel` bound, `get_walkbehind_pixel`'s
     mask, `Object.DestinationX/Y` of an object that has not moved, the walkable area's `FaceDirectionRatio`;
-  - a room object still starts with `MoveListID` -1 where a character starts with `kNoMoveList` (0); nothing
-    tells them apart any more, and the user left it (save bytes unchanged);
+    from step 3, `ViewFrame.YOffset` returning the x offset; from step 4, the GUI controls' property values
+    kept by a restore;
   - `RoomObjectState::NoView` is not named as a constant (`kNoView`); `check_build_lists.py --build` on a
-    tree with the precompiled header reports its `cmake_pch.cxx` entries;
-  - two header proposals of the trim, each a move of declarations: `game/anim_flow.h` for `AnimFlowParams`
-    and `ViewAnimateParams` (so that `entity_state.h` does not need `runtime_defines.h`), and a
-    `room_limits.h` for the `MAX_ROOM_*` constants and `RoomAreaMask` (`room_def.h` is still seen by 127
-    translation units because of them).
+    tree with the precompiled header reports its `cmake_pch.cxx` entries.
+  Closed since: `InventoryItemWidth` has an initializer (step 4), a room object starts at `kNoMoveList`
+  and the two header moves are done (step 3).
+- 5.1a steps 3 and 4 (2026-11-17), found on the way, none fixed:
+  - **a restore appends the saved parsed words** to `GameState::ParsedWords` instead of replacing them
+    (`ReadFromSavegame` uses a back inserter, `DoBeforeRestore` does not clear the list): disabled test
+    `SavegameContent.DISABLED_ParsedWordsAreReplacedByARestore`; likely harmless (the list is rebuilt at
+    every parse), upstream not checked;
+  - **`GameState::OverlayCount` after restoring a save that had overlays**: `remove_all_overlays` brings it
+    to 0 and `ReadOverlays` puts the saved overlays back without counting them, so it is too low and goes
+    negative as they are removed (`reset_drawobj_dynamic_index` then runs while overlays exist). Read from
+    the code, not confirmed by a test; upstream not checked;
+  - the `Transient` fields that a restore into a running game leaves from the game played before:
+    `WaitSkippedBy` and `WaitSkippedByData` (the script's report of how the last wait was skipped),
+    `LastNamedLocation`, `LocationNameSaveCursor`, `IsScreenFadedOut`, `DialogRequestResult`; `RoomChanges`
+    gains one per restore. 5.11's restore into a fresh `Game` settles them;
+  - a save whose voice word says "blocking, no voice" restores as voice and blocking (the read takes any
+    non-zero word as "has voice"); the engine never writes that state;
+  - a custom property map with more than one value is written to a save in the hash map's iteration order
+    (`Properties::WriteValues` over a `std::unordered_map`), which a restored map need not have again: two
+    saves of the same state can differ in the order of a map's entries. Found by a byte test on GCC (with
+    MSVC's library the order happened to come back); the saves are equivalent. The same holds for the script
+    timers. 5.12's format should write such maps sorted;
+  - GUI control property values are read from a save by their index in the save, without the control remap
+    that `ReadGUIControlArray` applies to the controls themselves (seen while reading, not investigated);
+  - `GameState::NoMultiLoopRepeat` (`game.no_multiloop_repeat`): `CHECKME` in the header: only a script can
+    set it; retiring it would make the script variable an unused slot, a script API change for the user;
+  - about ten other script switches of `GameState` that the engine only tests for zero are `int`
+    (`ShowSingleDialogOption`, `GreyOutInventory`, `AutoUseWalkToPoints`...); the three with negative names
+    stay `int` by the user's decision, so these stay too;
+  - `AudioClipDef::IsRepeatingByDefault` is a `char` used as a boolean; `GameDef::IsSpriteValid` has no
+    caller (`Game::IsSpriteValid` hides it); `CharacterDef::ScriptName` is a `Saved` row that no save holds
+    (the character's save test copies it back by hand);
+  - the definition's custom property values are six lists of `GameDef`, not a `Properties` member of each
+    `XDef` as the room's definitions have it (a loader change); the room's play values are lists of
+    `RoomState`, not `PropertyOverrides` of the live room entities; the GUI's two lists are in `GameState`
+    until step 5;
+  - header proposals of the two trims, each a small move of declarations: `CursorRole` out of
+    `mouse_cursor_def.h` (80 translation units would lose it through `game_def.h`), the `HGameFileError`
+    typedefs out of `main_game_file.h` (77; it also frees `guimain.h` and `cc_script.h` from `game_def.h`),
+    `QueuedAudioItem` held by value in `GameState` (it brings `soundclip.h`), `util/keycode.h` in
+    `game_state.h` for one inline helper (131), `screen.h`'s include of `game_state.h`;
+  - `Script/use_context.py --check` cannot read a function template with default template arguments (it
+    reports "use outside a function"); a list row of a field table does not pass its role to its elements
+    (`Loops`, `Frames`, `Options` are `FromDefinition` rows for that reason).
 - `Tools/test/directory_test.cpp`'s comment on the MSBuild googletest being older is out of date;
   `FetchGoogleTest.cmake` still pins 1.8.1 for GCC older than 5, which no builder uses.
