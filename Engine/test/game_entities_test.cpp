@@ -17,9 +17,11 @@
 // options and the game's values that a script changes. Every script function
 // that writes one of them during play, read back through its getter; the audio
 // clip's script handle; the save round trip of every saved field of the view
-// frames and of the inventory items; the fix-ups that engine_init_game_settings
-// makes at start; the values a started game has, which are its definition's;
-// ViewFrame.YOffset, which gave the x offset.
+// frames and of the inventory items; the fix-up that engine_init_game_settings
+// makes at start (the loader's are Common's GameLoader tests); the values a
+// started game has, which are its definition's; ViewFrame.YOffset, which gave
+// the x offset; the sprite table, which the sprite cache writes in the game's live
+// copy (sizes, dynamic sprites, deleted sprites, flags), with Game::IsSpriteValid.
 // The game is made by hand, in a Game, a Room and an EngineServices of the
 // fixture's own: no game file is read.
 //
@@ -52,10 +54,12 @@
 #include "game/game.h"
 #include "game/game_context.h"
 #include "game/game_def.h"
+#include "game/game_init.h"
 #include "game/game_state.h"
 #include "game/game_struct_defines.h"
 #include "game/inventory_item_def.h"
 #include "game/mouse_cursor_def.h"
+#include "game/render/dynamic_sprite.h"
 #include "game/runtime_defines.h"
 #include "game/save/savegame.h"
 #include "game/save/savegame_components.h"
@@ -67,7 +71,9 @@
 #include "game/world/inventory_item.h"
 #include "game/world/room_context.h"
 #include "game/world/view_frame.h"
+#include "gfx/bitmap.h"
 #include "gfx/gfx_def.h"
+#include "gfx/sprite_cache.h"
 #include "gtest/gtest.h"
 #include "gui/guimain.h"
 #include "main/engine.h"
@@ -102,8 +108,8 @@ namespace
 
 const int kCharacterCount = 3;
 const int kItemCount = 3;
-// The cursors: a pointer, a look cursor with a mode view, the "use inventory" cursor, and one whose view number is
-// past the game's views
+// The cursors: a pointer, a look cursor with a mode view, the "use inventory" cursor, and one whose view number in the
+// game file was past the game's views, which the loader made none (GameLoader.CursorViewPastTheViewsBecomesNone)
 const int kPointerCursor = 0;
 const int kLookCursor = 1;
 const int kUseInvCursor = 2;
@@ -125,6 +131,44 @@ const int kCursorSpriteWidth = 20;
 const int kCursorSpriteHeight = 30;
 // The sayChosenOption argument of Dialog.DisplayOptions that never says the option (SAYCHOSEN_NO in dialog.cpp)
 const int kSayChosenNever = 3;
+// The sprite file of StartWithSpriteFile: sprites 0..9, 16x16 32-bit, but kMissingSprite; the game file gives
+// kKeepDepthSprite and kMissingSprite a flag (SPF_KEEPDEPTH)
+const int kFileSpriteCount = 10;
+const int kFileSpriteSize = 16;
+const int kKeepDepthSprite = 3;
+const int kMissingSprite = 5;
+
+// The sprite file of StartWithSpriteFile, made in memory
+std::vector<uint8_t> MakeSpriteFile()
+{
+    std::vector<uint8_t> file;
+    std::vector<SpriteInfo> infos;
+    SpriteCache source(infos, SpriteCache::Callbacks());
+    for (int i = 0; i < kFileSpriteCount; ++i)
+    {
+        if (i != kMissingSprite)
+            source.SetSprite(i, std::make_unique<Bitmap>(kFileSpriteSize, kFileSpriteSize, 32));
+    }
+    SpriteFileIndex index;
+    HError err = source.SaveToFile(std::make_unique<Stream>(std::make_unique<VectorStream>(file, kStream_Write)), 0,
+                                   kSprCompress_None, index);
+    EXPECT_TRUE(err) << err->FullMessage().GetCStr();
+    return file;
+}
+
+// The two sprite tables hold the same sizes and flags
+void ExpectSameSpriteInfos(const std::vector<SpriteInfo> &expected, const std::vector<SpriteInfo> &actual)
+{
+    ASSERT_EQ(expected.size(), actual.size());
+    for (size_t i = 0; i < expected.size(); ++i)
+    {
+        SCOPED_TRACE(testing::Message() << "sprite " << i);
+        EXPECT_EQ(expected[i].Width, actual[i].Width);
+        EXPECT_EQ(expected[i].Height, actual[i].Height);
+        EXPECT_EQ(expected[i].ColorDepth, actual[i].ColorDepth);
+        EXPECT_EQ(expected[i].Flags, actual[i].Flags);
+    }
+}
 
 // The value that MakeDefinition gives a field of view frame n (0 to 3: the loop's index times the frame count, plus
 // the frame's index); different for every frame and every field
@@ -212,7 +256,7 @@ protected:
         _wasServices = EngineServices::SetCurrent(&_services);
         _wasGame = Game::SetCurrent(_game.get());
         _wasRoom = Room::SetCurrent(&_room);
-        MakeDefinition();
+        MakeDefinition(Definition());
         StartGame();
     }
 
@@ -229,10 +273,9 @@ protected:
     // Game::Def(), which is const)
     GameDef &Definition() { return *_game; }
 
-    // The game's definition: of each entity two or more, with values of their own
-    void MakeDefinition()
+    // The game's definition (or another one, to compare with): of each entity two or more, with values of their own
+    static void MakeDefinition(GameDef &def)
     {
-        GameDef &def = Definition();
         def.numcharacters = kCharacterCount;
         def.Characters.clear();
         def.Characters.resize(kCharacterCount);
@@ -264,7 +307,7 @@ protected:
         def.MouseCursors.resize(kCursorCount);
         const CursorRole roles[kCursorCount] = {kCursorRole_Pointer, kCursorRole_Look, kCursorRole_UseInv,
                                                 kCursorRole_None};
-        const short views[kCursorCount] = {-1, kEmptyView, -1, kViewCount};
+        const short views[kCursorCount] = {-1, kEmptyView, -1, -1};
         for (int i = 0; i < kCursorCount; ++i)
         {
             auto &cur = def.MouseCursors[i];
@@ -277,7 +320,7 @@ protected:
             cur.flags = static_cast<uint8_t>(MCF_STANDARD | (i == kLookCursor ? MCF_EVENT : 0));
         }
 
-        MakeViews();
+        MakeViews(def);
 
         def.numdialog = kDialogCount;
         def.Dialogs.clear();
@@ -313,7 +356,7 @@ protected:
         for (int i = 0; i < kAudioClipCount; ++i)
         {
             auto &clip = def.AudioClips[i];
-            clip.id = 10 + i; // the id the game file holds, which the engine replaces with the index
+            clip.id = i; // the loader makes a clip's id its index (GameLoader.AudioClipIdIsItsIndex)
             clip.fileName = String::FromFormat("clip%d.ogg", i);
             clip.type = static_cast<uint8_t>(i);
         }
@@ -337,9 +380,8 @@ protected:
     }
 
     // The views of MakeDefinition: in the framed view, frame n of FramePic(n)... with an event name "step<n>"
-    void MakeViews()
+    static void MakeViews(GameDef &def)
     {
-        GameDef &def = Definition();
         def.numviews = kViewCount;
         def.Views.clear();
         def.Views.resize(kViewCount);
@@ -365,15 +407,12 @@ protected:
     }
 
     // Does what InitGameState does for these entities that a test can run without fonts, plugins, scripts and a
-    // graphics driver: the live characters and the player, the custom property lists, the audio clips' ids and
-    // their registration with the managed pool
+    // graphics driver: the live copies of the definitions (StartFromDefinitions, as InitGameState), the player, the
+    // custom property lists, the audio clips' ids and their registration with the managed pool
     void StartGame()
     {
         Game &game = *_game;
-        game.Characters.clear();
-        game.Characters.reserve(game.Def().Characters.size());
-        for (const auto &def : game.Def().Characters)
-            game.Characters.emplace_back(def);
+        StartFromDefinitions(game);
         for (int i = 0; i < game.numcharacters; ++i)
             game.Characters[i].ID = i;
         game.Play.charProps.clear();
@@ -394,8 +433,78 @@ protected:
     void RestartGame()
     {
         pool.Reset();
-        MakeDefinition();
+        MakeDefinition(Definition());
         StartGame();
+    }
+
+    // The definition of StartWithSpriteFile: MakeDefinition's, with the game file's flag SPF_KEEPDEPTH for
+    // kKeepDepthSprite and kMissingSprite
+    static void MakeSpriteDefinition(GameDef &def)
+    {
+        MakeDefinition(def);
+        def.SpriteInfos[kKeepDepthSprite].Flags = SPF_KEEPDEPTH;
+        def.SpriteInfos[kMissingSprite].Flags = SPF_KEEPDEPTH;
+    }
+
+    // The sprite table of MakeSpriteDefinition, made apart: what the definition's table must stay
+    static std::vector<SpriteInfo> LoadedSpriteInfos()
+    {
+        GameDef made;
+        MakeSpriteDefinition(made);
+        return made.SpriteInfos;
+    }
+
+    // Starts the game again from its definition, with its sprites as the engine has them: the fixture's sprite cache
+    // attached to the live sprite table with the engine's callbacks (init_sprite_cache, at engine start), the
+    // definition with the game file's flags (MakeSpriteDefinition), the game started (StartGame, then the cache
+    // enlarged to the game's sprite count, as InitGameState), then the sprite file opened (as engine_init_sprites)
+    void StartWithSpriteFile()
+    {
+        EngineServices &services = EngineServices::Current();
+        init_sprite_cache();
+        pool.Reset();
+        MakeSpriteDefinition(Definition());
+        StartGame();
+        services.Sprites.EnlargeTo(static_cast<sprkey_t>(Definition().SpriteInfos.size()) - 1);
+        services.Sprites.Reset();
+        if (_spriteFile.empty())
+            _spriteFile = MakeSpriteFile();
+        HError err =
+            services.Sprites.InitFile(std::make_unique<Stream>(std::make_unique<VectorStream>(_spriteFile)), nullptr);
+        ASSERT_TRUE(err) << err->FullMessage().GetCStr();
+    }
+
+    // The started game's sprite table after StartWithSpriteFile: the sprite file's sizes, the game file's flags; the
+    // missing sprite is an empty slot, its flag dropped by the cache; the sprites past the file's are the definition's
+    static void ExpectSpritesStartedWithTheFile()
+    {
+        Game &game = Game::Current();
+        const GameDef &def = game.Def();
+        ASSERT_EQ(def.SpriteInfos.size(), game.SpriteInfos.size());
+        for (int i = 0; i < static_cast<int>(game.SpriteInfos.size()); ++i)
+        {
+            SCOPED_TRACE(testing::Message() << "sprite " << i);
+            const SpriteInfo &info = game.SpriteInfos[i];
+            if (i < kFileSpriteCount && i != kMissingSprite)
+            {
+                EXPECT_EQ(kFileSpriteSize, info.Width);
+                EXPECT_EQ(kFileSpriteSize, info.Height);
+                EXPECT_EQ(32, info.ColorDepth);
+                EXPECT_EQ(def.SpriteInfos[i].Flags, info.Flags);
+            }
+            else if (i == kMissingSprite)
+            {
+                EXPECT_FALSE(info.IsValid());
+                EXPECT_EQ(0u, info.Flags);
+            }
+            else
+            {
+                EXPECT_EQ(def.SpriteInfos[i].Width, info.Width);
+                EXPECT_EQ(def.SpriteInfos[i].Height, info.Height);
+                EXPECT_EQ(def.SpriteInfos[i].Flags, info.Flags);
+            }
+        }
+        EXPECT_EQ(static_cast<uint32_t>(SPF_KEEPDEPTH), game.SpriteInfos[kKeepDepthSprite].Flags);
     }
 
     // Runs engine_init_game_settings, and puts back the globals it sets outside the fixture's contexts: the GUI
@@ -504,9 +613,138 @@ protected:
         EXPECT_EQ(def.volume_reduction_while_speech_playing, Game_GetAudioTypeSpeechVolumeDrop(i));
     }
 
+    // The game's definition (Game::Def()) is still the one MakeDefinition made: what the game changes, setters and
+    // restores, goes to the live copies. Every field that a setter or a restore writes in a live copy is compared.
+    static void ExpectDefinitionAsMade()
+    {
+        GameDef made;
+        MakeDefinition(made);
+        const GameDef &def = Game::Current().Def();
+        ASSERT_EQ(made.InventoryItems.size(), def.InventoryItems.size());
+        for (size_t i = 0; i < made.InventoryItems.size(); ++i)
+        {
+            SCOPED_TRACE(testing::Message() << "item " << i);
+            EXPECT_STREQ(made.InventoryItems[i].name.GetCStr(), def.InventoryItems[i].name.GetCStr());
+            EXPECT_EQ(made.InventoryItems[i].pic, def.InventoryItems[i].pic);
+            EXPECT_EQ(made.InventoryItems[i].cursorPic, def.InventoryItems[i].cursorPic);
+            EXPECT_EQ(made.InventoryItems[i].hotx, def.InventoryItems[i].hotx);
+            EXPECT_EQ(made.InventoryItems[i].hoty, def.InventoryItems[i].hoty);
+            EXPECT_EQ(made.InventoryItems[i].hotAlign, def.InventoryItems[i].hotAlign);
+        }
+        ASSERT_EQ(made.MouseCursors.size(), def.MouseCursors.size());
+        for (size_t i = 0; i < made.MouseCursors.size(); ++i)
+        {
+            SCOPED_TRACE(testing::Message() << "cursor " << i);
+            EXPECT_EQ(made.MouseCursors[i].pic, def.MouseCursors[i].pic);
+            EXPECT_EQ(made.MouseCursors[i].hotx, def.MouseCursors[i].hotx);
+            EXPECT_EQ(made.MouseCursors[i].hoty, def.MouseCursors[i].hoty);
+            EXPECT_EQ(made.MouseCursors[i].view, def.MouseCursors[i].view);
+            EXPECT_EQ(made.MouseCursors[i].animdelay, def.MouseCursors[i].animdelay);
+            EXPECT_EQ(made.MouseCursors[i].flags, def.MouseCursors[i].flags);
+        }
+        ASSERT_EQ(made.Views.size(), def.Views.size());
+        for (size_t v = 0; v < made.Views.size(); ++v)
+        {
+            ASSERT_EQ(made.Views[v].numLoops, def.Views[v].numLoops);
+            for (int loop = 0; loop < made.Views[v].numLoops; ++loop)
+            {
+                ASSERT_EQ(made.Views[v].loops[loop].numFrames, def.Views[v].loops[loop].numFrames);
+                for (int frame = 0; frame < made.Views[v].loops[loop].numFrames; ++frame)
+                {
+                    SCOPED_TRACE(testing::Message() << "view " << v << " loop " << loop << " frame " << frame);
+                    const ViewFrameDef &made_vf = made.Views[v].loops[loop].frames[frame];
+                    const ViewFrameDef &vf = def.Views[v].loops[loop].frames[frame];
+                    EXPECT_EQ(made_vf.pic, vf.pic);
+                    EXPECT_EQ(made_vf.xoffs, vf.xoffs);
+                    EXPECT_EQ(made_vf.yoffs, vf.yoffs);
+                    EXPECT_EQ(made_vf.speed, vf.speed);
+                    EXPECT_EQ(made_vf.flags, vf.flags);
+                    EXPECT_EQ(made_vf.sound, vf.sound);
+                    EXPECT_STREQ(made_vf.event_name.GetCStr(), vf.event_name.GetCStr());
+                }
+            }
+        }
+        ASSERT_EQ(made.Dialogs.size(), def.Dialogs.size());
+        for (size_t d = 0; d < made.Dialogs.size(); ++d)
+        {
+            ASSERT_EQ(made.Dialogs[d].Options.size(), def.Dialogs[d].Options.size());
+            for (size_t o = 0; o < made.Dialogs[d].Options.size(); ++o)
+            {
+                SCOPED_TRACE(testing::Message() << "dialog " << d << " option " << o);
+                EXPECT_STREQ(made.Dialogs[d].Options[o].Text.GetCStr(), def.Dialogs[d].Options[o].Text.GetCStr());
+                EXPECT_EQ(made.Dialogs[d].Options[o].Flags, def.Dialogs[d].Options[o].Flags);
+            }
+        }
+        ASSERT_EQ(made.AudioClipTypes.size(), def.AudioClipTypes.size());
+        for (size_t i = 0; i < made.AudioClipTypes.size(); ++i)
+        {
+            SCOPED_TRACE(testing::Message() << "audio type " << i);
+            EXPECT_EQ(made.AudioClipTypes[i].crossfadeSpeed, def.AudioClipTypes[i].crossfadeSpeed);
+            EXPECT_EQ(made.AudioClipTypes[i].volume_reduction_while_speech_playing,
+                      def.AudioClipTypes[i].volume_reduction_while_speech_playing);
+        }
+        ASSERT_EQ(made.AudioClips.size(), def.AudioClips.size());
+        for (size_t i = 0; i < made.AudioClips.size(); ++i)
+            EXPECT_EQ(made.AudioClips[i].id, def.AudioClips[i].id) << "clip " << i;
+        for (int opt = 0; opt < GameDef::MAX_OPTIONS; ++opt)
+            EXPECT_EQ(made.Options[opt], def.Options[opt]) << "option " << opt;
+        EXPECT_EQ(made.PlayerCharacterID, def.PlayerCharacterID);
+        EXPECT_EQ(made.DialogBulletSprite, def.DialogBulletSprite);
+        EXPECT_EQ(made.InventoryCursorHotspotSprite, def.InventoryCursorHotspotSprite);
+        EXPECT_EQ(made.InventoryCursorHotspotColor, def.InventoryCursorHotspotColor);
+        EXPECT_EQ(made.InventoryCursorHotspotCrossColor, def.InventoryCursorHotspotCrossColor);
+        EXPECT_EQ(made.DefaultLipSyncFrame, def.DefaultLipSyncFrame);
+        ExpectSameSpriteInfos(made.SpriteInfos, def.SpriteInfos);
+    }
+
+    // The started game's items, cursors, view frames, dialog options, audio types, audio clips, options and values,
+    // through the getters where there are some, against its definition
+    static void ExpectStartedFromTheDefinitions()
+    {
+        Game &game = Game::Current();
+        const GameDef &def = game.Def();
+        for (int i = 0; i < kItemCount; ++i)
+            ExpectItemTakesTheDefinition(i);
+        for (int i = 0; i < kCursorCount; ++i)
+            ExpectCursorTakesTheDefinition(i);
+        for (int loop = 0; loop < kLoopCount; ++loop)
+        {
+            for (int frame = 0; frame < kFrameCount; ++frame)
+                ExpectFrameTakesTheDefinition(loop, frame);
+        }
+        EXPECT_EQ(def.Views[kEmptyView].numLoops, game.Views[kEmptyView].numLoops);
+        EXPECT_EQ(def.Views[kEmptyView].loops[0].numFrames, game.Views[kEmptyView].loops[0].numFrames);
+        for (int d = 0; d < kDialogCount; ++d)
+        {
+            for (int o = 0; o < kOptionCount; ++o)
+                ExpectOptionTakesTheDefinition(d, o);
+        }
+        for (int i = 0; i < kAudioTypeCount; ++i)
+            ExpectAudioTypeTakesTheDefinition(i);
+        for (int i = 0; i < kAudioClipCount; ++i)
+        {
+            SCOPED_TRACE(testing::Message() << "clip " << i);
+            EXPECT_STREQ(def.AudioClips[i].fileName.GetCStr(), Game_GetAudioClip(i)->fileName.GetCStr());
+            EXPECT_EQ(def.AudioClips[i].type, Game_GetAudioClip(i)->type);
+        }
+        for (int opt = OPT_DEBUGMODE; opt <= OPT_HIGHESTOPTION; ++opt)
+            EXPECT_EQ(def.Options[opt], GetGameOption(opt)) << "option " << opt;
+        EXPECT_EQ(def.Options[OPT_LIPSYNCTEXT], GetGameOption(OPT_LIPSYNCTEXT));
+        EXPECT_EQ(def.DialogBulletSprite, DialogOptions_GetBulletGraphic());
+        EXPECT_EQ(def.InventoryCursorHotspotSprite, Game_GetInventoryCursorHotspotGraphic());
+        EXPECT_EQ(def.InventoryCursorHotspotColor, Game_GetInventoryCursorHotspotColor());
+        EXPECT_EQ(def.InventoryCursorHotspotCrossColor, Game_GetInventoryCursorHotspotCrossColor());
+        EXPECT_EQ(def.PlayerCharacterID, game.PlayerCharacterID);
+        EXPECT_EQ(&game.Characters[def.PlayerCharacterID], game.PlayerChar);
+        EXPECT_EQ(def.DefaultLipSyncFrame, game.DefaultLipSyncFrame);
+        ExpectSameSpriteInfos(def.SpriteInfos, game.SpriteInfos);
+    }
+
     EngineServices _services;
     std::unique_ptr<Game> _game = std::make_unique<Game>();
     Room _room;
+    // The sprite file of StartWithSpriteFile, made at its first call
+    std::vector<uint8_t> _spriteFile;
     EngineServices *_wasServices = nullptr;
     Game *_wasGame = nullptr;
     Room *_wasRoom = nullptr;
@@ -539,6 +777,7 @@ TEST_F(GameEntities, InventoryItemSettersWriteTheItem)
 
     ExpectItemTakesTheDefinition(0);
     ExpectItemTakesTheDefinition(2);
+    ExpectDefinitionAsMade();
 }
 
 // The Mouse functions write a cursor mode's graphic (of the current mode too), hotspot, view and animation delay, and
@@ -573,6 +812,7 @@ TEST_F(GameEntities, MouseCursorSettersWriteTheCursor)
 
     ExpectCursorTakesTheDefinition(kUseInvCursor);
     ExpectCursorTakesTheDefinition(kBadViewCursor);
+    ExpectDefinitionAsMade();
 }
 
 // The "use inventory" cursor shows the player's active item: when the item's cursor graphic or hotspot changes, the
@@ -597,6 +837,7 @@ TEST_F(GameEntities, UseInvCursorTakesTheActiveItemsGraphicAndHotspot)
     EXPECT_EQ(2 + kCursorSpriteWidth, game.MouseCursors[kUseInvCursor].hotx);
     EXPECT_EQ(6 + kCursorSpriteHeight, game.MouseCursors[kUseInvCursor].hoty);
     ExpectCursorTakesTheDefinition(kLookCursor);
+    ExpectDefinitionAsMade();
 }
 
 // The seven setters of a view frame write the frame; the getters give back what was set. The other frames keep their
@@ -625,6 +866,7 @@ TEST_F(GameEntities, ViewFrameSettersWriteTheFrame)
     ExpectFrameTakesTheDefinition(0, 0);
     ExpectFrameTakesTheDefinition(0, 1);
     ExpectFrameTakesTheDefinition(1, 0);
+    ExpectDefinitionAsMade();
 }
 
 // ViewFrame.YOffset gives the frame's y offset (it gave the x offset, as upstream's ags4 still does)
@@ -635,6 +877,7 @@ TEST_F(GameEntities, ViewFrameYOffsetIsTheYOffset)
     ViewFrame_SetYOffset(&svf, 7);
     EXPECT_EQ(3, ViewFrame_GetXOffset(&svf));
     EXPECT_EQ(7, ViewFrame_GetYOffset(&svf));
+    ExpectDefinitionAsMade();
 }
 
 // Dialog.SetOptionState (the path of SetDialogOption) turns an option off, on, and off for good, after which it stays
@@ -660,6 +903,7 @@ TEST_F(GameEntities, DialogOptionStatesFollowTheScript)
 
     for (int o = 0; o < kOptionCount; ++o)
         ExpectOptionTakesTheDefinition(1, o);
+    ExpectDefinitionAsMade();
 }
 
 // An option that is run (the player chose it) is marked chosen, and keeps its state (run_dialog_option)
@@ -676,6 +920,7 @@ TEST_F(GameEntities, RunOptionIsMarkedChosen)
     EXPECT_EQ(DFLG_ON | DFLG_NOREPEAT | DFLG_HASBEENCHOSEN, game.Dialogs[0].Options[2].Flags);
     ExpectOptionTakesTheDefinition(0, 0);
     ExpectOptionTakesTheDefinition(0, 1);
+    ExpectDefinitionAsMade();
 }
 
 // Dialog.SetOptionText changes the text, and marks the option as having a text of its own (which a save keeps) while
@@ -693,6 +938,7 @@ TEST_F(GameEntities, DialogOptionTextIsSetAndMarked)
     EXPECT_EQ(0, game.Dialogs[1].Options[1].Flags);
     ExpectOptionTakesTheDefinition(1, 0);
     ExpectOptionTakesTheDefinition(1, 2);
+    ExpectDefinitionAsMade();
 }
 
 // Game.SetAudioTypeCrossfadeSpeed (clamped to 0..100) and Game.SetAudioTypeSpeechVolumeDrop write the audio type
@@ -708,6 +954,7 @@ TEST_F(GameEntities, AudioTypeSettersWriteTheType)
 
     ExpectAudioTypeTakesTheDefinition(0);
     ExpectAudioTypeTakesTheDefinition(2);
+    ExpectDefinitionAsMade();
 }
 
 // SetGameOption changes an option that a script may change and returns the old value; a restricted option keeps its
@@ -722,6 +969,7 @@ TEST_F(GameEntities, GameOptionsSetByTheScript)
     EXPECT_EQ(1, SetGameOption(OPT_DEBUGMODE, 0));
     EXPECT_EQ(1, GetGameOption(OPT_DEBUGMODE));
     EXPECT_EQ(1, GetGameOption(OPT_DIALOGNUMBERED));
+    ExpectDefinitionAsMade();
 }
 
 // The dialog bullet, the inventory cursor's hotspot sprite, colour and cross colour, and the player character, as the
@@ -742,11 +990,12 @@ TEST_F(GameEntities, GameValuesSetByTheScript)
     Character_SetAsPlayer(&game.Characters[2]);
     EXPECT_EQ(2, game.PlayerCharacterID);
     EXPECT_EQ(&game.Characters[2], game.PlayerChar);
+    ExpectDefinitionAsMade();
 }
 
 // Each audio clip is its own script object: the managed pool holds the address of its element, which
 // Game.AudioClips[i] returns, and a clip's script handle written to a save and read back is that address again. A
-// clip's id is its index, whatever the game file said.
+// clip's id is its index.
 TEST_F(GameEntities, AudioClipsAreScriptObjectsAtTheirElements)
 {
     Game &game = Game::Current();
@@ -818,6 +1067,7 @@ TEST_F(GameEntities, ViewFramesComeBackFromASave)
             EXPECT_STREQ(String::FromFormat("saved%d", n).GetCStr(), ViewFrame_GetEventName(&svf));
         }
     }
+    ExpectDefinitionAsMade();
 }
 
 // The six saved fields of an inventory item come back from a save into a game started again, the cursor hotspot's
@@ -853,24 +1103,118 @@ TEST_F(GameEntities, InventoryItemsComeBackFromASave)
         EXPECT_EQ(static_cast<int>(aligns[i]), InventoryItem_GetCursorHotspotAlignment(&item));
         EXPECT_STREQ(String::FromFormat("Saved item %d", i).GetCStr(), InventoryItem_GetName_New(&item));
     }
+    ExpectDefinitionAsMade();
 }
 
-// At start a cursor whose view number is not one of the game's views gets none (engine_init_game_settings: "they typed
-// an invalid view number in the editor"); the others keep theirs
-TEST_F(GameEntities, CursorViewPastTheViewsBecomesNoneAtStart)
+// The saved fields of the mouse cursors come back from a save into the live cursors of a game started again
+TEST_F(GameEntities, MouseCursorsComeBackFromASave)
 {
     Game &game = Game::Current();
-    ASSERT_EQ(kViewCount, game.MouseCursors[kBadViewCursor].view);
-    RunEngineInitGameSettings();
-    EXPECT_EQ(-1, game.MouseCursors[kBadViewCursor].view);
-    EXPECT_EQ(kEmptyView, game.MouseCursors[kLookCursor].view);
-    EXPECT_EQ(-1, game.MouseCursors[kPointerCursor].view);
-    EXPECT_EQ(-1, game.MouseCursors[kUseInvCursor].view);
+    Mouse_ChangeCursorGraphic(kLookCursor, 81);
+    Mouse_ChangeCursorHotspot(kLookCursor, 6, 7);
+    Mouse_ChangeModeView(kLookCursor, 0, 12);
+    Mouse_DisableCursorMode(kBadViewCursor);
+    std::vector<uint8_t> saved;
+    std::string error;
+    ASSERT_TRUE(Save(kSaveCmp_Cursors, saved, error)) << error;
+
+    RestartGame();
+    HSaveError err = Restore(saved, kSaveCmp_Cursors);
+    ASSERT_TRUE(err) << err->FullMessage().GetCStr();
+    EXPECT_EQ(81, Mouse_GetModeGraphic(kLookCursor));
+    EXPECT_EQ(6, game.MouseCursors[kLookCursor].hotx);
+    EXPECT_EQ(7, game.MouseCursors[kLookCursor].hoty);
+    EXPECT_EQ(-1, game.MouseCursors[kLookCursor].view);
+    EXPECT_EQ(12, game.MouseCursors[kLookCursor].animdelay);
+    EXPECT_EQ(0, Mouse_IsModeEnabled(kBadViewCursor));
+    ExpectCursorTakesTheDefinition(kPointerCursor);
+    ExpectCursorTakesTheDefinition(kUseInvCursor);
+    ExpectDefinitionAsMade();
+}
+
+// The dialog options' states, "chosen" flags and texts come back from a save into the live dialogs of a game started
+// again
+TEST_F(GameEntities, DialogOptionsComeBackFromASave)
+{
+    ScriptDialog dialog0 = DialogObject(0);
+    ScriptDialog dialog1 = DialogObject(1);
+    Dialog_SetOptionState(&dialog0, 1, 0);
+    Dialog_SetOptionState(&dialog0, 2, 2);
+    Dialog_SetHasOptionBeenChosen(&dialog0, 3, true);
+    Dialog_SetOptionText(&dialog1, 2, "Ask about the harbour");
+    std::vector<uint8_t> saved;
+    std::string error;
+    ASSERT_TRUE(Save(kSaveCmp_Dialogs, saved, error)) << error;
+
+    RestartGame();
+    HSaveError err = Restore(saved, kSaveCmp_Dialogs);
+    ASSERT_TRUE(err) << err->FullMessage().GetCStr();
+    EXPECT_EQ(0, Dialog_GetOptionState(&dialog0, 1));
+    EXPECT_EQ(2, Dialog_GetOptionState(&dialog0, 2));
+    EXPECT_EQ(1, Dialog_HasOptionBeenChosen(&dialog0, 3));
+    EXPECT_STREQ("Ask about the harbour", Dialog_GetOptionText(&dialog1, 2));
+    ExpectOptionTakesTheDefinition(1, 0);
+    ExpectOptionTakesTheDefinition(1, 2);
+    ExpectDefinitionAsMade();
+}
+
+// The audio types' crossfade speeds and speech volume drops come back from a save into the live types of a game started
+// again
+TEST_F(GameEntities, AudioTypesComeBackFromASave)
+{
+    Game_SetAudioTypeCrossfadeSpeed(1, 44);
+    Game_SetAudioTypeSpeechVolumeDrop(2, 55);
+    std::vector<uint8_t> saved;
+    std::string error;
+    ASSERT_TRUE(Save(kSaveCmp_Audio, saved, error)) << error;
+
+    RestartGame();
+    HSaveError err = Restore(saved, kSaveCmp_Audio);
+    ASSERT_TRUE(err) << err->FullMessage().GetCStr();
+    EXPECT_EQ(44, Game_GetAudioTypeCrossfadeSpeed(1));
+    EXPECT_EQ(55, Game_GetAudioTypeSpeechVolumeDrop(2));
+    ExpectAudioTypeTakesTheDefinition(0);
+    ExpectDefinitionAsMade();
+}
+
+// The saved options, the player character, the dialog bullet, the inventory cursor's hotspot marker and the default
+// lip-sync frame come back from a save into the live values of a game started again
+TEST_F(GameEntities, GameOptionsAndValuesComeBackFromASave)
+{
+    Game &game = Game::Current();
+    SetGameOption(OPT_PORTRAITSIDE, PORTRAIT_ALTERNATE);
+    SetGameOption(OPT_DIALOGGAP, 9);
+    SetGameOption(OPT_LIPSYNCTEXT, 0);
+    DialogOptions_SetBulletGraphic(65);
+    Game_SetInventoryCursorHotspotGraphic(66);
+    Game_SetInventoryCursorHotspotColor(0x00010203);
+    Game_SetInventoryCursorHotspotCrossColor(0x00040506);
+    ASSERT_LT(game.DisplayedRoom, 0); // no room is loaded: the new player stays where it is
+    Character_SetAsPlayer(&game.Characters[2]);
+    game.DefaultLipSyncFrame = 7; // no script function sets it: only a restore writes it
+    std::vector<uint8_t> saved;
+    std::string error;
+    ASSERT_TRUE(Save(kSaveCmp_GameState, saved, error)) << error;
+
+    RestartGame();
+    HSaveError err = Restore(saved, kSaveCmp_GameState);
+    ASSERT_TRUE(err) << err->FullMessage().GetCStr();
+    EXPECT_EQ(PORTRAIT_ALTERNATE, GetGameOption(OPT_PORTRAITSIDE));
+    EXPECT_EQ(9, GetGameOption(OPT_DIALOGGAP));
+    EXPECT_EQ(0, GetGameOption(OPT_LIPSYNCTEXT));
+    EXPECT_EQ(1, GetGameOption(OPT_DIALOGNUMBERED));
+    EXPECT_EQ(65, DialogOptions_GetBulletGraphic());
+    EXPECT_EQ(66, Game_GetInventoryCursorHotspotGraphic());
+    EXPECT_EQ(0x00010203, Game_GetInventoryCursorHotspotColor());
+    EXPECT_EQ(0x00040506, Game_GetInventoryCursorHotspotCrossColor());
+    EXPECT_EQ(2, game.PlayerCharacterID);
+    EXPECT_EQ(7, game.DefaultLipSyncFrame);
+    ExpectDefinitionAsMade();
 }
 
 // The game file's global speech animation delay holds a flag and a delay: at start a value of 0 or more is the delay,
 // with the option on (1); a negative value -v is the delay v - 1, with the option off (0)
-// (engine_init_game_settings)
+// (engine_init_game_settings). The live option changes, the definition keeps the value of the game file.
 TEST_F(GameEntities, GlobalSpeechAnimationDelayIsSplitAtStart)
 {
     Game &game = Game::Current();
@@ -883,10 +1227,14 @@ TEST_F(GameEntities, GlobalSpeechAnimationDelayIsSplitAtStart)
     for (const Case &c : {Case{5, 5, 1}, Case{0, 0, 1}, Case{-3, 2, 0}})
     {
         SCOPED_TRACE(testing::Message() << "loaded " << c.Loaded);
+        pool.Reset();
+        MakeDefinition(Definition());
         Definition().Options[OPT_GLOBALTALKANIMSPD] = c.Loaded;
+        StartGame();
         RunEngineInitGameSettings();
         EXPECT_EQ(c.Delay, game.Play.talkanim_speed);
         EXPECT_EQ(c.Option, GetGameOption(OPT_GLOBALTALKANIMSPD));
+        EXPECT_EQ(c.Loaded, game.Def().Options[OPT_GLOBALTALKANIMSPD]);
     }
 }
 
@@ -894,40 +1242,146 @@ TEST_F(GameEntities, GlobalSpeechAnimationDelayIsSplitAtStart)
 // what a live copy of each must start as
 TEST_F(GameEntities, StartedGameTakesTheDefinitions)
 {
+    ExpectStartedFromTheDefinitions();
+    ExpectDefinitionAsMade();
+}
+
+// unload_game keeps nothing of the game's live copies: the lists are empty, the options and values those of a game
+// without a definition; the next game, started from its definition, takes the definition's values, not the changes
+// that the first one made
+TEST_F(GameEntities, UnloadedGameKeepsNoLiveCopies)
+{
     Game &game = Game::Current();
-    const GameDef &def = game.Def();
-    for (int i = 0; i < kItemCount; ++i)
-        ExpectItemTakesTheDefinition(i);
-    for (int i = 0; i < kCursorCount; ++i)
-        ExpectCursorTakesTheDefinition(i);
-    for (int loop = 0; loop < kLoopCount; ++loop)
-    {
-        for (int frame = 0; frame < kFrameCount; ++frame)
-            ExpectFrameTakesTheDefinition(loop, frame);
-    }
-    EXPECT_EQ(def.Views[kEmptyView].numLoops, game.Views[kEmptyView].numLoops);
-    EXPECT_EQ(def.Views[kEmptyView].loops[0].numFrames, game.Views[kEmptyView].loops[0].numFrames);
-    for (int d = 0; d < kDialogCount; ++d)
-    {
-        for (int o = 0; o < kOptionCount; ++o)
-            ExpectOptionTakesTheDefinition(d, o);
-    }
-    for (int i = 0; i < kAudioTypeCount; ++i)
-        ExpectAudioTypeTakesTheDefinition(i);
-    for (int i = 0; i < kAudioClipCount; ++i)
-    {
-        SCOPED_TRACE(testing::Message() << "clip " << i);
-        EXPECT_STREQ(def.AudioClips[i].fileName.GetCStr(), Game_GetAudioClip(i)->fileName.GetCStr());
-        EXPECT_EQ(def.AudioClips[i].type, Game_GetAudioClip(i)->type);
-    }
-    for (int opt = OPT_DEBUGMODE; opt <= OPT_HIGHESTOPTION; ++opt)
-        EXPECT_EQ(def.Options[opt], GetGameOption(opt)) << "option " << opt;
-    EXPECT_EQ(def.Options[OPT_LIPSYNCTEXT], GetGameOption(OPT_LIPSYNCTEXT));
-    EXPECT_EQ(def.DialogBulletSprite, DialogOptions_GetBulletGraphic());
-    EXPECT_EQ(def.InventoryCursorHotspotSprite, Game_GetInventoryCursorHotspotGraphic());
-    EXPECT_EQ(def.InventoryCursorHotspotColor, Game_GetInventoryCursorHotspotColor());
-    EXPECT_EQ(def.InventoryCursorHotspotCrossColor, Game_GetInventoryCursorHotspotCrossColor());
-    EXPECT_EQ(def.PlayerCharacterID, game.PlayerCharacterID);
-    EXPECT_EQ(&game.Characters[def.PlayerCharacterID], game.PlayerChar);
-    EXPECT_EQ(def.DefaultLipSyncFrame, game.DefaultLipSyncFrame);
+    ScriptInvItem item1 = ItemObject(1);
+    InventoryItem_SetGraphic(&item1, 91);
+    Mouse_ChangeCursorGraphic(kLookCursor, 92);
+    ScriptViewFrame svf(kFramedView, 1, 0);
+    ViewFrame_SetGraphic(&svf, 93);
+    ScriptDialog dialog0 = DialogObject(0);
+    Dialog_SetOptionState(&dialog0, 1, 0);
+    Game_SetAudioTypeCrossfadeSpeed(1, 94);
+    SetGameOption(OPT_DIALOGGAP, 95);
+    DialogOptions_SetBulletGraphic(96);
+    Game_SetInventoryCursorHotspotGraphic(97);
+
+    unload_game();
+    EXPECT_TRUE(game.Characters.empty());
+    EXPECT_TRUE(game.InventoryItems.empty());
+    EXPECT_TRUE(game.MouseCursors.empty());
+    EXPECT_TRUE(game.AudioClips.empty());
+    EXPECT_TRUE(game.AudioClipTypes.empty());
+    EXPECT_TRUE(game.Views.empty());
+    EXPECT_TRUE(game.Dialogs.empty());
+    EXPECT_TRUE(game.SpriteInfos.empty());
+    for (int opt = 0; opt < GameDef::MAX_OPTIONS; ++opt)
+        EXPECT_EQ(0, game.Options[opt]) << "option " << opt;
+    EXPECT_EQ(-1, game.PlayerCharacterID);
+    EXPECT_EQ(0, game.DialogBulletSprite);
+    EXPECT_EQ(0, game.InventoryCursorHotspotSprite);
+    EXPECT_EQ(0, game.InventoryCursorHotspotColor);
+    EXPECT_EQ(0, game.InventoryCursorHotspotCrossColor);
+    EXPECT_EQ(0, game.DefaultLipSyncFrame);
+
+    MakeDefinition(Definition());
+    StartGame();
+    ExpectStartedFromTheDefinitions();
+    ExpectDefinitionAsMade();
+}
+
+// The sprite cache writes the game's live sprite table: the sprite file's sizes, a dynamic sprite made during play, the
+// flag of a drawing surface acquired on it, its deletion and a game sprite deleted from the cache go there; the
+// definition's table keeps the game file's flags and no sizes
+TEST_F(GameEntities, SpriteCacheWritesTheLiveSpriteTable)
+{
+    Game &game = Game::Current();
+    StartWithSpriteFile();
+    ExpectSpritesStartedWithTheFile();
+    ExpectSameSpriteInfos(LoadedSpriteInfos(), game.Def().SpriteInfos);
+
+    const int slot = add_dynamic_sprite(std::make_unique<Bitmap>(24, 12, 32));
+    ASSERT_GT(slot, 0);
+    EXPECT_EQ(24, game.SpriteInfos[slot].Width);
+    EXPECT_EQ(12, game.SpriteInfos[slot].Height);
+    EXPECT_EQ(static_cast<uint32_t>(SPF_DYNAMICALLOC), game.SpriteInfos[slot].Flags);
+
+    attach_dynsprite_surface(slot, 0);
+    EXPECT_EQ(static_cast<uint32_t>(SPF_DYNAMICALLOC | SPF_SURFACEACQUIRED), game.SpriteInfos[slot].Flags);
+    ExpectSameSpriteInfos(LoadedSpriteInfos(), game.Def().SpriteInfos);
+    on_dynsprite_surface_release(slot, false);
+    EXPECT_EQ(static_cast<uint32_t>(SPF_DYNAMICALLOC), game.SpriteInfos[slot].Flags);
+
+    free_dynamic_sprite(slot);
+    EXPECT_FALSE(game.SpriteInfos[slot].IsValid());
+    EXPECT_EQ(0u, game.SpriteInfos[slot].Flags);
+
+    EngineServices::Current().Sprites.DeleteSprite(kKeepDepthSprite);
+    EXPECT_FALSE(game.SpriteInfos[kKeepDepthSprite].IsValid());
+    EXPECT_EQ(0u, game.SpriteInfos[kKeepDepthSprite].Flags);
+    ExpectSameSpriteInfos(LoadedSpriteInfos(), game.Def().SpriteInfos);
+}
+
+// Game::IsSpriteValid reads the live table: a sprite of the sprite file and a dynamic sprite are valid, a free slot, a
+// sprite missing from the sprite file and a number outside the table are not. GameDef::IsSpriteValid, which it
+// hides, reads the definition's table, which has no sizes.
+TEST_F(GameEntities, SpriteValidityIsTheLiveTables)
+{
+    Game &game = Game::Current();
+    StartWithSpriteFile();
+    EXPECT_TRUE(game.IsSpriteValid(kKeepDepthSprite));
+    EXPECT_FALSE(game.Def().IsSpriteValid(kKeepDepthSprite));
+    EXPECT_FALSE(game.IsSpriteValid(kMissingSprite));
+    EXPECT_FALSE(game.IsSpriteValid(50)); // a slot of the table without a sprite
+    EXPECT_FALSE(game.IsSpriteValid(-1));
+    EXPECT_FALSE(game.IsSpriteValid(static_cast<int>(game.SpriteInfos.size())));
+
+    const int slot = add_dynamic_sprite(std::make_unique<Bitmap>(8, 8, 32));
+    ASSERT_GT(slot, 0);
+    EXPECT_TRUE(game.IsSpriteValid(slot));
+    free_dynamic_sprite(slot);
+    EXPECT_FALSE(game.IsSpriteValid(slot));
+}
+
+// A dynamic sprite comes back from a save into the live sprite table of a game started again, with its flags; the
+// definition's table stays as loaded
+TEST_F(GameEntities, DynamicSpritesComeBackFromASaveIntoTheLiveTable)
+{
+    Game &game = Game::Current();
+    StartWithSpriteFile();
+    const int slot = add_dynamic_sprite(std::make_unique<Bitmap>(24, 12, 32));
+    ASSERT_GT(slot, 0);
+    std::vector<uint8_t> saved;
+    std::string error;
+    ASSERT_TRUE(Save(kSaveCmp_DynamicSprites, saved, error)) << error;
+
+    StartWithSpriteFile();
+    ASSERT_FALSE(game.SpriteInfos[slot].IsValid());
+    HSaveError err = Restore(saved, kSaveCmp_DynamicSprites);
+    ASSERT_TRUE(err) << err->FullMessage().GetCStr();
+    EXPECT_EQ(24, game.SpriteInfos[slot].Width);
+    EXPECT_EQ(12, game.SpriteInfos[slot].Height);
+    EXPECT_EQ(static_cast<uint32_t>(SPF_DYNAMICALLOC), game.SpriteInfos[slot].Flags);
+    ExpectSameSpriteInfos(LoadedSpriteInfos(), game.Def().SpriteInfos);
+    free_dynamic_sprite(slot);
+}
+
+// After unload_game and a second start the live sprite table is the definition's again, with the sprite file's sizes:
+// nothing is left of the first game's dynamic sprite, deleted sprite and acquired surface's flag
+TEST_F(GameEntities, SecondStartTakesTheSpriteTableAgain)
+{
+    Game &game = Game::Current();
+    StartWithSpriteFile();
+    const int slot = add_dynamic_sprite(std::make_unique<Bitmap>(24, 12, 32));
+    ASSERT_GT(slot, 0);
+    attach_dynsprite_surface(slot, 0);
+    detach_dynsprite_surface(slot); // forgets the surface, keeps the flag
+    ASSERT_NE(0u, game.SpriteInfos[slot].Flags & SPF_SURFACEACQUIRED);
+    EngineServices::Current().Sprites.DeleteSprite(kKeepDepthSprite);
+
+    unload_game();
+    EXPECT_TRUE(game.SpriteInfos.empty());
+    EXPECT_TRUE(game.Def().SpriteInfos.empty());
+
+    StartWithSpriteFile();
+    ExpectSpritesStartedWithTheFile();
+    ExpectSameSpriteInfos(LoadedSpriteInfos(), game.Def().SpriteInfos);
 }

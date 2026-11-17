@@ -321,8 +321,9 @@ void apply_debug_config(const ConfigTree &cfg, bool finalize)
                      });
 
     // If the game was compiled in Debug mode *and* there's no regular file log,
-    // then open "warnings.log" for printing script warnings.
-    if (Game::Current().Options[OPT_DEBUGMODE] != 0 && !DbgMgr.HasOutput(OutputFileID))
+    // then open "warnings.log" for printing script warnings. The configuration is applied before the game starts:
+    // the option is the definition's (a restricted option, which the live options keep as it is).
+    if (Game::Current().Def().Options[OPT_DEBUGMODE] != 0 && !DbgMgr.HasOutput(OutputFileID))
     {
         auto dbgout = create_log_output(OutputFileID, "./", "warnings.log", LogFile::kLogFile_OverwriteAtFirstMessage);
         if (dbgout)

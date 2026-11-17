@@ -128,10 +128,6 @@ public:
     std::map<int, AGS::Common::String> roomNames;
     std::vector<AudioClipDef> AudioClips;
     std::vector<AudioClipTypeDef> AudioClipTypes;
-    // number of accessible game audio channels (the ones under direct user control)
-    int GameChannelCount = 0;
-    // backward-compatible channel limit that may be exported to script and reserved by audiotypes
-    int CompatGameChannelCount = 0;
 
     // Extended global game properties
     // Character face direction ratio (y/x)
@@ -162,9 +158,11 @@ public:
     // There could be other collection types, more optimal for this case. For example,
     // we could use a kind of hash map containing fixed-sized arrays, where size of
     // array is calculated based on key spread factor (sparse list?).
+    // The engine's Game keeps a live copy, which hides this one and which its sprite cache writes: in the engine this
+    // one holds the game file's flags only (the Editor's sprite cache writes this one).
     std::vector<SpriteInfo> SpriteInfos;
 
-    // Tells if the given game sprite is valid
+    // Tells if the given game sprite is valid (the engine's Game hides it with one that reads its live table)
     inline bool IsSpriteValid(int sprnum) const
     {
         return (sprnum >= 0) && (static_cast<size_t>(sprnum) < SpriteInfos.size()) && SpriteInfos[sprnum].IsValid();
@@ -185,8 +183,9 @@ public:
     // Tells if the given cursor has the specific role
     bool HasCursorRole(int curs, CursorRole role) const { return MouseCursors[curs].role == role; }
 
-    // The game's entities as loaded from the game file (ReadGameData reads into them); the engine's Game inherits
-    // them and changes them while the game runs, until each entity gets a live copy (PLAN.md 5.1a).
+    // The game's entities as loaded from the game file (ReadGameData reads into them). The engine's Game inherits
+    // them and keeps a live copy of the views and dialogs, which hides these; it still changes the GUIs here until
+    // they get theirs (PLAN.md 5.1a).
     // The game's views
     std::vector<ViewDef> Views;
     // The dialog topics of the game, by dialog number

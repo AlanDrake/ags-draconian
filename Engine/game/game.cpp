@@ -15,6 +15,7 @@
 
 #include <algorithm>
 #include <cstdio>
+#include <iterator>
 #include <queue>
 
 #include "data/data_helpers.h"
@@ -589,6 +590,10 @@ void unload_game()
     ShutdownScriptExec();
 
     game.Characters.clear();
+    game.InventoryItems.clear();
+    game.MouseCursors.clear();
+    game.AudioClips.clear();
+    game.AudioClipTypes.clear();
     movelists.clear();
     movelist_free_ids = std::queue<uint32_t>();
     game.Views.clear();
@@ -598,6 +603,14 @@ void unload_game()
 
     game.Dialogs.clear();
     game.ScDialogs.clear();
+    // the live options and values as a game without a definition has them, as the base's reset below gives them
+    std::fill(std::begin(game.Options), std::end(game.Options), 0);
+    game.PlayerCharacterID = -1;
+    game.DialogBulletSprite = 0;
+    game.InventoryCursorHotspotSprite = 0;
+    game.InventoryCursorHotspotColor = 0;
+    game.InventoryCursorHotspotCrossColor = 0;
+    game.DefaultLipSyncFrame = 0;
 
     game.Guis.clear();
     game.ScGuis.clear();
@@ -618,6 +631,10 @@ void unload_game()
     game.Viewports = GameViewports();
     // the room's members that were fields of the game state were reset with it
     Room::Current().ResetPlayState();
+    // the live sprite table is cleared with the base's here, not with the other live lists above: the overlays and
+    // the drawing data freed above free their dynamic sprites, which reads it. The sprite cache stays attached to it
+    // (the vector object lives as long as the Game); the cache's own data is reset below.
+    game.SpriteInfos.clear();
     static_cast<GameDef &>(game) = GameDef();
 
     // Reset all resource caches
@@ -1099,7 +1116,7 @@ int Game_ChangeTranslation(const char *new_filename)
         return 0; // failed, kept previous translation
 
     if (game.GameInfo.count("dev_error_text") > 0)
-        game.Play.SetGameErrorText(get_translation(game.GameInfo["dev_error_text"].GetCStr()));
+        game.Play.SetGameErrorText(get_translation(game.GameInfo.at("dev_error_text").GetCStr()));
     services.Config.Translation = new_filename;
     GUIE::MarkForTranslationUpdate();
     return 1;
@@ -2143,34 +2160,43 @@ void release_script_movelist(int handle)
 //
 //=============================================================================
 
+// The game info property of the key, empty if the game file gives none; the definition's map is read without
+// adding the key, as its operator[] would
+static String GetGameInfoValue(const char *key)
+{
+    const StringMap &info = Game::Current().Def().GameInfo;
+    const auto it = info.find(String(key));
+    return it != info.end() ? it->second : String();
+}
+
 const char *GameInfo_GetTitle()
 {
-    return CreateNewScriptString(Game::Current().GameInfo["title"]);
+    return CreateNewScriptString(GetGameInfoValue("title"));
 }
 
 const char *GameInfo_GetDescription()
 {
-    return CreateNewScriptString(Game::Current().GameInfo["description"]);
+    return CreateNewScriptString(GetGameInfoValue("description"));
 }
 
 const char *GameInfo_GetDeveloperName()
 {
-    return CreateNewScriptString(Game::Current().GameInfo["dev_name"]);
+    return CreateNewScriptString(GetGameInfoValue("dev_name"));
 }
 
 const char *GameInfo_GetDeveloperURL()
 {
-    return CreateNewScriptString(Game::Current().GameInfo["dev_url"]);
+    return CreateNewScriptString(GetGameInfoValue("dev_url"));
 }
 
 const char *GameInfo_GetGenre()
 {
-    return CreateNewScriptString(Game::Current().GameInfo["genre"]);
+    return CreateNewScriptString(GetGameInfoValue("genre"));
 }
 
 ScriptDateTime *GameInfo_GetReleaseDate()
 {
-    String release_date = Game::Current().GameInfo["release_date"];
+    String release_date = GetGameInfoValue("release_date");
     if (release_date.IsEmpty())
         return nullptr; // not available
     std::vector<String> parts = release_date.Split('.');
@@ -2189,7 +2215,7 @@ ScriptDateTime *GameInfo_GetReleaseDate()
 
 const char *GameInfo_GetVersion()
 {
-    return CreateNewScriptString(Game::Current().GameInfo["version"]);
+    return CreateNewScriptString(GetGameInfoValue("version"));
 }
 
 #include "debug/out.h"

@@ -28,8 +28,22 @@
 
 class Character;
 struct AGSEvent;
+struct AudioClipDef;
+struct AudioClipTypeDef;
+struct DialogDef;
+struct InventoryItemDef;
+struct MouseCursorDef;
 struct ScriptState;
 struct SpeechLipSyncLine;
+struct ViewDef;
+// The engine's live entity types; aliases of their definitions until they hold more (PLAN.md 5.1a step 3), as their
+// module headers declare them
+using AudioClip = AudioClipDef;
+using AudioClipType = AudioClipTypeDef;
+using Dialog = DialogDef;
+using InventoryItem = InventoryItemDef;
+using MouseCursor = MouseCursorDef;
+using View = ViewDef;
 namespace AGS
 {
 namespace Common
@@ -188,8 +202,9 @@ struct EventState
 };
 
 // One play-through: what the game file says (the base, GameDef) and everything that changes while the game
-// runs, which is what a save holds. The definitions and the live state are one object until each entity
-// gets a live copy (PLAN.md 5.1a); the characters have theirs (Characters). The game logic reaches it through
+// runs, which is what a save holds. What the game changes has a live copy here that hides its definition
+// (Characters, InventoryItems, Options...; PLAN.md 5.1a), but the GUIs, which the game still changes in the
+// base until they get theirs. The game logic reaches it through
 // Game::Current(); a function that uses it more than once takes a reference at its top:
 //     Game &game = Game::Current();
 class Game : public GameDef
@@ -221,6 +236,51 @@ public:
     // Hides GameDef::Characters on purpose: through a Game the name is the live list, the definitions are
     // Def().Characters. The managed pool, scripts and plugins hold the elements' addresses: built once per game.
     std::vector<Character> Characters;
+    // The live copies of the other entities that the game changes, started from their definitions with the
+    // characters (StartFromDefinitions) and cleared with them (unload_game). Each hides the GameDef member of the
+    // same name, as Characters does: the definitions are Def().InventoryItems...
+    // The inventory items, by item index (item 0 is not used)
+    std::vector<InventoryItem> InventoryItems;
+    // The mouse cursors, by cursor mode. GameDef::HasCursorRole and the GetMode* functions read the definitions'
+    // roles, which the game does not change.
+    std::vector<MouseCursor> MouseCursors;
+    // The audio clips, by clip index. A clip is its own script object: the managed pool, the script exports and the
+    // audio code hold the elements' addresses, so the list is built once per game and not resized until unload_game.
+    std::vector<AudioClip> AudioClips;
+    // The audio clip types, by type id
+    std::vector<AudioClipType> AudioClipTypes;
+    // The views, by view index
+    std::vector<View> Views;
+    // The dialogs, by dialog number
+    std::vector<Dialog> Dialogs;
+    // The sprites' sizes and flags (SPF_*), by sprite number: the table the sprite cache writes (init_sprite_cache
+    // attaches it), with the sizes of the sprite file's sprites, the dynamic sprites and the flags the engine sets
+    // during play. It starts as the definition's, which has the game file's flags (StartFromDefinitions, before the
+    // cache first writes it), and is cleared by unload_game with the base's reset.
+    std::vector<SpriteInfo> SpriteInfos;
+    // Tells if the given sprite exists, by the live table; hides GameDef::IsSpriteValid, which reads the definition's
+    // table (the game file's flags, no sizes)
+    bool IsSpriteValid(int sprnum) const
+    {
+        return (sprnum >= 0) && (static_cast<size_t>(sprnum) < SpriteInfos.size()) && SpriteInfos[sprnum].IsValid();
+    }
+    // The game options (OPT_*), as the script and the engine change them; a save holds them. The definition's
+    // values are Def().Options (what the engine reads before StartFromDefinitions, at startup, is there).
+    int Options[MAX_OPTIONS] = {0};
+    // The values of the game that the script changes, which a save holds: the player character's id, the sprite
+    // of the dialog options' bullet (0 for none), the inventory cursor's hotspot marker (its sprite, dot colour
+    // and cross colour), and the lip-sync frame of the letters that no frame lists
+    int PlayerCharacterID = -1;
+    int DialogBulletSprite = 0;
+    int InventoryCursorHotspotSprite = 0;
+    int InventoryCursorHotspotColor = 0;
+    int InventoryCursorHotspotCrossColor = 0;
+    int DefaultLipSyncFrame = 0;
+    // The number of audio channels that the game controls directly, and the backward-compatible channel limit
+    // that may be exported to script and reserved by audio types: the same for every supported game, no game file
+    // gives them
+    int GameChannelCount = MAX_GAME_CHANNELS;
+    int CompatGameChannelCount = MAX_GAME_CHANNELS;
     // The player character, and its handle for scripts (the script object "player").
     Character *PlayerChar = nullptr;
     int32_t ScPlayerCharPtr = 0;

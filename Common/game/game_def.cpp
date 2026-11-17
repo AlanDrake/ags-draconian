@@ -327,5 +327,7 @@ void GameDef::ReadAudioClips(Common::Stream *in, size_t count)
     for (size_t i = 0; i < count; ++i)
     {
         AudioClips[i].ReadFromFile(in);
+        // a clip's id is its index in the list; the id that the file holds is not used
+        AudioClips[i].id = static_cast<int>(i);
     }
 }

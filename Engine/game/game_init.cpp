@@ -13,8 +13,10 @@
 //=============================================================================
 #include "game/game_init.h"
 
+#include <algorithm>
 #include <array>
 #include <cassert>
+#include <iterator>
 #include <vector>
 
 #include "data/assetmanager.h"
@@ -108,8 +110,7 @@ void InitAndRegisterAudioObjects(Game &game)
     StaticAudioClipArray.resize(game.AudioClips.size());
     for (size_t i = 0; i < game.AudioClips.size(); ++i)
     {
-        // A clip's ID is its index in the array
-        game.AudioClips[i].id = i;
+        // a clip's id is its index in the list (the loader gives it, GameDef::ReadAudioClips)
         int handle = ccRegisterPersistentObject(&game.AudioClips[i], &ccDynamicAudioClip); // add internal ref
         StaticAudioClipArray[i] = handle;
         if (!game.AudioClips[i].scriptName.IsEmpty())
@@ -484,12 +485,41 @@ void InitGameResolution(Game &game, GameDataVersion /*data_ver*/)
     game.ScSystem.viewport_height = game.Viewports.GetMainViewport().GetHeight();
 }
 
+void StartFromDefinitions(Game &game)
+{
+    // the live characters start as copies of their definitions; the managed pool, scripts and plugins hold their
+    // addresses from InitAndRegisterCharacters on, so the list is not resized again until unload_game
+    game.Characters.clear();
+    game.Characters.reserve(game.Def().Characters.size());
+    for (const auto &def : game.Def().Characters)
+        game.Characters.emplace_back(def);
+    game.InventoryItems = game.Def().InventoryItems;
+    game.MouseCursors = game.Def().MouseCursors;
+    // the audio clips' addresses are registered from InitAndRegisterAudioObjects on: not resized until unload_game
+    game.AudioClips = game.Def().AudioClips;
+    game.AudioClipTypes = game.Def().AudioClipTypes;
+    game.Views = game.Def().Views;
+    game.Dialogs = game.Def().Dialogs;
+    // the sprite cache is attached to the live table (init_sprite_cache) and first writes it after this (InitGameState's
+    // EnlargeTo, then the sprite file's sizes in engine_init_sprites): it starts with the game file's flags
+    game.SpriteInfos = game.Def().SpriteInfos;
+    std::copy(std::begin(game.Def().Options), std::end(game.Def().Options), std::begin(game.Options));
+    game.PlayerCharacterID = game.Def().PlayerCharacterID;
+    game.DialogBulletSprite = game.Def().DialogBulletSprite;
+    game.InventoryCursorHotspotSprite = game.Def().InventoryCursorHotspotSprite;
+    game.InventoryCursorHotspotColor = game.Def().InventoryCursorHotspotColor;
+    game.InventoryCursorHotspotCrossColor = game.Def().InventoryCursorHotspotCrossColor;
+    game.DefaultLipSyncFrame = game.Def().DefaultLipSyncFrame;
+}
+
 HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion data_ver)
 {
     EngineServices &services = EngineServices::Current();
     Game &game = Game::Current();
     // the entities were loaded into the engine's game (load_game_file)
     assert(&ents.Game == &game);
+    // what changes during play starts from the definitions, before anything reads it or registers its address
+    StartFromDefinitions(game);
     const ScriptAPIVersion base_api = (ScriptAPIVersion)game.Options[OPT_BASESCRIPTAPI];
     const ScriptAPIVersion compat_api = (ScriptAPIVersion)game.Options[OPT_SCRIPTCOMPATLEV];
     const char *base_api_name = GetScriptAPIName(base_api);
@@ -514,12 +544,6 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     // 2. Allocate and init game objects
     //
     services.Sprites.EnlargeTo(ents.SpriteCount - 1);
-    // the live characters start as copies of their definitions; the managed pool, scripts and plugins hold their
-    // addresses from InitAndRegisterCharacters on, so the list is not resized again until unload_game
-    game.Characters.clear();
-    game.Characters.reserve(game.Def().Characters.size());
-    for (const auto &def : game.Def().Characters)
-        game.Characters.emplace_back(def);
     // the GUIs, views and dialogs were read into the game (GameDef) by the loader
     GUI::Context.GameColorDepth = game.GetColorDepth();
     GUI::Context.Spriteset = &services.Sprites;
@@ -537,9 +561,6 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     game.Play.guicontrolProps[kGUITextBox].resize(game.GuiTextBoxes.size());
     game.Play.guicontrolProps[kGUIListBox].resize(game.GuiListBoxes.size());
     game.Play.invProps.resize(game.numinvitems);
-    // Set the number of game channels (the same for all the supported game versions)
-    game.GameChannelCount = MAX_GAME_CHANNELS;
-    game.CompatGameChannelCount = MAX_GAME_CHANNELS;
     HError err = InitAndRegisterGameEntities(game, ents);
     if (!err)
         return new GameInitError(err, kGameInitErr_EntityInitFail);
@@ -562,7 +583,7 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     game.Play.std_gui_textheight = get_font_height_outlined(0) + 1;
     SetGameTextLanguage(game.GameTextLanguage);
     if (game.GameInfo.count("dev_error_text") > 0)
-        game.Play.SetGameErrorText(game.GameInfo["dev_error_text"]);
+        game.Play.SetGameErrorText(game.GameInfo.at("dev_error_text"));
     SetBaseTextParser(CreateTextParser(game.dict.get(), true, services.TextLocaleName));
     SetTranslationTextParser(CreateTextParser(game.dict.get(), true, services.TextLocaleName));
 

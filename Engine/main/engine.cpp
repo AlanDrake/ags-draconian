@@ -145,7 +145,8 @@ void engine_setup_window()
 }
 
 // Fills map with game settings, to e.g. let setup application(s)
-// display correct properties to the user
+// display correct properties to the user. Runs after the preload of the game data, before the game starts: the
+// options are the definition's (the live ones are copied at start, StartFromDefinitions).
 static void fill_game_properties(StringOrderMap &map)
 {
     Game &game = Game::Current();
@@ -155,10 +156,11 @@ static void fill_game_properties(StringOrderMap &map)
     map["resolution_width"] = StrUtil::IntToString(game.GetGameRes().Width);
     map["resolution_height"] = StrUtil::IntToString(game.GetGameRes().Height);
     map["resolution_bpp"] = StrUtil::IntToString(game.GetColorDepth());
+    const int render_at_screenres = game.Def().Options[OPT_RENDERATSCREENRES];
     map["render_at_screenres"] =
-        StrUtil::IntToString(game.Options[OPT_RENDERATSCREENRES] == kRenderAtScreenRes_UserDefined
+        StrUtil::IntToString(render_at_screenres == kRenderAtScreenRes_UserDefined
                                  ? -1
-                                 : (game.Options[OPT_RENDERATSCREENRES] == kRenderAtScreenRes_Enabled ? 1 : 0));
+                                 : (render_at_screenres == kRenderAtScreenRes_Enabled ? 1 : 0));
 }
 
 // Runs the setup application, if the platform has one built in (Windows only).
@@ -685,10 +687,7 @@ void engine_init_game_settings()
         if (game.MouseCursors[i].pic >= 0)
             services.Sprites.PrecacheSprite(game.MouseCursors[i].pic);
 
-        // just in case they typed an invalid view number in the editor
-        if (game.MouseCursors[i].view >= game.numviews)
-            game.MouseCursors[i].view = -1;
-
+        // a view number past the game's views is none already (the loader, UpdateGameData)
         if (game.MouseCursors[i].view >= 0)
             precache_view(game.MouseCursors[i].view);
     }
@@ -734,7 +733,8 @@ void engine_init_game_settings()
 
     //
     // TODO: following big initialization sequence could be in GameState ctor
-    // copy the value set by the editor
+    // copy the value set by the editor: it holds a flag and a delay; the live option keeps the flag, the definition
+    // (Def().Options) the value as the game file gives it
     if (game.Options[OPT_GLOBALTALKANIMSPD] >= 0)
     {
         game.Play.talkanim_speed = game.Options[OPT_GLOBALTALKANIMSPD];
@@ -1240,7 +1240,8 @@ void engine_init_editor_debugging(const ConfigTree &cfg)
 int initialize_engine(const ConfigTree &startup_opts)
 {
     EngineServices &services = EngineServices::Current();
-    // The sprite cache writes into the game's sprite table from now on; nothing has made or loaded a sprite yet
+    // The sprite cache writes into the game's live sprite table from now on; nothing has made or loaded a sprite yet,
+    // and the table gets the definition's flags (StartFromDefinitions) before the cache first writes it
     init_sprite_cache();
     if (engine_pre_init_callback)
     {

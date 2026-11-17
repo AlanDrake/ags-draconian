@@ -554,6 +554,17 @@ void UpgradeMouseCursors(GameDef &game, GameDataVersion data_ver)
     }
 }
 
+// Gives no view to a cursor whose view number is not one of the game's views (one typed in the editor), in data of
+// any version
+static void FixupMouseCursorViews(GameDef &game)
+{
+    for (int i = 0; i < game.numcursors; ++i)
+    {
+        if (game.MouseCursors[i].view >= game.numviews)
+            game.MouseCursors[i].view = -1;
+    }
+}
+
 void FixupSaveDirectory(GameDef &game)
 {
     // If the save game folder was not specified by game author, create one of
@@ -1221,6 +1232,7 @@ HGameFileError UpdateGameData(LoadedGameEntities &ents, GameDataVersion data_ver
     UpgradeInventoryItems(game, data_ver);
     UpgradeGUI(game, data_ver);
     UpgradeMouseCursors(game, data_ver);
+    FixupMouseCursorViews(game);
     game.ResolveStandardModes();
     FixupSaveDirectory(game);
     return HGameFileError::None();

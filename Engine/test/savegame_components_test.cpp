@@ -82,7 +82,7 @@ const SaveCmpSelection kCharactersAndItems = static_cast<SaveCmpSelection>(kSave
 // - Game::Dialogs, game.numdialog, game.Play.dialogProps: the dialogs
 // - game.MouseCursors, game.numcursors: the mouse cursors
 // - game.AudioClipTypes, game.Play.default_audio_type_volumes: the audio types
-// - the GameDef fields that the game state saves (GameSetupFields)
+// - the game's live options and values that the game state saves (GameSetupFields)
 // - EngineServices::Current().SeparateMusicLib
 class SavegameContent : public ::testing::Test
 {
@@ -104,7 +104,7 @@ protected:
         EngineServices::Current().SeparateMusicLib = _separateMusicLib;
     }
 
-    // The GameDef fields that the game state component saves
+    // The game's live options and values that the game state component saves
     struct GameSetupFields
     {
         std::array<int, GameDef::MAX_OPTIONS> Options = {};

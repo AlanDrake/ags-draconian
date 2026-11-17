@@ -600,9 +600,9 @@ static void RestoreViewportsAndCameras(const RestoredData &r_data)
     game.Viewports.InvalidateViewportZOrder();
 }
 
-// Resets the options that are not supposed to be changed at runtime (the restricted and the preserved ones)
+// Resets the live options that are not supposed to be changed at runtime (the restricted and the preserved ones)
 // to the values the running game had before the restoration (see DoBeforeRestore)
-static void CopyPreservedGameOptions(GameDef &gs, const PreservedParams &pp)
+static void CopyPreservedGameOptions(Game &gs, const PreservedParams &pp)
 {
     const auto restricted_opts = GameDef::GetRestrictedOptions();
     for (auto opt : restricted_opts)

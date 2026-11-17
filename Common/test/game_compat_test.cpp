@@ -20,15 +20,19 @@
 //
 //=============================================================================
 #include <algorithm>
+#include <cstdint>
+#include <iterator>
 #include <memory>
 #include <utility>
 #include <vector>
 
 #include "data/assetmanager.h"
+#include "game/audio_clip_def.h"
 #include "game/character_def.h"
 #include "game/dialog_def.h"
 #include "game/game_def.h"
 #include "game/main_game_file.h"
+#include "game/mouse_cursor_def.h"
 #include "game/room_def.h"
 #include "game/room_file.h"
 #include "game/roomstruct.h"
@@ -164,6 +168,66 @@ INSTANTIATE_TEST_SUITE_P(Releases, GameCompat, ::testing::ValuesIn(CompatFixture
                                      c = '_';
                              return name;
                          });
+
+// The loader gives no view to a cursor whose view number is not one of the game's views (UpdateGameData), in data of
+// the current version too; the other cursors keep theirs
+TEST(GameLoader, CursorViewPastTheViewsBecomesNone)
+{
+    GameDef game;
+    game.numviews = 2;
+    const short views[] = {-1, 1, 2, 7};
+    game.numcursors = static_cast<int>(std::size(views));
+    game.MouseCursors.resize(std::size(views));
+    for (size_t i = 0; i < std::size(views); ++i)
+        game.MouseCursors[i].view = views[i];
+    LoadedGameEntities ents(game);
+    HGameFileError err = UpdateGameData(ents, kGameVersion_Current);
+    ASSERT_TRUE(err) << err->FullMessage().GetCStr();
+    EXPECT_EQ(-1, game.MouseCursors[0].view);
+    EXPECT_EQ(1, game.MouseCursors[1].view);
+    EXPECT_EQ(-1, game.MouseCursors[2].view);
+    EXPECT_EQ(-1, game.MouseCursors[3].view);
+}
+
+// The loader makes a clip's id its index in the game's list, whatever id the game file holds (GameDef::read_audio,
+// the audio block of the main game data)
+TEST(GameLoader, AudioClipIdIsItsIndex)
+{
+    const int clip_count = 3;
+    std::vector<uint8_t> data;
+    {
+        Stream out(std::make_unique<VectorStream>(data, kStream_Write));
+        out.WriteInt32(0); // no audio types
+        out.WriteInt32(clip_count);
+        for (int i = 0; i < clip_count; ++i)
+        {
+            // a clip's record (AudioClipDef::ReadFromFile)
+            out.WriteInt32(10 + i); // the id in the file
+            out.WriteByteCount(0, LEGACY_AUDIOCLIP_SCRIPTNAMELENGTH + LEGACY_AUDIOCLIP_FILENAMELENGTH); // names
+            out.WriteInt8(kAudioBundle_GamePak);
+            out.WriteInt8(static_cast<int8_t>(i)); // type
+            out.WriteInt8(eAudioFileOGG);
+            out.WriteInt8(0); // repeat
+            out.WriteInt8(0); // padding
+            out.WriteInt16(50);
+            out.WriteInt16(100);
+            out.WriteInt16(0); // padding
+            out.WriteInt32(0); // reserved
+        }
+        out.WriteInt32(0); // [DEPRECATED]
+    }
+    GameDef game;
+    Stream in(std::make_unique<VectorStream>(data));
+    HGameFileError err = game.read_audio(&in, kGameVersion_Current);
+    ASSERT_TRUE(err) << err->FullMessage().GetCStr();
+    EXPECT_EQ(in.GetLength(), in.GetPosition());
+    ASSERT_EQ(static_cast<size_t>(clip_count), game.AudioClips.size());
+    for (int i = 0; i < clip_count; ++i)
+    {
+        EXPECT_EQ(i, game.AudioClips[i].id) << "clip " << i;
+        EXPECT_EQ(i, game.AudioClips[i].type) << "clip " << i;
+    }
+}
 
 namespace
 {

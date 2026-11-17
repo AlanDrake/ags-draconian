@@ -405,9 +405,9 @@ void WriteAudioClipType(const AudioClipType &type, Stream *out)
     out->WriteInt32(type.crossfadeSpeed);
 }
 
-void ReadGameSetupStruct(GameDef &setup, Stream *in, GameStateSvgVersion svg_ver)
+void ReadGameSetupStruct(Game &setup, Stream *in, GameStateSvgVersion svg_ver)
 {
-    // of GameDef
+    // the game's live options and values (the definition, Game::Def(), is not written)
     in->ReadArrayOfInt32(setup.Options, OPT_HIGHESTOPTION_321 + 1);
     setup.Options[OPT_LIPSYNCTEXT] = in->ReadInt32();
     setup.PlayerCharacterID = in->ReadInt32();
@@ -426,9 +426,9 @@ void ReadGameSetupStruct(GameDef &setup, Stream *in, GameStateSvgVersion svg_ver
     }
 }
 
-void WriteGameSetupStruct(const GameDef &setup, Stream *out)
+void WriteGameSetupStruct(const Game &setup, Stream *out)
 {
-    // of GameDef
+    // the game's live options and values
     out->WriteArrayOfInt32(setup.Options, OPT_HIGHESTOPTION_321 + 1);
     out->WriteInt32(setup.Options[OPT_LIPSYNCTEXT]);
     out->WriteInt32(setup.PlayerCharacterID);

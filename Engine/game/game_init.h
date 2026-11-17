@@ -58,6 +58,10 @@ typedef Common::ErrorHandle<GameInitError> HGameInitError;
 // API in the script system, loads fonts and lip sync data, starts up the plugins, and creates the runtime scripts
 // from the compiled ones and links them
 HGameInitError InitGameState(const Common::LoadedGameEntities &ents, GameDataVersion data_ver);
+// Makes what the game changes during play copies of its definitions (Game::Def()): the live characters,
+// inventory items, mouse cursors, audio clips, audio clip types, views and dialogs, the game options and the values
+// that the script changes. The first step of InitGameState; the elements' addresses are registered after it.
+void StartFromDefinitions(Game &game);
 // Applies accessibility options, some of them may override game settings
 void ApplyAccessibilityOptions(GamePlayState &play, const EngineConfig &setup);
 // Applies configurable behavior options for this game, which are the runtime behavior switches

@@ -209,8 +209,10 @@ void quit(const char *quitmsg)
     // Simple is used to pass into debugger (IDE), full is reported with alert
     // popup and printed to the log.
     String errmsg, fullmsg;
+    // the game's version, if its file gives one (read without adding the key to the definition's map)
+    const String game_version = game.GameInfo.count("version") > 0 ? game.GameInfo.at("version") : String();
     QuitReason qreason =
-        quit_check_for_error_state(quitmsg, game.Play.GetGameErrorText(), game.GameInfo["version"], errmsg, fullmsg);
+        quit_check_for_error_state(quitmsg, game.Play.GetGameErrorText(), game_version, errmsg, fullmsg);
 
 #if defined(AGS_AUTO_WRITE_USER_CONFIG)
     if (qreason & kQuitKind_NormalExit)
