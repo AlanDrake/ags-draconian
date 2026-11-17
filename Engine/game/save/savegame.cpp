@@ -18,6 +18,7 @@
 #include "device/mousew32.h"
 #include "font/fonts.h"
 #include "game/audio/audio.h"
+#include "game/audio/audio_clip.h"
 #include "game/dialog/dialog.h"
 #include "game/dialog/speech.h"
 #include "game/dynobj/cc_audio_channel.h"
@@ -47,6 +48,7 @@
 #include "game/ui/gui.h"
 #include "game/ui/mouse.h"
 #include "game/world/character.h"
+#include "game/world/inventory_item.h"
 #include "game/world/region.h"
 #include "game/world/room.h"
 #include "game/world/room_context.h"
@@ -395,6 +397,23 @@ HSaveError OpenSavegame(const String &filename, SavegameDescription &desc, Saveg
     return OpenSavegameBase(filename, nullptr, &desc, elems);
 }
 
+// Clears the custom property values that the script set during play: the save components read the saved ones into
+// the maps (Properties::ReadValues adds to a map), and a restore that holds none leaves the definition's values
+static void FreePropertyOverrides(Game &game)
+{
+    for (Character &ch : game.Characters)
+        ch.PropertyOverrides.clear();
+    for (InventoryItem &item : game.InventoryItems)
+        item.PropertyOverrides.clear();
+    for (Dialog &dialog : game.Dialogs)
+        dialog.PropertyOverrides.clear();
+    // no save holds the audio clips' values: a restore leaves them the definition's
+    for (AudioClip &clip : game.AudioClips)
+        clip.PropertyOverrides.clear();
+    // the GUIs' values, which GamePlayState holds
+    game.Play.FreeProperties();
+}
+
 // Prepares engine for actual save restore (stops processes, cleans up memory)
 void DoBeforeRestore(PreservedParams &pp, SaveCmpSelection select_cmp)
 {
@@ -438,10 +457,11 @@ void DoBeforeRestore(PreservedParams &pp, SaveCmpSelection select_cmp)
     ResetRoomStates();
     // reset temp room state
     Room::Current().TempState = RoomState();
-    // Free what Game::Play owns outside of its plain fields (properties, do-once tokens) and the viewports and
-    // cameras (Game::Viewports); the plain fields are overwritten by the GameState component
+    // Free the custom property values set during play, what Game::Play owns outside of its plain fields (do-once
+    // tokens) and the viewports and cameras (Game::Viewports); the plain fields are overwritten by the GameState
+    // component
     // TODO: reset the whole GameState object here instead, once it is clear nothing in it must survive
-    game.Play.FreeProperties();
+    FreePropertyOverrides(game);
     game.Viewports.FreeViewportsAndCameras();
     free_do_once_tokens();
 

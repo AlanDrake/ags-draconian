@@ -16,10 +16,40 @@
 #include <vector>
 
 #include "game/dynobj/script_objects.h"
+#include "game/inventory_item_def.h"
+#include "util/string_types.h"
 
-struct InventoryItemDef;
-// The engine's inventory item; an alias of its definition until it holds more (PLAN.md 5.1a step 3)
-using InventoryItem = InventoryItemDef;
+namespace AGS
+{
+namespace Common
+{
+template <typename T>
+struct FieldTable;
+} // namespace Common
+} // namespace AGS
+
+// The play state of an inventory item: what exists only while the game runs. InventoryItem holds it with its
+// definition.
+struct InventoryItemState
+{
+    // The values of the item's custom properties that the script set during play, by property name: they hide the
+    // definition's values (GameDef) and the schema's defaults (game/world/properties.h)
+    AGS::Common::StringIMap PropertyOverrides;
+
+    // One row per field above (util/field_table.h); the struct stays an aggregate so that they can be counted
+    static AGS::Common::FieldTable<InventoryItemState> Fields();
+};
+
+// An inventory item of the running game: its definition's fields, which start as a copy of what the game file says,
+// and its play state. The game's items are Game::InventoryItems, by item index (item 0 is not used); the script
+// objects (ScriptInvItem) hold the index.
+class InventoryItem : public InventoryItemDef, public InventoryItemState
+{
+public:
+    InventoryItem() = default;
+    // Starts an item from its definition
+    explicit InventoryItem(const InventoryItemDef &def) : InventoryItemDef(def) {}
+};
 
 // Tells if item_id is a valid inventory item index; if not, writes a script warning naming apiname.
 bool AssertInvItem(const char *apiname, int item_id);

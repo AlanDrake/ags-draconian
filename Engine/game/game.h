@@ -374,8 +374,7 @@ extern CCDialog ccDynamicDialog;
 
 class Character;
 struct ScriptAudioChannel;
-struct AudioClipDef;
-using AudioClip = AudioClipDef;
+class AudioClip;
 struct ScriptCamera;
 struct ScriptDateTime;
 

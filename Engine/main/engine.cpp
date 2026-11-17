@@ -54,6 +54,7 @@
 #include "game/translation.h"
 #include "game/ui/gui.h"
 #include "game/world/character.h"
+#include "game/world/inventory_item.h"
 #include "game/world/object.h"
 #include "game/world/room_context.h"
 #include "game/world/view_frame.h"

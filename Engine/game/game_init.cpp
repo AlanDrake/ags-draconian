@@ -25,6 +25,7 @@
 #include "font/agsfontrenderer.h"
 #include "font/fonts.h"
 #include "game/audio/audio.h"
+#include "game/audio/audio_clip.h"
 #include "game/audio_clip_type_def.h"
 #include "game/dialog/dialog.h"
 #include "game/dialog/display.h"
@@ -487,21 +488,29 @@ void InitGameResolution(Game &game, GameDataVersion /*data_ver*/)
     game.ScSystem.viewport_height = game.Viewports.GetMainViewport().GetHeight();
 }
 
+// Builds a live list with one element started from each definition (explicit Live(const Def &)): the definition's
+// fields copied, the play state as a new element has it
+template <typename Live, typename Def>
+static void StartEach(std::vector<Live> &live, const std::vector<Def> &defs)
+{
+    live.clear();
+    live.reserve(defs.size());
+    for (const Def &def : defs)
+        live.emplace_back(def);
+}
+
 void StartFromDefinitions(Game &game)
 {
-    // the live characters start as copies of their definitions; the managed pool, scripts and plugins hold their
+    // the live characters start from their definitions; the managed pool, scripts and plugins hold their
     // addresses from InitAndRegisterCharacters on, so the list is not resized again until unload_game
-    game.Characters.clear();
-    game.Characters.reserve(game.Def().Characters.size());
-    for (const auto &def : game.Def().Characters)
-        game.Characters.emplace_back(def);
-    game.InventoryItems = game.Def().InventoryItems;
+    StartEach(game.Characters, game.Def().Characters);
+    StartEach(game.InventoryItems, game.Def().InventoryItems);
     game.MouseCursors = game.Def().MouseCursors;
     // the audio clips' addresses are registered from InitAndRegisterAudioObjects on: not resized until unload_game
-    game.AudioClips = game.Def().AudioClips;
+    StartEach(game.AudioClips, game.Def().AudioClips);
     game.AudioClipTypes = game.Def().AudioClipTypes;
     game.Views = game.Def().Views;
-    game.Dialogs = game.Def().Dialogs;
+    StartEach(game.Dialogs, game.Def().Dialogs);
     // the sprite cache is attached to the live table (init_sprite_cache) and first writes it after this (InitGameState's
     // EnlargeTo, then the sprite file's sizes in engine_init_sprites): it starts with the game file's flags
     game.SpriteInfos = game.Def().SpriteInfos;
@@ -552,9 +561,6 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     GUIRefCollection gui_control_refs(game.GuiButtons, game.GuiInvWindows, game.GuiLabels, game.GuiListBoxes,
                                       game.GuiSliders, game.GuiTextBoxes);
     GUI::RebuildGUI(game.Guis, gui_control_refs);
-    game.Play.audioclipProps.resize(game.AudioClips.size());
-    game.Play.charProps.resize(game.CharacterCount);
-    game.Play.dialogProps.resize(game.DialogCount);
     game.Play.guiProps.resize(game.GuiCount);
     game.Play.guicontrolProps[kGUIButton].resize(game.GuiButtons.size());
     game.Play.guicontrolProps[kGUILabel].resize(game.GuiLabels.size());
@@ -562,7 +568,6 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     game.Play.guicontrolProps[kGUISlider].resize(game.GuiSliders.size());
     game.Play.guicontrolProps[kGUITextBox].resize(game.GuiTextBoxes.size());
     game.Play.guicontrolProps[kGUIListBox].resize(game.GuiListBoxes.size());
-    game.Play.invProps.resize(game.InventoryItemCount);
     HError err = InitAndRegisterGameEntities(game, ents);
     if (!err)
         return new GameInitError(err, kGameInitErr_EntityInitFail);

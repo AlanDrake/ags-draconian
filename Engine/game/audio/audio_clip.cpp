@@ -28,8 +28,26 @@
 #include "platform/base/engine_services.h"
 #include "script/runtimescriptvalue.h"
 #include "util/common.h" // quitprintf
+#include "util/field_table.h"
 
 using namespace AGS::Common;
+
+namespace
+{
+
+// FromDefinition: a save does not hold the values set during play, and the clip has the definition's values again
+// whenever a game is started or restored (a restore clears them, DoBeforeRestore)
+constexpr FieldRow<AudioClipState> kAudioClipStateFields[] = {
+    Field<&AudioClipState::PropertyOverrides>("PropertyOverrides", FieldRole::FromDefinition),
+};
+static_assert(FieldsCoverStruct(kAudioClipStateFields), "AudioClipState: a field has no row in kAudioClipStateFields");
+
+} // namespace
+
+FieldTable<AudioClipState> AudioClipState::Fields()
+{
+    return kAudioClipStateFields;
+}
 
 int AudioClip_GetID(AudioClip *clip)
 {
@@ -135,25 +153,23 @@ ScriptAudioChannel *AudioClip_PlayAsType(AudioClip *clip, int type, int chan, in
 
 int AudioClip_GetProperty(AudioClip *clip, const char *property)
 {
-    Game &game = Game::Current();
-    return get_int_property(game.audioclipProps[clip->ID], game.Play.audioclipProps[clip->ID], property);
+    return get_int_property(Game::Current().audioclipProps[clip->ID], clip->PropertyOverrides, property);
 }
 
 const char *AudioClip_GetTextProperty(AudioClip *clip, const char *property)
 {
-    Game &game = Game::Current();
-    return get_text_property_dynamic_string(game.audioclipProps[clip->ID], game.Play.audioclipProps[clip->ID],
+    return get_text_property_dynamic_string(Game::Current().audioclipProps[clip->ID], clip->PropertyOverrides,
                                             property);
 }
 
 bool AudioClip_SetProperty(AudioClip *clip, const char *property, int value)
 {
-    return set_int_property(Game::Current().Play.audioclipProps[clip->ID], property, value);
+    return set_int_property(clip->PropertyOverrides, property, value);
 }
 
 bool AudioClip_SetTextProperty(AudioClip *clip, const char *property, const char *value)
 {
-    return set_text_property(Game::Current().Play.audioclipProps[clip->ID], property, value);
+    return set_text_property(clip->PropertyOverrides, property, value);
 }
 
 //=============================================================================

@@ -120,8 +120,8 @@ public:
 // std_gui_textheight, swap_portrait_lastlastchar, room_changes,
 // speech_in_post_state, overlay_count, complete_overlay_on, text_overlay_on, speech_text_schandle,
 // speech_face_schandle, shake_screen_yoff, get_loc_name_last_time, get_loc_name_save_cursor and gui_draw_order.
-// Saved by other save components: default_audio_type_volumes and the custom property vectors (charProps,
-// dialogProps, guiProps, guicontrolProps, invProps); audioclipProps are not saved.
+// Saved by other save components: default_audio_type_volumes and the custom property vectors (guiProps,
+// guicontrolProps).
 // The save layout also holds the room's ScriptFinished, AnimBackgroundDelay, BgFrame, BgFrameLocked,
 // WalkableAreasOn, EnteredAtX, EnteredAtY and EnteredEdge (game/world/room_context.h), at the places their
 // GamePlayState fields had: ReadFromSavegame and WriteForSavegame read and write them in the current Room.
@@ -281,15 +281,10 @@ struct GamePlayState
     int dialog_options_zorder = INT32_MAX;
     float face_dir_ratio = 1.f; // character face direction ratio, defines y/x relation
 
-    // Dynamic custom property values for global game objects
-    std::vector<AGS::Common::StringIMap> charProps;
-    std::vector<AGS::Common::StringIMap> dialogProps;
+    // The custom property values that the script set during play on the GUIs and, by control type, on the GUI
+    // controls (the other entities hold theirs: Character, InventoryItem, Dialog, AudioClip::PropertyOverrides)
     std::vector<AGS::Common::StringIMap> guiProps;
     std::vector<AGS::Common::StringIMap> guicontrolProps[AGS::Common::kGUIControlTypeNum];
-    std::vector<AGS::Common::StringIMap> invProps;
-    // NOTE: audioclip custom properties are not written into game saves;
-    // this is done on purpose, as audio clips are resources and not a part of a game state.
-    std::vector<AGS::Common::StringIMap> audioclipProps;
 
     // Dynamic speech state
     //
@@ -425,8 +420,8 @@ struct GamePlayState
     // Writes the state into a save, with the room's fields that the layout holds from Room::Current(); the
     // fields that are not written are listed above the struct.
     void WriteForSavegame(AGS::Common::Stream *out) const;
-    // Required for freeing only particular parts when restoring the game: clears the custom property values of
-    // audio clips, characters, dialogs, GUIs and inventory items;
+    // Required for freeing only particular parts when restoring the game: clears the custom property values of the
+    // GUIs;
     // TODO: restoring a game resets the state part by part (see DoBeforeRestore in savegame.cpp), reset the whole
     // object instead
     void FreeProperties();

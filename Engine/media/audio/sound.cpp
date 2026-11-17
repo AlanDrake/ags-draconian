@@ -18,6 +18,7 @@
 
 #include "data/assetmanager.h"
 #include "debug/out.h"
+#include "game/audio_clip_def.h"
 #include "game/game.h"
 #include "media/audio/audio_core.h"
 #include "media/audio/audiodefines.h"
@@ -129,6 +130,6 @@ std::unique_ptr<SoundClip> load_sound_clip(const AssetPath &apath, const char *e
         return nullptr;
     }
 
-    const auto sound_type = AudioClip::GetAudioFileTypeFromExt(ext_hint.GetCStr());
+    const auto sound_type = AudioClipDef::GetAudioFileTypeFromExt(ext_hint.GetCStr());
     return std::unique_ptr<SoundClip>(new SoundClip(slot, sound_type, loop));
 }

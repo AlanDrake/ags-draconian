@@ -52,10 +52,28 @@
 #include "script/dynobj/dynobj_manager.h"
 #include "script/scriptexecutor.h"
 #include "util/common.h"
+#include "util/field_table.h"
 #include "util/keycode.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
+
+namespace
+{
+
+// Saved: the save's "Dialogs" component holds it
+constexpr FieldRow<DialogState> kDialogStateFields[] = {
+    Field<&DialogState::PropertyOverrides>("PropertyOverrides"),
+};
+static_assert(FieldsCoverStruct(kDialogStateFields), "DialogState: a field has no row in kDialogStateFields");
+
+} // namespace
+
+FieldTable<DialogState> DialogState::Fields()
+{
+    return kDialogStateFields;
+}
+
 class DialogExec;
 class DialogOptionsState;
 
@@ -446,24 +464,24 @@ void DialogOptions_SetMinGUIWidth(int width)
 int Dialog_GetProperty(ScriptDialog *script_dialog, const char *property)
 {
     Game &game = Game::Current();
-    return get_int_property(game.dialogProps[script_dialog->id], game.Play.dialogProps[script_dialog->id], property);
+    return get_int_property(game.dialogProps[script_dialog->id], game.Dialogs[script_dialog->id].PropertyOverrides, property);
 }
 
 const char *Dialog_GetTextProperty(ScriptDialog *script_dialog, const char *property)
 {
     Game &game = Game::Current();
     return get_text_property_dynamic_string(game.dialogProps[script_dialog->id],
-                                            game.Play.dialogProps[script_dialog->id], property);
+                                            game.Dialogs[script_dialog->id].PropertyOverrides, property);
 }
 
 bool Dialog_SetProperty(ScriptDialog *script_dialog, const char *property, int value)
 {
-    return set_int_property(Game::Current().Play.dialogProps[script_dialog->id], property, value);
+    return set_int_property(Game::Current().Dialogs[script_dialog->id].PropertyOverrides, property, value);
 }
 
 bool Dialog_SetTextProperty(ScriptDialog *script_dialog, const char *property, const char *value)
 {
-    return set_text_property(Game::Current().Play.dialogProps[script_dialog->id], property, value);
+    return set_text_property(Game::Current().Dialogs[script_dialog->id].PropertyOverrides, property, value);
 }
 
 //=============================================================================

@@ -51,6 +51,7 @@
 #include "game/save/savegame_internal.h"
 #include "game/view_def.h"
 #include "game/world/character.h"
+#include "game/world/inventory_item.h"
 #include "game/world/room_state.h"
 #include "gtest/gtest.h"
 #include "platform/base/engine_services.h"
@@ -121,10 +122,10 @@ size_t OnlyDifferingInt32(const std::vector<uint8_t> &a, const std::vector<uint8
 } // namespace
 
 // Fixture for the savegame components with game content. The engine globals it touches, all reset in TearDown:
-// - Game::Characters, game.CharacterCount, game.Play.charProps: the characters
-// - game.InventoryItems, game.InventoryItemCount, game.Play.invProps: the inventory items
+// - Game::Characters, game.CharacterCount: the characters
+// - game.InventoryItems, game.InventoryItemCount: the inventory items
 // - Game::Views, game.ViewCount: the views
-// - Game::Dialogs, game.DialogCount, game.Play.dialogProps: the dialogs
+// - Game::Dialogs, game.DialogCount: the dialogs
 // - game.MouseCursors, game.MouseCursorCount: the mouse cursors
 // - game.AudioClipTypes, game.Play.default_audio_type_volumes: the audio types
 // - the game's live options and values that the game state saves (GameSetupFields)
@@ -263,8 +264,6 @@ protected:
         game.Dialogs.clear();
         game.Dialogs.resize(dialog_count);
         game.DialogCount = dialog_count;
-        game.Play.dialogProps.clear();
-        game.Play.dialogProps.resize(dialog_count);
         for (int d = 0; d < dialog_count; ++d)
         {
             game.Dialogs[d].Options.resize(option_count);
@@ -326,13 +325,9 @@ protected:
         game.Characters.clear();
         game.Characters.resize(characters);
         game.CharacterCount = characters;
-        game.Play.charProps.clear();
-        game.Play.charProps.resize(characters);
         game.InventoryItems.clear();
         game.InventoryItems.resize(items);
         game.InventoryItemCount = static_cast<uint16_t>(items);
-        game.Play.invProps.clear();
-        game.Play.invProps.resize(items);
     }
 
     // State that no new game has
@@ -363,7 +358,7 @@ protected:
             ch.TintRed = 10;
             ch.TintLevel = 50;
             ch.Following = 0;
-            game.Play.charProps[i]["Mood"] = "angry";
+            ch.PropertyOverrides["Mood"] = "angry";
         }
         for (int i = 0; i < game.InventoryItemCount; ++i)
         {
@@ -372,7 +367,7 @@ protected:
             game.InventoryItems[i].CursorSprite = 40 + i;
             game.InventoryItems[i].CursorHotspotX = 3;
             game.InventoryItems[i].CursorHotspotY = 4;
-            game.Play.invProps[i]["Weight"] = "12";
+            game.InventoryItems[i].PropertyOverrides["Weight"] = "12";
         }
     }
 
@@ -431,7 +426,7 @@ TEST_F(SavegameContent, CharactersAndItemsAreRestored)
         EXPECT_EQ(80, game.Characters[i].Zoom);
         EXPECT_EQ(10, game.Characters[i].TintRed);
         EXPECT_EQ(50, game.Characters[i].TintLevel);
-        EXPECT_STREQ("angry", game.Play.charProps[i]["Mood"].GetCStr());
+        EXPECT_STREQ("angry", game.Characters[i].PropertyOverrides["Mood"].GetCStr());
     }
     for (int i = 0; i < 2; ++i)
     {
@@ -440,7 +435,7 @@ TEST_F(SavegameContent, CharactersAndItemsAreRestored)
         EXPECT_EQ(40 + i, game.InventoryItems[i].CursorSprite);
         EXPECT_EQ(3, game.InventoryItems[i].CursorHotspotX);
         EXPECT_EQ(4, game.InventoryItems[i].CursorHotspotY);
-        EXPECT_STREQ("12", game.Play.invProps[i]["Weight"].GetCStr());
+        EXPECT_STREQ("12", game.InventoryItems[i].PropertyOverrides["Weight"].GetCStr());
     }
     EXPECT_EQ(3u, r_data.DataCounts.Characters);
     EXPECT_EQ(2u, r_data.DataCounts.InventoryItems);
@@ -709,7 +704,7 @@ TEST_F(SavegameContent, DialogOptionsAreRestored)
         opts[1].Flags = DFLG_ON | DFLG_TEXTSET;
         opts[1].Text = String::FromFormat("Changed %d", d);
         opts[2].Flags = DFLG_OFFPERM | DFLG_NOREPEAT;
-        game.Play.dialogProps[d]["Topic"] = "weather";
+        game.Dialogs[d].PropertyOverrides["Topic"] = "weather";
     }
     std::vector<uint8_t> saved;
     std::string error;
@@ -728,7 +723,7 @@ TEST_F(SavegameContent, DialogOptionsAreRestored)
         EXPECT_STREQ(String::FromFormat("Dialog %d option 0", d).GetCStr(), opts[0].Text.GetCStr());
         EXPECT_STREQ(String::FromFormat("Changed %d", d).GetCStr(), opts[1].Text.GetCStr());
         EXPECT_STREQ(String::FromFormat("Dialog %d option 2", d).GetCStr(), opts[2].Text.GetCStr());
-        EXPECT_STREQ("weather", game.Play.dialogProps[d]["Topic"].GetCStr());
+        EXPECT_STREQ("weather", game.Dialogs[d].PropertyOverrides["Topic"].GetCStr());
     }
     EXPECT_EQ(2u, r_data.DataCounts.Dialogs);
     EXPECT_EQ((std::vector<uint32_t>{3u, 3u}), r_data.DataCounts.DialogOptions);

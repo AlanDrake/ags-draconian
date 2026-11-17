@@ -19,7 +19,8 @@
 // clip's script handle; the save round trip of every saved field of the view
 // frames and of the inventory items, and of every field of the items, cursors,
 // view frames, dialog options and audio types by their definitions' field
-// tables (the saved ones restored, the others the definition's); the fix-up that engine_init_game_settings
+// tables (the saved ones restored, the others the definition's), and of the items' and the dialogs' play state by
+// theirs; the fix-up that engine_init_game_settings
 // makes at start (the loader's are Common's GameLoader tests); the values a
 // started game has, which are its definition's; ViewFrame.YOffset, which gave
 // the x offset; the sprite table, which the sprite cache writes in the game's live
@@ -54,6 +55,7 @@
 #include <iterator>
 #include <memory>
 #include <string>
+#include <type_traits>
 #include <vector>
 
 #include <allegro.h> // get_palette, set_palette_range, get_uformat, set_uformat
@@ -790,9 +792,10 @@ protected:
     // Does what InitGameState does for these entities that a test can run without fonts, plugins, scripts and a
     // graphics driver: the live copies of the definitions (StartFromDefinitions, as InitGameState), the GUIs linked to
     // their controls (GUI::RebuildGUI; with the controls' graphics clipped to their rectangles, so that no font or
-    // sprite is measured), the player, the lists of the custom property values set during play sized as InitGameState
-    // sizes them (a list that has values keeps them: InitGameState runs on a game that unload_game emptied), the audio
-    // clips' ids and their registration with the managed pool
+    // sprite is measured), the player, the GUIs' lists of the custom property values set during play sized as
+    // InitGameState sizes them (a list that has values keeps them: InitGameState runs on a game that unload_game
+    // emptied; the other entities hold theirs in their live copies, which start without any), the audio clips' ids and
+    // their registration with the managed pool
     void StartGame()
     {
         Game &game = *_game;
@@ -806,9 +809,6 @@ protected:
         HError err = GUI::RebuildGUI(game.Guis, gui_control_refs);
         GUI::Options.ClipControls = clip_controls;
         EXPECT_TRUE(err) << err->FullMessage().GetCStr();
-        game.Play.audioclipProps.resize(game.AudioClips.size());
-        game.Play.charProps.resize(game.CharacterCount);
-        game.Play.dialogProps.resize(game.DialogCount);
         game.Play.guiProps.resize(game.GuiCount);
         game.Play.guicontrolProps[kGUIButton].resize(game.GuiButtons.size());
         game.Play.guicontrolProps[kGUILabel].resize(game.GuiLabels.size());
@@ -816,15 +816,15 @@ protected:
         game.Play.guicontrolProps[kGUISlider].resize(game.GuiSliders.size());
         game.Play.guicontrolProps[kGUITextBox].resize(game.GuiTextBoxes.size());
         game.Play.guicontrolProps[kGUIListBox].resize(game.GuiListBoxes.size());
-        game.Play.invProps.resize(game.InventoryItemCount);
         game.Play.default_audio_type_volumes.assign(game.AudioClipTypes.size(), -1);
         InitAndRegisterAudioObjects(game);
         setup_player_character(game.PlayerCharacterID);
     }
 
     // Starts the game again from its definition: the managed pool emptied, the definition made again, the game
-    // started. No test sets a custom property before it: StartGame keeps the values set during play, as InitGameState,
-    // which runs on a game that unload_game emptied (UnloadedGameKeepsNoPropertyValues).
+    // started. No test sets a custom property of a GUI before it: StartGame keeps the GUIs' values set during play, as
+    // InitGameState, which runs on a game that unload_game emptied (UnloadedGameKeepsNoPropertyValues); the other
+    // entities' values go with their live copies.
     void RestartGame()
     {
         pool.Reset();
@@ -834,7 +834,7 @@ protected:
 
     // Restores the components of the save into the running game as RestoreGameState does before it runs the game
     // again: DoBeforeRestore (which frees what the components do not overwrite: the custom property values set during
-    // play among it, GamePlayState::FreeProperties), then the components. DoBeforeRestore reads the global script's
+    // play among it, FreePropertyOverrides in savegame.cpp), then the components. DoBeforeRestore reads the global script's
     // data size: the game has an empty one meanwhile (EmptyScripts).
     HSaveError RestoreIntoTheRunningGame(const std::vector<uint8_t> &buf, SaveCmpSelection cmp)
     {
@@ -957,8 +957,32 @@ protected:
         return SavegameComponents::ReadAll(&in, kSvgVersion_Current, cmp, pp, r_data);
     }
 
+    // Changes the fields of a role in the parts of an element (AlterFields): its definition's (Def) and, unless State is
+    // void, its play state's
+    template <typename Def, typename State, typename T>
+    static void AlterParts(T &element, FieldRole role)
+    {
+        AlterFields<Def>(element, role);
+        if constexpr (!std::is_void_v<State>)
+            AlterFields<State>(element, role);
+    }
+
+    // The fields in which two elements differ, a line each (DiffFields), by the tables of their parts as AlterParts
+    template <typename Def, typename State, typename T>
+    static std::vector<String> DiffParts(const T &a, const T &b)
+    {
+        std::vector<String> lines = DiffFields<Def>(a, b);
+        if constexpr (!std::is_void_v<State>)
+        {
+            for (const String &line : DiffFields<State>(a, b))
+                lines.push_back(line);
+        }
+        return lines;
+    }
+
     // The round trip of the live elements of one kind (elements(game) lists them, by address), by the rows of their
-    // definition's table: in each element the saved fields are altered (AlterFields: what the game changed during play;
+    // definition's table (Def, the element's type unless given) and of their play state's (State, if the element has
+    // one): in each element the saved fields are altered (AlterFields: what the game changed during play;
     // keep, if given, then restores what the engine keeps true between two fields), which gives the expected element,
     // and then the fields from the definition. The component cmp is saved, the game started again from its definition
     // (RestartGame) and the save restored. Returns the fields of the restored elements that differ from the expected
@@ -966,7 +990,7 @@ protected:
     // start gives the definition's values back (StartFromDefinitions, from InitGameState), not the restore, which
     // reads only the saved fields into the live elements; nothing writes the other fields during play, so a restore
     // into a running game finds the definition's values there too.
-    template <typename T, typename Elements>
+    template <typename T, typename Def = T, typename State = void, typename Elements>
     std::string RoundTripLosses(SaveCmpSelection cmp, Elements elements, void (*keep)(T &) = nullptr)
     {
         Game &game = Game::Current();
@@ -974,13 +998,13 @@ protected:
         for (T *element : elements(game))
         {
             const T started = *element;
-            AlterFields(*element, FieldRole::Saved);
+            AlterParts<Def, State>(*element, FieldRole::Saved);
             if (keep)
                 keep(*element);
             expected.push_back(*element);
-            EXPECT_FALSE(DiffFields(started, *element).empty()) << "the element has no saved field to alter";
-            AlterFields(*element, FieldRole::FromDefinition);
-            EXPECT_FALSE(DiffFields(expected.back(), *element).empty())
+            EXPECT_FALSE((DiffParts<Def, State>(started, *element).empty())) << "the element has no saved field to alter";
+            AlterParts<Def, State>(*element, FieldRole::FromDefinition);
+            EXPECT_FALSE((DiffParts<Def, State>(expected.back(), *element).empty()))
                 << "the element has no field from the definition";
         }
         EXPECT_FALSE(expected.empty());
@@ -999,7 +1023,7 @@ protected:
         std::string lost;
         for (size_t i = 0; i < expected.size(); ++i)
         {
-            for (const String &line : DiffFields(expected[i], *restored[i]))
+            for (const String &line : DiffParts<Def, State>(expected[i], *restored[i]))
                 lost += "element " + std::to_string(i) + ": " + line.GetCStr() + "\n";
         }
         return lost;
@@ -1636,18 +1660,20 @@ TEST_F(GameEntities, AudioTypesComeBackFromASave)
 }
 
 // Every saved field of every inventory item comes back from a save into a game started again, and every field from the
-// definition is the definition's again (RoundTripLosses); the rows of InventoryItemDef say which field is which, so a
-// field added to the struct is checked here without a line of this test changing
+// definition is the definition's again (RoundTripLosses); the rows of InventoryItemDef and InventoryItemState (the
+// custom property values set during play) say which field is which, so a field added to either struct is checked here
+// without a line of this test changing
 TEST_F(GameEntities, EveryInventoryItemFieldIsRestored)
 {
-    EXPECT_EQ("", RoundTripLosses<InventoryItem>(kSaveCmp_InvItems,
-                                                 [](Game &running)
-                                                 {
-                                                     std::vector<InventoryItem *> items;
-                                                     for (InventoryItem &item : running.InventoryItems)
-                                                         items.push_back(&item);
-                                                     return items;
-                                                 }));
+    EXPECT_EQ("", (RoundTripLosses<InventoryItem, InventoryItemDef, InventoryItemState>(
+                      kSaveCmp_InvItems,
+                      [](Game &running)
+                      {
+                          std::vector<InventoryItem *> items;
+                          for (InventoryItem &item : running.InventoryItems)
+                              items.push_back(&item);
+                          return items;
+                      })));
     ExpectDefinitionAsMade();
 }
 
@@ -1701,6 +1727,40 @@ TEST_F(GameEntities, EveryDialogOptionFieldIsRestored)
                           return options;
                       },
                       [](DialogOption &option) { option.Flags |= DFLG_TEXTSET; }));
+    ExpectDefinitionAsMade();
+}
+
+// Every saved field of the play state of every dialog (DialogState's rows: the custom property values set during play)
+// comes back from a save into a game started again. Not through RoundTripLosses: DialogDef has no saved field of its
+// own (its options' are the test above), and altering its fields from the definition would add an option, whose count
+// the save compares with the game's.
+TEST_F(GameEntities, EveryDialogStateFieldIsRestored)
+{
+    Game &game = Game::Current();
+    std::vector<Dialog> expected;
+    for (Dialog &dialog : game.Dialogs)
+    {
+        const Dialog started = dialog;
+        AlterFields<DialogState>(dialog, FieldRole::Saved);
+        EXPECT_FALSE(DiffFields<DialogState>(started, dialog).empty()) << "the dialog has no saved field to alter";
+        expected.push_back(dialog);
+    }
+    ASSERT_FALSE(expected.empty());
+    std::vector<uint8_t> saved;
+    std::string error;
+    ASSERT_TRUE(Save(kSaveCmp_Dialogs, saved, error)) << error;
+
+    RestartGame();
+    HSaveError err = Restore(saved, kSaveCmp_Dialogs);
+    ASSERT_TRUE(err) << err->FullMessage().GetCStr();
+    ASSERT_EQ(expected.size(), game.Dialogs.size());
+    std::string lost;
+    for (size_t i = 0; i < expected.size(); ++i)
+    {
+        for (const String &line : DiffFields<DialogState>(expected[i], game.Dialogs[i]))
+            lost += "dialog " + std::to_string(i) + ": " + line.GetCStr() + "\n";
+    }
+    EXPECT_EQ("", lost);
     ExpectDefinitionAsMade();
 }
 
@@ -2195,6 +2255,39 @@ TEST_F(GameEntities, UnloadedGameKeepsNoPropertyValues)
     MakeDefinition(Definition());
     StartGame();
     for (const PropertyKind &kind : PropertyKinds())
+    {
+        for (int i = 0; i < kind.Count; ++i)
+            ExpectDefinitionsValues(kind, i);
+    }
+}
+
+// The characters, inventory items, dialogs and audio clips hold their values set during play (PropertyOverrides): the
+// live copies that StartFromDefinitions makes from the definitions have none, whatever the elements they replace had
+// (RestartGame, which starts the game without unload_game)
+TEST_F(GameEntities, LiveCopiesStartWithoutPropertyValues)
+{
+    Game &game = Game::Current();
+    std::vector<PropertyKind> kinds = PropertyKinds();
+    kinds.erase(std::remove_if(kinds.begin(), kinds.end(),
+                               [](const PropertyKind &kind) { return kind.Name == "GUI" || IsGuiControlKind(kind); }),
+                kinds.end());
+    ASSERT_EQ(4u, kinds.size());
+    for (const PropertyKind &kind : kinds)
+    {
+        for (int i = 0; i < kind.Count; ++i)
+            kind.SetNumber(i, kNumberProperty, 80 + i);
+    }
+
+    RestartGame();
+    for (const Character &ch : game.Characters)
+        EXPECT_TRUE(ch.PropertyOverrides.empty());
+    for (const InventoryItem &item : game.InventoryItems)
+        EXPECT_TRUE(item.PropertyOverrides.empty());
+    for (const Dialog &dialog : game.Dialogs)
+        EXPECT_TRUE(dialog.PropertyOverrides.empty());
+    for (const AudioClip &clip : game.AudioClips)
+        EXPECT_TRUE(clip.PropertyOverrides.empty());
+    for (const PropertyKind &kind : kinds)
     {
         for (int i = 0; i < kind.Count; ++i)
             ExpectDefinitionsValues(kind, i);

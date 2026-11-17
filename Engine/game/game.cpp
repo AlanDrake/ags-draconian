@@ -27,6 +27,7 @@
 #include "font/fonts.h"
 #include "game/audio/audio.h"
 #include "game/audio/audio_channel.h"
+#include "game/audio/audio_clip.h"
 #include "game/audio_clip_type_def.h"
 #include "game/dialog/dialog.h"
 #include "game/dialog/display.h"

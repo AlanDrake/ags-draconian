@@ -17,7 +17,6 @@
 //=============================================================================
 #pragma once
 
-#include "game/audio_clip_def.h"
 #include "game/dynobj/script_view_frame.h"
 #include "game/runtime_defines.h"
 #include "game/view_def.h"
@@ -28,7 +27,7 @@
 using View = ViewDef;
 using ViewLoop = ViewLoopDef;
 using ViewFrame = ViewFrameDef;
-using AudioClip = AudioClipDef;
+class AudioClip;
 
 namespace AGS
 {

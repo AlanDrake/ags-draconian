@@ -26,22 +26,19 @@
 #include "game/ui/cursor_graphic_state.h"
 #include "media/audio/audiodefines.h"
 
+class AudioClip;
 class Character;
+class Dialog;
+class InventoryItem;
 struct AGSEvent;
-struct AudioClipDef;
 struct AudioClipTypeDef;
-struct DialogDef;
-struct InventoryItemDef;
 struct MouseCursorDef;
 struct ScriptState;
 struct SpeechLipSyncLine;
 struct ViewDef;
 // The engine's live entity types; aliases of their definitions until they hold more (PLAN.md 5.1a step 3), as their
 // module headers declare them
-using AudioClip = AudioClipDef;
 using AudioClipType = AudioClipTypeDef;
-using Dialog = DialogDef;
-using InventoryItem = InventoryItemDef;
 using MouseCursor = MouseCursorDef;
 using View = ViewDef;
 namespace AGS

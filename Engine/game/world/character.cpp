@@ -229,6 +229,7 @@ constexpr FieldRow<CharacterState> kCharacterStateFields[] = {
     Field<&CharacterState::FaceDirectionRatio>("FaceDirectionRatio"),
     Field<&CharacterState::RuntimeFlags>("RuntimeFlags"),
     Field<&CharacterState::Turns>("Turns"),
+    Field<&CharacterState::PropertyOverrides>("PropertyOverrides"),
     Field<&CharacterState::OffsetZoom>("OffsetZoom", FieldRole::Derived),
 };
 static_assert(FieldsCoverStruct(kCharacterStateFields), "CharacterState: a field has no row in kCharacterStateFields");
@@ -1771,32 +1772,29 @@ void *Character_GetGraphicBoundBox(Character *ch)
 
 int Character_GetProperty(Character *ch, const char *property)
 {
-    Game &game = Game::Current();
     if (!AssertCharacter("Character.GetProperty", ch->ID))
     {
         return 0;
     }
-    return get_int_property(game.charProps[ch->ID], game.Play.charProps[ch->ID], property);
+    return get_int_property(Game::Current().charProps[ch->ID], ch->PropertyOverrides, property);
 }
 
 void Character_GetPropertyText(Character *ch, const char *property, char *buffer)
 {
-    Game &game = Game::Current();
     if (!AssertCharacter("Character.GetPropertyText", ch->ID))
     {
         return;
     }
-    get_text_property(game.charProps[ch->ID], game.Play.charProps[ch->ID], property, buffer);
+    get_text_property(Game::Current().charProps[ch->ID], ch->PropertyOverrides, property, buffer);
 }
 
 const char *Character_GetTextProperty(Character *ch, const char *property)
 {
-    Game &game = Game::Current();
     if (!AssertCharacter("Character.GetTextProperty", ch->ID))
     {
         return nullptr;
     }
-    return get_text_property_dynamic_string(game.charProps[ch->ID], game.Play.charProps[ch->ID], property);
+    return get_text_property_dynamic_string(Game::Current().charProps[ch->ID], ch->PropertyOverrides, property);
 }
 
 bool Character_SetProperty(Character *ch, const char *property, int value)
@@ -1805,7 +1803,7 @@ bool Character_SetProperty(Character *ch, const char *property, int value)
     {
         return false;
     }
-    return set_int_property(Game::Current().Play.charProps[ch->ID], property, value);
+    return set_int_property(ch->PropertyOverrides, property, value);
 }
 
 bool Character_SetTextProperty(Character *ch, const char *property, const char *value)
@@ -1814,7 +1812,7 @@ bool Character_SetTextProperty(Character *ch, const char *property, const char *
     {
         return false;
     }
-    return set_text_property(Game::Current().Play.charProps[ch->ID], property, value);
+    return set_text_property(ch->PropertyOverrides, property, value);
 }
 
 ScriptInvItem *Character_GetActiveInventory(Character *ch)

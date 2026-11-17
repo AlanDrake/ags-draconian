@@ -32,10 +32,27 @@
 #include "game/world/properties.h"
 #include "gui/guidefines.h"
 #include "script/runtimescriptvalue.h"
+#include "util/field_table.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
+namespace
+{
+
+// Saved: the save's "Inventory Items" component holds it
+constexpr FieldRow<InventoryItemState> kInventoryItemStateFields[] = {
+    Field<&InventoryItemState::PropertyOverrides>("PropertyOverrides"),
+};
+static_assert(FieldsCoverStruct(kInventoryItemStateFields),
+              "InventoryItemState: a field has no row in kInventoryItemStateFields");
+
+} // namespace
+
+FieldTable<InventoryItemState> InventoryItemState::Fields()
+{
+    return kInventoryItemStateFields;
+}
 
 // TODO: ideally, it's the InvWindow gui controls that should be reacting
 // to the inventory item looks update. For that we'd probably need to subscribe
@@ -294,29 +311,29 @@ int InventoryItem_CheckInteractionAvailable(ScriptInvItem *item, int mood)
 int InventoryItem_GetProperty(ScriptInvItem *item, const char *property)
 {
     Game &game = Game::Current();
-    return get_int_property(game.invProps[item->id], game.Play.invProps[item->id], property);
+    return get_int_property(game.invProps[item->id], game.InventoryItems[item->id].PropertyOverrides, property);
 }
 
 void InventoryItem_GetPropertyText(ScriptInvItem *item, const char *property, char *buffer)
 {
     Game &game = Game::Current();
-    get_text_property(game.invProps[item->id], game.Play.invProps[item->id], property, buffer);
+    get_text_property(game.invProps[item->id], game.InventoryItems[item->id].PropertyOverrides, property, buffer);
 }
 
 const char *InventoryItem_GetTextProperty(ScriptInvItem *item, const char *property)
 {
     Game &game = Game::Current();
-    return get_text_property_dynamic_string(game.invProps[item->id], game.Play.invProps[item->id], property);
+    return get_text_property_dynamic_string(game.invProps[item->id], game.InventoryItems[item->id].PropertyOverrides, property);
 }
 
 bool InventoryItem_SetProperty(ScriptInvItem *item, const char *property, int value)
 {
-    return set_int_property(Game::Current().Play.invProps[item->id], property, value);
+    return set_int_property(Game::Current().InventoryItems[item->id].PropertyOverrides, property, value);
 }
 
 bool InventoryItem_SetTextProperty(ScriptInvItem *item, const char *property, const char *value)
 {
-    return set_text_property(Game::Current().Play.invProps[item->id], property, value);
+    return set_text_property(Game::Current().InventoryItems[item->id].PropertyOverrides, property, value);
 }
 
 //=============================================================================

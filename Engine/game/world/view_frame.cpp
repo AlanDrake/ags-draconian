@@ -14,6 +14,7 @@
 #include "game/world/view_frame.h"
 
 #include "debug/debug_log.h"
+#include "game/audio/audio_clip.h"
 #include "game/dynobj/script_string.h"
 #include "game/game.h"
 #include "game/game_context.h"

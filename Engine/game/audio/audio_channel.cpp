@@ -14,6 +14,7 @@
 #include "game/audio/audio_channel.h"
 
 #include "debug/debug_log.h"
+#include "game/audio/audio_clip.h"
 #include "game/dialog/speech.h"
 #include "game/game.h"
 #include "game/game_context.h"

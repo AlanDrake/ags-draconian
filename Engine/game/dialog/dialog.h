@@ -17,9 +17,40 @@
 
 #include "game/dialog_def.h"
 #include "game/dynobj/script_objects.h"
+#include "util/string_types.h"
 
-// The engine's dialog; an alias of its definition until it holds more (PLAN.md 5.1a step 3)
-using Dialog = DialogDef;
+namespace AGS
+{
+namespace Common
+{
+template <typename T>
+struct FieldTable;
+} // namespace Common
+} // namespace AGS
+
+// The play state of a dialog: what exists only while the game runs. Dialog holds it with its definition.
+struct DialogState
+{
+    // The values of the dialog's custom properties that the script set during play, by property name: they hide the
+    // definition's values (GameDef) and the schema's defaults (game/world/properties.h)
+    AGS::Common::StringIMap PropertyOverrides;
+
+    // One row per field above (util/field_table.h); the struct stays an aggregate so that they can be counted
+    static AGS::Common::FieldTable<DialogState> Fields();
+};
+
+// A dialog of the running game: its definition's fields, which start as a copy of what the game file says (the
+// options' states and texts change during play), and its play state. The game's dialogs are Game::Dialogs, by dialog
+// number; the script objects (ScriptDialog) hold the number.
+class Dialog : public DialogDef, public DialogState
+{
+public:
+    Dialog() = default;
+    // Starts a dialog from its definition
+    explicit Dialog(const DialogDef &def) : DialogDef(def) {}
+};
+
+// The engine's dialog option; an alias of its definition until it holds more (PLAN.md 5.1a step 3)
 using DialogOption = DialogOptionDef;
 
 // Script function: the dialog's number

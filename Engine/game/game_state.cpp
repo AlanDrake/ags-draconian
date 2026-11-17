@@ -703,14 +703,6 @@ void GamePlayState::WriteForSavegame(Stream *out) const
 
 void GamePlayState::FreeProperties()
 {
-    for (auto &p : audioclipProps)
-        p.clear();
-    for (auto &p : charProps)
-        p.clear();
-    for (auto &p : dialogProps)
-        p.clear();
     for (auto &p : guiProps)
-        p.clear();
-    for (auto &p : invProps)
         p.clear();
 }

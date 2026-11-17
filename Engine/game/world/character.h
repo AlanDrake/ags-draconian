@@ -23,6 +23,7 @@
 #include "gfx/gfx_def.h"
 #include "gfx/graphicspace.h"
 #include "util/geometry.h"
+#include "util/string_types.h"
 
 // The engine's character is one object, Character: its definition's fields (CharacterDef, Common: what the game
 // file says, which the character starts as a copy of) and its play state (CharacterState: what exists only while
@@ -113,6 +114,9 @@ struct CharacterState : public GraphicState, public ViewAnimState, public MoveSt
     float FaceDirectionRatio = 0.f;
     int RuntimeFlags = 0; // runtime character flags (CharacterRuntimeFlags)
     int Turns = 0;        // turning counter
+    // The values of the character's custom properties that the script set during play, by property name: they hide
+    // the definition's values (GameDef) and the schema's defaults (game/world/properties.h)
+    AGS::Common::StringIMap PropertyOverrides;
 
     // Following fields are derivatives of the above (calculated from these
     // and other factors), and hence are not serialized.

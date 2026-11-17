@@ -17,10 +17,9 @@
 //=============================================================================
 #pragma once
 
-#include "game/audio_clip_def.h"
 #include "game/dynobj/script_objects.h"
 
-using AudioClip = AudioClipDef;
+class AudioClip;
 
 int AudioChannel_GetID(ScriptAudioChannel *channel);
 int AudioChannel_GetIsPlaying(ScriptAudioChannel *channel);

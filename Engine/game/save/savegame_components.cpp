@@ -1059,7 +1059,7 @@ HSaveError WriteCharacters(Stream *out)
     {
         WriteCharacterDef(game.Characters[i], out);
         game.Characters[i].WriteToSavegame(out);
-        Properties::WriteValues(game.Play.charProps[i], out);
+        Properties::WriteValues(game.Characters[i].PropertyOverrides, out);
     }
     return HSaveError::None();
 }
@@ -1083,7 +1083,7 @@ HSaveError ReadCharacters(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Pr
         ReadCharacterDef(ch, in, old_fields, svg_ver);
         ch.ViewOffset = old_fields.ViewOffset;
         ch.ReadFromSavegame(in, svg_ver);
-        Properties::ReadValues(game.Play.charProps[i], in);
+        Properties::ReadValues(ch.PropertyOverrides, in);
 
         // Upgrade legacy turning mask
         if (svg_ver < kCharSvgVersion_400_16)
@@ -1133,7 +1133,7 @@ HSaveError WriteDialogs(Stream *out)
     for (int i = 0; i < game.DialogCount; ++i)
     {
         WriteDialogTopic(game.Dialogs[i], out);
-        Properties::WriteValues(game.Play.dialogProps[i], out);
+        Properties::WriteValues(game.Dialogs[i].PropertyOverrides, out);
     }
     return HSaveError::None();
 }
@@ -1157,7 +1157,7 @@ HSaveError ReadDialogs(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Prese
                                      r_data.Result, r_data.DataCounts.DialogOptions[i]))
             return err;
         if (cmp_ver >= kDialogTopicSvgVer_40008)
-            Properties::ReadValues(game.Play.dialogProps[i], in);
+            Properties::ReadValues(game.Dialogs[i].PropertyOverrides, in);
     }
     return err;
 }
@@ -1478,7 +1478,7 @@ HSaveError WriteInventory(Stream *out)
     for (int i = 0; i < game.InventoryItemCount; ++i)
     {
         WriteInventoryItemDef(game.InventoryItems[i], out);
-        Properties::WriteValues(game.Play.invProps[i], out);
+        Properties::WriteValues(game.InventoryItems[i].PropertyOverrides, out);
     }
     return HSaveError::None();
 }
@@ -1495,7 +1495,7 @@ HSaveError ReadInventory(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Pre
     for (uint32_t i = 0; i < invitems_read; ++i)
     {
         ReadInventoryItemDef(game.InventoryItems[i], in, static_cast<InvitemSvgVersion>(cmp_ver));
-        Properties::ReadValues(game.Play.invProps[i], in);
+        Properties::ReadValues(game.InventoryItems[i].PropertyOverrides, in);
     }
     return err;
 }

@@ -43,8 +43,7 @@
 
 class Character;
 struct ScriptAudioChannel;
-struct AudioClipDef;
-using AudioClip = AudioClipDef;
+class AudioClip;
 struct ScriptDialog;
 struct ScriptGUI;
 struct ScriptHotspot;

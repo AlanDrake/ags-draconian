@@ -236,14 +236,14 @@ bool is_audiotype_allowed_to_play(AudioFileType /*type*/)
 
 std::unique_ptr<SoundClip> load_sound_clip(const AudioPlayback &aplay, bool repeat)
 {
-    const AudioClip *audio_clip = aplay.Clip;
+    const AudioClipDef *audio_clip = aplay.Clip;
     if (!is_audiotype_allowed_to_play((AudioFileType)audio_clip->FileType))
         return nullptr;
     if (audio_clip->FileName.IsEmpty())
         return nullptr;
 
     AssetPath asset_name = get_audio_clip_assetpath(audio_clip->BundlingType, audio_clip->FileName);
-    const char *ext = AudioClip::GetExtFromAudioFileType(audio_clip->FileType);
+    const char *ext = AudioClipDef::GetExtFromAudioFileType(audio_clip->FileType);
 
     std::unique_ptr<SoundClip> soundClip = load_sound_clip(asset_name, ext, repeat);
     if (soundClip != nullptr)
@@ -270,7 +270,7 @@ std::unique_ptr<SoundClip> load_sound_clip(const String &filename, uint8_t bundl
     return soundClip;
 }
 
-std::unique_ptr<SoundClip> load_sound_clip(const AudioClip *audio_clip, bool repeat)
+std::unique_ptr<SoundClip> load_sound_clip(const AudioClipDef *audio_clip, bool repeat)
 {
     return load_sound_clip(AudioPlayback(audio_clip), repeat);
 }
@@ -367,7 +367,7 @@ static void apply_volume_drop_to_clip(SoundClip *playback)
         -(Game::Current().AudioClipTypes[audiotype].VolumeReductionWhileSpeechPlaying * 255 / 100));
 }
 
-static void queue_audio_clip_to_play(const AudioClip *clip, int priority, int repeat)
+static void queue_audio_clip_to_play(const AudioClipDef *clip, int priority, int repeat)
 {
     Game &game = Game::Current();
     if (game.Play.new_music_queue_size >= MAX_QUEUED_MUSIC)
@@ -387,7 +387,7 @@ static void queue_audio_clip_to_play(const AudioClip *clip, int priority, int re
     }
 }
 
-ScriptAudioChannel *play_audio_clip_on_channel(const AudioClip *clip, int channel, int priority, int repeat,
+ScriptAudioChannel *play_audio_clip_on_channel(const AudioClipDef *clip, int channel, int priority, int repeat,
                                                int fromOffset, std::unique_ptr<SoundClip> &&cachedClip)
 {
     return play_audio_clip_direct(AudioPlayback(clip, clip->Type), channel, priority, repeat, fromOffset,
@@ -508,7 +508,7 @@ ScriptAudioChannel *play_audio_clip_as_type(const AudioPlayback &aplay, int chan
     assert(aplay.Clip);
     assert(aplay.AudioType != AUDIOTYPE_UNDEFINED);
 
-    const AudioClip *clip = aplay.Clip;
+    const AudioClipDef *clip = aplay.Clip;
 
     if (!queueIfNoChannel)
         remove_clips_of_type_from_queue(aplay.AudioType);
@@ -534,7 +534,7 @@ ScriptAudioChannel *play_audio_clip_as_type(const AudioPlayback &aplay, int chan
     return play_audio_clip_direct(aplay, channel, priority, repeat, fromOffset);
 }
 
-ScriptAudioChannel *play_audio_clip(const AudioClip *clip, int priority, int repeat, int from_offset,
+ScriptAudioChannel *play_audio_clip(const AudioClipDef *clip, int priority, int repeat, int from_offset,
                                     bool queueIfNoChannel)
 {
     return play_audio_clip_as_type(AudioPlayback(clip, clip->Type), -1, priority, repeat, from_offset,
