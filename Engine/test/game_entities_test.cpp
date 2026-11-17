@@ -21,7 +21,8 @@
 // views, dialogs and audio types by their definitions' field
 // tables (the saved ones restored, the others the definition's), and of the items' and the dialogs' play state by
 // theirs; the fix-up that engine_init_game_settings
-// makes at start (the loader's are Common's GameLoader tests); the values a
+// makes at start (the loader's are Common's GameLoader tests), and the whole
+// game state it leaves, field by field, against a new GameState; the values a
 // started game has, which are its definition's; ViewFrame.YOffset, which gave
 // the x offset; the sprite table, which the sprite cache writes in the game's live
 // copy (sizes, dynamic sprites, deleted sprites, flags), with Game::IsSpriteValid.
@@ -2001,6 +2002,284 @@ TEST_F(GameEntities, GlobalSpeechAnimationDelayIsSplitAtStart)
         EXPECT_EQ(c.Option, GetGameOption(OPT_GLOBALTALKANIMSPD));
         EXPECT_EQ(c.Loaded, game_def.Options[OPT_GLOBALTALKANIMSPD]);
     }
+}
+
+namespace
+{
+
+// A value as the field table prints it, with each run of more than three equal items of a list ("[a, b, ...]") written
+// once with its count: "[0 x200]". Another value is returned as it is.
+std::string CollapseRuns(const std::string &value)
+{
+    if (value.size() < 2 || value.front() != '[' || value.back() != ']')
+        return value;
+    // the items, split at the commas of the list's own level
+    std::vector<std::string> items;
+    int depth = 0;
+    bool quoted = false;
+    size_t from = 1;
+    for (size_t i = 1; i + 1 < value.size(); ++i)
+    {
+        const char c = value[i];
+        if (c == '"')
+            quoted = !quoted;
+        else if (quoted)
+            continue;
+        else if (c == '[' || c == '{' || c == '(')
+            depth++;
+        else if (c == ']' || c == '}' || c == ')')
+            depth--;
+        else if (c == ',' && depth == 0)
+        {
+            items.push_back(value.substr(from, i - from));
+            from = i + 2; // past ", "
+        }
+    }
+    if (from < value.size() - 1)
+        items.push_back(value.substr(from, value.size() - 1 - from));
+
+    std::string text = "[";
+    for (size_t i = 0; i < items.size();)
+    {
+        size_t run = 1;
+        while (i + run < items.size() && items[i + run] == items[i])
+            run++;
+        if (text.size() > 1)
+            text += ", ";
+        if (run > 3)
+        {
+            text += items[i] + " x" + std::to_string(run);
+        }
+        else
+        {
+            for (size_t k = 0; k < run; ++k)
+                text += (k > 0 ? ", " : "") + items[i];
+        }
+        i += run;
+    }
+    return text + "]";
+}
+
+// The fields of a game state, one line each, as PrintFields prints them ("Name: value"), the lists' runs collapsed
+// (CollapseRuns); the opaque fields are left out, as PrintFields leaves them
+std::string StateLines(const GameState &play)
+{
+    std::string text;
+    for (const FieldRow<GameState> &row : GameState::Fields())
+    {
+        if (row.Role == FieldRole::Opaque)
+            continue;
+        text += std::string(row.Name) + ": " + CollapseRuns(row.Ops->Print(row.Address(play)).GetCStr()) + "\n";
+    }
+    return text;
+}
+
+// The game state that engine_init_game_settings leaves in the fixture's game: what a new game has at its start. A
+// change of a member initializer of GameState, or of a value the start gives, changes this text.
+constexpr const char kStartedGameState[] = R"(UsedMode: 0
+UserInterfaceDisabledCount: 0
+GlobalScriptTimer: -1
+DebugMode: 1
+MessageTimeLeft: -1
+UsedInventory: 0
+TextReadingSpeed: 15
+GlobalSpeechAnimationDelay: 5
+InventoryItemWidth: 40
+InventoryItemHeight: 22
+TextShadowColor: -16777216
+SwapPortraitSide: 0
+SpeechTextWindowGui: -1
+FollowingRoomDelay: 150
+SkipDisplay: 3
+NoMultiLoopRepeat: 0
+InventoryActivated: 0
+NoTextBackgroundWhenVoice: 0
+MaxDialogOptionWidth: 180
+NoHighColorFadeIn: 0
+BackgroundSpeechGameSpeed: 0
+KeepBackgroundSpeechOnDisplay: 0
+UnfactorSpeechFromTextLength: 0
+SpeechMusicDrop: 60
+RunningCutsceneSkipStyle: 0
+FastForward: 0
+GameSpeedModifier: 0
+PreviousGameData: 0
+ReplayHotkeyUnused: -1
+DialogOptionsPaddingX: 3
+DialogOptionsPaddingY: 0
+NarratorSpeech: 1
+LipSyncSpeed: 15
+SpeechAnimationStopTimeMargin: 10
+DisableAntialiasing: 0
+TextReadingSpeedModifier: 0
+TextAlignment: 1
+SpeechBubbleWidth: 100
+MinDialogOptionWidth: 0
+DisableDialogParser: 0
+TopBarBackColor: -11513776
+TopBarTextColor: -16777216
+TopBarBorderColor: -11513776
+TopBarBorderWidth: 1
+TopBarY: 25
+ScreenshotWidth: 160
+ScreenshotHeight: 100
+TopBarFont: -1
+SpeechTextAlignment: 2
+AutoUseWalkToPoints: 1
+GreyOutInventory: 0
+SpeechSkipKey: 0
+AbortKey: 324
+FadeColorRed: 0
+FadeColorGreen: 0
+FadeColorBlue: 0
+ShowSingleDialogOption: 0
+KeepScreenDuringInstantTransition: 0
+ReadDialogOptionColor: -1
+DialogRequestResult: 0
+IsSpeechCustomPortraitPlacement: 0
+SpeechPortraitOffsetX: 0
+SpeechPortraitY: 0
+SpeechDisplayPostTimeMs: 0
+DialogOptionsHighlightColor: -176
+RandomSeed: 0
+PlayerRegionID: 0
+IsScreenFadedOut: 0
+CheckInteractionOnly: 0
+BgAnimWait: 0
+WaitCounter: 0
+WaitSkippedBy: 0
+WaitSkippedByData: 0
+MouseBounds: (0, 0)-(-1, -1)
+FadeEffect: 0
+AudioMasterVolume: 100
+ScreenFlip: 0
+SpeechVoiceMode: 1
+SpeechSkipStyle: 31
+AlwaysWaitForSpeechText: 0
+SpeechOverlayZOrder: 2147483647
+SpeechVolume: 255
+NormalFont: 0
+SpeechFont: 1
+StandardGuiTextHeight: 0
+WaitSkipType: 0
+SwapPortraitLastCharacter: -1
+SwapPortraitLastLastCharacter: -1
+ConversationDepth: 0
+ScreenTint: -1
+ParsedWords: []
+BadParsedWord: ""
+RoomChanges: 0
+IsMouseInputEnabled: 1
+IsMouseCursorShown: 1
+ShakeScreenDelay: 0
+ShakeScreenAmount: 0
+ShakeScreenLength: 0
+AmbientTintRed: 0
+AmbientTintGreen: 0
+AmbientTintBlue: 0
+AmbientTintLevel: 0
+AmbientTintLight: 0
+IsAmbientTintEnabled: 0
+SkipUntilCharacterStops: -1
+LastNamedLocation: (0, -1)
+LocationNameSaveCursor: (0, -1)
+RestoreCursorModeTo: -1
+RestoreCursorImageTo: -1
+CrossfadingOutChannel: 0
+CrossfadeStep: 0
+CrossfadeOutVolumePerStep: 0
+CrossfadeInitialVolumeOut: 0
+CrossfadingInChannel: 0
+CrossfadeInVolumePerStep: 0
+CrossfadeFinalVolumeIn: 0
+NewMusicQueueSize: 0
+NewMusicQueue: [{audioClipIndex: -1, priority: 0, repeat: 0} x10]
+LastParserEntry: [0 x200]
+GameName: ""
+GroundLevelAreasDisabled: 0
+NextScreenTransition: -1
+GammaAdjustment: 100
+TemporarilyTurnedOffCharacter: -1
+GuiDrawOrder: []
+DoOnceTokens: []
+MinimumTextDisplayTimeMs: 1000
+IgnoreUserInputAfterTextTimeoutMs: 500
+DefaultAudioTypeVolumes: [-1, -1, -1]
+DialogOptionsGuiX: -1
+DialogOptionsGuiY: -1
+DialogOptionsTextAlignment: 1
+DialogOptionsFont: -2
+DialogOptionsZOrder: 2147483647
+FaceDirectionRatio: 1
+GuiProperties: [{}, {}]
+GuiControlProperties: [[], [{}, {}] x6]
+HasSpeechVoice: 0
+IsSpeechVoiceBlocking: 0
+IsSpeechInPostState: 0
+OverlayCount: 0
+CompleteOverlayID: 0
+TextOverlayID: 0
+SpeechTextScriptHandle: 0
+SpeechPortraitScriptHandle: 0
+ShakeScreenOffsetY: 0
+GameErrorText: ""
+RBSwitches: [0, 1 x4]
+ScreenShaderID: 0
+ScreenShaderHandle: 0
+CursorShaderID: 0
+CursorShaderHandle: 0
+IgnoreUserInputUntilTime: 0
+ScriptTimers: {}
+)";
+
+// The fields in which the game state after engine_init_game_settings differs from a new GameState (DiffFields, "Name:
+// new != started"), in the fixture's game: the values that the game and the configuration decide, which a start from
+// the definition still has to give. A value of the game that equals the initializer in this game is not listed
+// (GameName, ShowSingleDialogOption, FaceDirectionRatio), nor is one that only the configuration's accessibility
+// options change, which the fixture leaves unset (TextReadingSpeed, MinimumTextDisplayTimeMs, SpeechVoiceMode,
+// SkipDisplay).
+constexpr const char kStartedGameStateFromTheGame[] = R"(DebugMode: 0 != 1
+GlobalSpeechAnimationDelay: 0 != 5
+TextShadowColor: 0 != -16777216
+SpeechTextWindowGui: 0 != -1
+NarratorSpeech: 0 != 1
+TopBarBackColor: 0 != -11513776
+TopBarTextColor: 0 != -16777216
+TopBarBorderColor: 0 != -11513776
+DialogOptionsHighlightColor: 0 != -176
+SpeechSkipStyle: 0 != 31
+DefaultAudioTypeVolumes: [] != [-1, -1, -1]
+GuiProperties: [] != [{}, {}]
+GuiControlProperties: [[], [], [], [], [], [], []] != [[], [{}, {}], [{}, {}], [{}, {}], [{}, {}], [{}, {}], [{}, {}]]
+RBSwitches: [0, 0, 0, 0, 0] != [0, 1, 1, 1, 1]
+)";
+
+} // namespace
+
+// The whole game state after engine_init_game_settings, field by field, against the text kept above. RandomSeed (the
+// clock) and IgnoreUserInputUntilTime (a point in real time) are given fixed values before the print.
+TEST_F(GameEntities, StartedGameStateIsAsPinned)
+{
+    Game &game = Game::Current();
+    RunEngineInitGameSettings();
+    game.Play.RandomSeed = 0;
+    game.Play.IgnoreUserInputUntilTime = {};
+    EXPECT_EQ(kStartedGameState, StateLines(game.Play));
+}
+
+// A new GameState is the started one but for the values that the game and the configuration decide: the member
+// initializers hold the constants of a new game. RandomSeed and IgnoreUserInputUntilTime (the clock) are made equal.
+TEST_F(GameEntities, NewGameStateDiffersFromTheStartedOneByTheGame)
+{
+    Game &game = Game::Current();
+    RunEngineInitGameSettings();
+    GameState fresh;
+    fresh.RandomSeed = game.Play.RandomSeed;
+    fresh.IgnoreUserInputUntilTime = game.Play.IgnoreUserInputUntilTime;
+    std::string lines;
+    for (const String &line : DiffFields(fresh, game.Play))
+        lines += std::string(line.GetCStr()) + "\n";
+    EXPECT_EQ(kStartedGameStateFromTheGame, lines);
 }
 
 // A started game's items, cursors, view frames, dialog options, audio types, options and values are its definition's:

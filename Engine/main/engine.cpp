@@ -736,9 +736,9 @@ void engine_init_game_settings()
             game.PlayerChar->set_item_quantity(i, 1);
     }
 
-    //
-    // TODO: following big initialization sequence could be in GameState ctor
-    // copy the value set by the editor: it holds a flag and a delay; the live option keeps the flag, the definition
+    // The game state's values that the game and the configuration decide; GameState's member initializers hold the
+    // constants that a new game starts with.
+    // Copy the value set by the editor: it holds a flag and a delay; the live option keeps the flag, the definition
     // (Def().Options) the value as the game file gives it
     if (game.Options[OPT_GLOBALTALKANIMSPD] >= 0)
     {
@@ -750,26 +750,8 @@ void engine_init_game_settings()
         game.Play.GlobalSpeechAnimationDelay = -game.Options[OPT_GLOBALTALKANIMSPD] - 1;
         game.Options[OPT_GLOBALTALKANIMSPD] = 0;
     }
-    game.Play.InventoryItemWidth = 40;
-    game.Play.InventoryItemHeight = 22;
-    game.Play.MessageTimeLeft = -1;
-    game.Play.UserInterfaceDisabledCount = 0;
-    game.Play.GlobalScriptTimer = -1;
     game.Play.DebugMode = game.Options[OPT_DEBUGMODE];
-    game.Play.TextReadingSpeed = 15;
-    game.Play.MinimumTextDisplayTimeMs = 1000;
-    game.Play.IgnoreUserInputAfterTextTimeoutMs = 500;
     game.Play.ClearIgnoreInput();
-    game.Play.LipSyncSpeed = 15;
-    game.Play.SpeechAnimationStopTimeMargin = 10;
-    game.Play.DisableAntialiasing = 0;
-    game.Play.IsAmbientTintEnabled = false;
-    game.Play.AmbientTintLevel = 0;
-    game.Play.AmbientTintLight = 0;
-    game.Play.TextReadingSpeedModifier = 0;
-    game.Play.TextAlignment = kHAlignLeft;
-    game.Play.SpeechTextAlignment = kHAlignCenter;
-    game.Play.DialogOptionsTextAlignment = kHAlignLeft;
     // Make the default text alignment to the right with right-to-left text;
     // except speech text, which is centered by default
     if (game.Options[OPT_RIGHTLEFTWRITE])
@@ -779,103 +761,24 @@ void engine_init_game_settings()
             game.Play.DialogOptionsTextAlignment = kHAlignRight;
     }
 
-    game.Play.SpeechBubbleWidth = 100;
     room.BgFrame = 0;
     room.BgFrameLocked = 0;
-    game.Play.BgAnimWait = 0;
     room.AnimBackgroundDelay = 0;
-    game.Play.IsMouseInputEnabled = true;
-    game.Play.IsMouseCursorShown = true;
-    game.Play.SkipUntilCharacterStops = -1;
-    game.Play.LastNamedLocation = {};
-    game.Play.LocationNameSaveCursor = {};
-    game.Play.RestoreCursorModeTo = -1;
-    game.Play.RestoreCursorImageTo = -1;
-    game.Play.GroundLevelAreasDisabled = 0;
-    game.Play.NextScreenTransition = -1;
-    game.Play.TemporarilyTurnedOffCharacter = -1;
-    game.Play.GammaAdjustment = 100;
-    game.Play.ShakeScreenLength = 0;
-    game.Play.WaitCounter = 0;
-    game.Play.SetWaitSkipResult(SKIP_NONE);
-    game.Play.WaitSkipType = SKIP_NONE;
-    game.Play.AudioMasterVolume = 100;
-    game.Play.ScreenFlip = 0;
-    game.Play.SpeechVoiceMode = kSpeech_VoiceText;
     game.Play.SpeechSkipStyle = user_to_internal_skip_speech((SkipSpeechStyle)game.Options[OPT_NOSKIPTEXT]);
-    game.Play.SpeechVolume = 255;
-    game.Play.NormalFont = 0;
-    game.Play.SpeechFont = 1;
     game.Play.TextShadowColor = GUI::GetStandardColor(16);
-    game.Play.ScreenTint = -1;
-    game.Play.BadParsedWord.Empty();
-    game.Play.SwapPortraitSide = 0;
-    game.Play.SwapPortraitLastCharacter = -1;
-    game.Play.SwapPortraitLastLastCharacter = -1;
-    game.Play.ConversationDepth = 0;
-    game.Play.SkipDisplay = kSkipSpeechKeyMouse;
-    game.Play.NoMultiLoopRepeat = 0;
-    game.Play.RunningCutsceneSkipStyle = 0;
-    game.Play.FastForward = 0;
     room.ScriptFinished = 0;
-    game.Play.NoTextBackgroundWhenVoice = 0;
-    game.Play.MaxDialogOptionWidth = 180;
-    game.Play.NoHighColorFadeIn = 0;
-    game.Play.BackgroundSpeechGameSpeed = 0;
-    game.Play.KeepBackgroundSpeechOnDisplay = 0;
-    game.Play.UnfactorSpeechFromTextLength = 0;
-    game.Play.SpeechMusicDrop = 60;
-    game.Play.RoomChanges = 0;
-    game.Play.CheckInteractionOnly = 0;
-    game.Play.ReplayHotkeyUnused = -1; // StartRecording: not supported.
-    game.Play.DialogOptionsPaddingX = TEXTWINDOW_PADDING_DEFAULT;
-    game.Play.DialogOptionsPaddingY = 0; // no Y padding by default
-    game.Play.DialogOptionsFont = FONT_UNDEFINED;
-    game.Play.MinDialogOptionWidth = 0;
-    game.Play.DisableDialogParser = 0;
-    game.Play.IsScreenFadedOut = false;
-    game.Play.PlayerRegionID = 0;
     game.Play.TopBarBackColor = GUI::GetStandardColor(8);
     game.Play.TopBarTextColor = GUI::GetStandardColor(16);
     game.Play.TopBarBorderColor = GUI::GetStandardColor(8);
-    game.Play.TopBarBorderWidth = 1;
-    game.Play.TopBarY = 25;
-    game.Play.TopBarFont = -1;
-    game.Play.ScreenshotWidth = 160;
-    game.Play.ScreenshotHeight = 100;
-    game.Play.AutoUseWalkToPoints = 1;
-    game.Play.GreyOutInventory = 0;
-    game.Play.SpeechSkipKey = 0;
-    game.Play.AbortKey = 324; // Alt+X
-    game.Play.FadeColorRed = 0;
-    game.Play.FadeColorGreen = 0;
-    game.Play.FadeColorBlue = 0;
     game.Play.ShowSingleDialogOption = game.Options[OPT_DISPLAYSINGLEDIALOGOPTION];
-    game.Play.KeepScreenDuringInstantTransition = 0;
-    game.Play.ReadDialogOptionColor = -1;
-    game.Play.DialogRequestResult = DIALOG_NONE;
-    game.Play.IsSpeechCustomPortraitPlacement = 0;
-    game.Play.SpeechPortraitOffsetX = 0;
-    game.Play.SpeechPortraitY = 0;
-    game.Play.SpeechDisplayPostTimeMs = 0;
     game.Play.DialogOptionsHighlightColor = GUI::GetStandardColor(DIALOG_OPTIONS_HIGHLIGHT_COLOR_DEFAULT);
-    game.Play.HasSpeechVoice = false;
-    game.Play.IsSpeechVoiceBlocking = false;
-    game.Play.IsSpeechInPostState = false;
-    game.Play.CompleteOverlayID = 0;
-    game.Play.TextOverlayID = 0;
     game.Play.NarratorSpeech = game.PlayerCharacterID;
-    game.Play.CrossfadingOutChannel = 0;
     game.Play.SpeechTextWindowGui = game.Options[OPT_TWCUSTOM];
     if (game.Play.SpeechTextWindowGui == 0)
         game.Play.SpeechTextWindowGui = -1;
     game.Play.GameName = game_def.Name;
-    game.Play.LastParserEntry[0] = 0;
-    game.Play.FollowingRoomDelay = 150;
-    game.Play.GameSpeedModifier = 0;
     if (services.Debug.Flags & DBG_DEBUGMODE)
         game.Play.DebugMode = 1;
-    game.Play.ShakeScreenOffsetY = 0;
     game.Play.FaceDirectionRatio = game_def.FaceDirectionRatio;
 
     GUI::DataVersion = game.LoadedDataVersion;
@@ -904,9 +807,9 @@ void engine_init_game_settings()
         (game.Options[OPT_RENDERATSCREENRES] == kRenderAtScreenRes_UserDefined && services.Config.RenderAtScreenRes) ||
         game.Options[OPT_RENDERATSCREENRES] == kRenderAtScreenRes_Enabled;
 
-    // TODO: InitGameState already applies these once, but the defaults set above come after it
-    // and overwrite part of them; the default game settings are spread across several
-    // functions, and this repeated call stays until they are gathered in one place.
+    // TODO: InitGameState already applies these once, but the game's speech skip style, set above, comes after it and
+    // overwrites the configuration's; the game's starting values are spread across several functions, and this
+    // repeated call stays until they are gathered in one place (PLAN.md 5.11 step 1).
     ApplyAccessibilityOptions(game.Play, services.Config);
     // Applies behavior options, also hacks and backwards compatibility fixes
     ApplyBehaviorOptions(game.Play, services.Config);

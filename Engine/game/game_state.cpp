@@ -185,7 +185,7 @@ constexpr FieldRow<GameState> kGameStateFields[] = {
     Field<&GameState::StandardGuiTextHeight>("StandardGuiTextHeight", FieldRole::Derived),
     Field<&GameState::WaitSkipType>("WaitSkipType"),
     Field<&GameState::SwapPortraitLastCharacter>("SwapPortraitLastCharacter"),
-    // the speech portrait's side; a restore sets it to -1 (unload_old_room), not the initializer (0)
+    // the speech portrait's side; a restore sets it to -1 (unload_old_room), the initializer
     Field<&GameState::SwapPortraitLastLastCharacter>("SwapPortraitLastLastCharacter", FieldRole::Transient),
     Field<&GameState::ConversationDepth>("ConversationDepth"),
     Field<&GameState::ScreenTint>("ScreenTint"),
