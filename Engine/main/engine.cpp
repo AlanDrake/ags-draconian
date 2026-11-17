@@ -636,9 +636,9 @@ HError engine_init_sprites()
     return HError::None();
 }
 
-// Sets the runtime game state defaults and applies the game options to it
-// TODO: this should not be a part of "engine_" function group,
-// move this elsewhere (InitGameState?).
+// Sets up the engine for the game that InitGameState started (StartGameValues gave the game its starting values): the
+// randomizer, the audio packs, the text format, the game's palette and the screen's, the precached graphics, the
+// room's starting values, the GUI options, the translation, the inventory lists, the game speed
 void engine_init_game_settings()
 {
     EngineServices &services = EngineServices::Current();
@@ -675,9 +675,10 @@ void engine_init_game_settings()
     if (game.Options[OPT_GAMETEXTENCODING] != 65001)
         Debug::Printf(kDbgMsg_Warn, "WARNING: game's text encoding is not UTF-8, and may be displayed incorrectly");
 
-    int i;
-
-    for (i = 0; i < 256; i++)
+    // The palette stays here, after the graphics mode and the preload image: the Direct3D and OpenGL drivers draw an
+    // 8-bit game's preload image (show_preload) with the game's palette (SetIndexedPalette keeps its address), which is
+    // still all black there at the first start; a plugin's startup (pl_startup_plugins) can read it (GetPalette)
+    for (int i = 0; i < 256; i++)
     {
         if (game_def.PaletteUses[i] != PAL_BACKGROUND)
             game.Palette[i] = game_def.DefaultPalette[i];
@@ -685,7 +686,7 @@ void engine_init_game_settings()
     // Allegro's palette starts all black; colours are matched against it (makecol8)
     setpal();
 
-    for (i = 0; i < game_def.MouseCursorCount; i++)
+    for (int i = 0; i < game_def.MouseCursorCount; i++)
     {
         // The cursor graphics are assigned to mousecurs[] and so cannot
         // be removed from memory
@@ -701,85 +702,13 @@ void engine_init_game_settings()
         precache_view(game.PlayerChar->View, 0, Character_GetDiagonalWalking(game.PlayerChar) ? 8 : 4);
 
     set_our_eip(-6);
-
-    for (i = 0; i < MAX_ROOM_OBJECTS; i++)
-    {
-        game.ScObjects[i].id = i;
-    }
-
-    for (i = 0; i < game_def.CharacterCount; i++)
-    {
-        game.Characters[i].ActiveInventory = -1;
-        game.Characters[i].IdleTimeLeft = game.Characters[i].IdleDelay;
-        game.Characters[i].WalkWaitCounter = 0;
-        game.Characters[i].Z = 0;
-        game.Characters[i].FullStepX = INVALID_X;
-        game.Characters[i].Zoom = 100;
-        if (game.Characters[i].View >= 0)
-        {
-            // set initial loop to 0
-            game.Characters[i].Loop = 0;
-            // or to 1 if they don't have up/down frames
-            if (game.Views[game.Characters[i].View].Loops[0].FrameCount < 1)
-                game.Characters[i].Loop = 1;
-        }
-        game.Characters[i].ProcessIdleThisTime = false;
-        game.Characters[i].SlowMoveCounter = 0;
-        game.Characters[i].WalkAnimWait = 0;
-    }
-
     set_our_eip(-5);
-    // Add all inventory items with "starts with" flag to the player character
-    for (i = 0; i < game_def.InventoryItemCount; i++)
-    {
-        if (game.InventoryItems[i].Flags & IFLG_STARTWITH)
-            game.PlayerChar->set_item_quantity(i, 1);
-    }
 
-    // The game state's values that the game and the configuration decide; GameState's member initializers hold the
-    // constants that a new game starts with.
-    // Copy the value set by the editor: it holds a flag and a delay; the live option keeps the flag, the definition
-    // (Def().Options) the value as the game file gives it
-    if (game.Options[OPT_GLOBALTALKANIMSPD] >= 0)
-    {
-        game.Play.GlobalSpeechAnimationDelay = game.Options[OPT_GLOBALTALKANIMSPD];
-        game.Options[OPT_GLOBALTALKANIMSPD] = 1;
-    }
-    else
-    {
-        game.Play.GlobalSpeechAnimationDelay = -game.Options[OPT_GLOBALTALKANIMSPD] - 1;
-        game.Options[OPT_GLOBALTALKANIMSPD] = 0;
-    }
-    game.Play.DebugMode = game.Options[OPT_DEBUGMODE];
     game.Play.ClearIgnoreInput();
-    // Make the default text alignment to the right with right-to-left text;
-    // except speech text, which is centered by default
-    if (game.Options[OPT_RIGHTLEFTWRITE])
-    {
-        game.Play.TextAlignment = kHAlignRight;
-        if (game.Play.GetRBSwitches()[kRBO_ApplyDialogOptionTextAlignment])
-            game.Play.DialogOptionsTextAlignment = kHAlignRight;
-    }
-
     room.BgFrame = 0;
     room.BgFrameLocked = 0;
     room.AnimBackgroundDelay = 0;
-    game.Play.SpeechSkipStyle = user_to_internal_skip_speech((SkipSpeechStyle)game.Options[OPT_NOSKIPTEXT]);
-    game.Play.TextShadowColor = GUI::GetStandardColor(16);
     room.ScriptFinished = 0;
-    game.Play.TopBarBackColor = GUI::GetStandardColor(8);
-    game.Play.TopBarTextColor = GUI::GetStandardColor(16);
-    game.Play.TopBarBorderColor = GUI::GetStandardColor(8);
-    game.Play.ShowSingleDialogOption = game.Options[OPT_DISPLAYSINGLEDIALOGOPTION];
-    game.Play.DialogOptionsHighlightColor = GUI::GetStandardColor(DIALOG_OPTIONS_HIGHLIGHT_COLOR_DEFAULT);
-    game.Play.NarratorSpeech = game.PlayerCharacterID;
-    game.Play.SpeechTextWindowGui = game.Options[OPT_TWCUSTOM];
-    if (game.Play.SpeechTextWindowGui == 0)
-        game.Play.SpeechTextWindowGui = -1;
-    game.Play.GameName = game_def.Name;
-    if (services.Debug.Flags & DBG_DEBUGMODE)
-        game.Play.DebugMode = 1;
-    game.Play.FaceDirectionRatio = game_def.FaceDirectionRatio;
 
     GUI::DataVersion = game.LoadedDataVersion;
     GUI::Options.DisabledStyle = static_cast<GuiDisableStyle>(game.Options[OPT_DISABLEOFF]);
@@ -788,13 +717,11 @@ void engine_init_game_settings()
     GUIE::MarkForFontUpdate(-1);
 
     memset(&room.WalkableAreasOn[0], 1, MAX_WALK_AREAS);
-    game.Play.DefaultAudioTypeVolumes.resize(game.AudioClipTypes.size(), -1);
 
     if (!services.Config.Translation.IsEmpty())
         Game_ChangeTranslation(services.Config.Translation.GetCStr());
 
     UpdateInventory();
-    game.DisplayedRoom = -10;
 
     set_our_eip(-4);
     services.Input.MouseY = 100; // stop icon bar popping up
@@ -807,12 +734,6 @@ void engine_init_game_settings()
         (game.Options[OPT_RENDERATSCREENRES] == kRenderAtScreenRes_UserDefined && services.Config.RenderAtScreenRes) ||
         game.Options[OPT_RENDERATSCREENRES] == kRenderAtScreenRes_Enabled;
 
-    // TODO: InitGameState already applies these once, but the game's speech skip style, set above, comes after it and
-    // overwrites the configuration's; the game's starting values are spread across several functions, and this
-    // repeated call stays until they are gathered in one place (PLAN.md 5.11 step 1).
-    ApplyAccessibilityOptions(game.Play, services.Config);
-    // Applies behavior options, also hacks and backwards compatibility fixes
-    ApplyBehaviorOptions(game.Play, services.Config);
     PrintBehaviorOptions(game.Play);
 }
 

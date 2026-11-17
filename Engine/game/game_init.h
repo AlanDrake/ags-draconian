@@ -61,10 +61,18 @@ HGameInitError InitGameState(const Common::LoadedGameEntities &ents, GameDataVer
 // inventory items, mouse cursors, audio clips, audio clip types, views and dialogs, the game options and the values
 // that the script changes. The first step of InitGameState; the elements' addresses are registered after it.
 void StartFromDefinitions(Game &game);
+// Gives a game the rest of its starting state, after its live copies (StartFromDefinitions) and their registration:
+// every value of its play state, its options and its characters that the definition, the configuration and the
+// engine's debug mode (debug_mode: the command line's --test) decide, and the constants that the members' initializers
+// do not give (a Game is started again by the reload for a restore, which does not build it again). Writes nothing but
+// the game. Reads the game, its definition, the configuration, and two values outside them: the height of font 0 (the
+// font module: the game's fonts must be loaded) and the GUI's colour depth (GUI::GetStandardColor: InitGameState sets
+// it from the definition before). InitGameState calls it once the fonts are loaded.
+void StartGameValues(Game &game, const EngineConfig &config, bool debug_mode);
 // Applies accessibility options, some of them may override game settings
 void ApplyAccessibilityOptions(GameState &play, const EngineConfig &setup);
-// Applies configurable behavior options for this game, which are the runtime behavior switches
-// (the engine's defaults, plus the overrides from the config)
+// Applies configurable behavior options for this game, which are the runtime behavior switches (the engine's
+// defaults, plus the overrides from the config); the caller gives the GUIs the text direction switch (GUI::Options)
 void ApplyBehaviorOptions(GameState &play, const EngineConfig &setup);
 // Prints behavior options to the log
 void PrintBehaviorOptions(const GameState &play);

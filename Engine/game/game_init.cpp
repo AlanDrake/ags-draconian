@@ -21,6 +21,7 @@
 
 #include "data/assetmanager.h"
 #include "debug/debug_log.h"
+#include "debug/debugger.h"
 #include "debug/out.h"
 #include "font/agsfontrenderer.h"
 #include "font/fonts.h"
@@ -41,6 +42,7 @@
 #include "game/game_state.h"
 #include "game/inventory_item_def.h"
 #include "game/render/draw.h"
+#include "game/runtime_defines.h"
 #include "game/script.h"
 #include "game/script_api/exports.h"
 #include "game/translation.h"
@@ -541,6 +543,93 @@ void StartFromDefinitions(Game &game)
     game.DefaultLipSyncFrame = game_def.DefaultLipSyncFrame;
 }
 
+void StartGameValues(Game &game, const EngineConfig &config, bool debug_mode)
+{
+    const GameDef &game_def = game.Def();
+    // the lists of the custom property values that the script sets during play, one per GUI and per control
+    game.Play.GuiProperties.resize(game_def.GuiCount);
+    game.Play.GuiControlProperties[kGUIButton].resize(game.GuiButtons.size());
+    game.Play.GuiControlProperties[kGUILabel].resize(game.GuiLabels.size());
+    game.Play.GuiControlProperties[kGUIInvWindow].resize(game.GuiInvWindows.size());
+    game.Play.GuiControlProperties[kGUISlider].resize(game.GuiSliders.size());
+    game.Play.GuiControlProperties[kGUITextBox].resize(game.GuiTextBoxes.size());
+    game.Play.GuiControlProperties[kGUIListBox].resize(game.GuiListBoxes.size());
+    // the members' initializers, given again: unload_game does not reset them before the reload for a restore
+    game.Paused = 0;
+    game.IfacePopped = -1;
+    game.DisplayedRoom = -10;
+    game.Play.FadeEffect = game.Options[OPT_FADETYPE];
+    game.Play.StandardGuiTextHeight = get_font_height_outlined(0) + 1;
+    if (game_def.GameInfo.count("dev_error_text") > 0)
+        game.Play.SetGameErrorText(game_def.GameInfo.at("dev_error_text"));
+
+    // The characters' play state that their definitions and views decide. A new Character has the constants
+    // (CharacterState's initializers) but the full-step marker: FullStepX starts at 0 in the characters that the
+    // tests build without a start
+    for (int i = 0; i < game_def.CharacterCount; i++)
+    {
+        Character &ch = game.Characters[i];
+        ch.IdleTimeLeft = ch.IdleDelay;
+        ch.FullStepX = INVALID_X;
+        if (ch.View >= 0)
+        {
+            // set initial loop to 0
+            ch.Loop = 0;
+            // or to 1 if they don't have up/down frames
+            if (game.Views[ch.View].Loops[0].FrameCount < 1)
+                ch.Loop = 1;
+        }
+    }
+    // Add all inventory items with "starts with" flag to the player character
+    for (int i = 0; i < game_def.InventoryItemCount; i++)
+    {
+        if (game.InventoryItems[i].Flags & IFLG_STARTWITH)
+            game.Characters[game.PlayerCharacterID].set_item_quantity(i, 1);
+    }
+
+    // Copy the value set by the editor: it holds a flag and a delay; the live option keeps the flag, the definition
+    // (Def().Options) the value as the game file gives it
+    if (game.Options[OPT_GLOBALTALKANIMSPD] >= 0)
+    {
+        game.Play.GlobalSpeechAnimationDelay = game.Options[OPT_GLOBALTALKANIMSPD];
+        game.Options[OPT_GLOBALTALKANIMSPD] = 1;
+    }
+    else
+    {
+        game.Play.GlobalSpeechAnimationDelay = -game.Options[OPT_GLOBALTALKANIMSPD] - 1;
+        game.Options[OPT_GLOBALTALKANIMSPD] = 0;
+    }
+    game.Play.DebugMode = game.Options[OPT_DEBUGMODE];
+    if (debug_mode)
+        game.Play.DebugMode = 1;
+    // the behaviour switches before the alignments, which read them
+    ApplyBehaviorOptions(game.Play, config);
+    // Make the default text alignment to the right with right-to-left text;
+    // except speech text, which is centered by default
+    if (game.Options[OPT_RIGHTLEFTWRITE])
+    {
+        game.Play.TextAlignment = kHAlignRight;
+        if (game.Play.GetRBSwitches()[kRBO_ApplyDialogOptionTextAlignment])
+            game.Play.DialogOptionsTextAlignment = kHAlignRight;
+    }
+    game.Play.SpeechSkipStyle = user_to_internal_skip_speech((SkipSpeechStyle)game.Options[OPT_NOSKIPTEXT]);
+    game.Play.TextShadowColor = GUI::GetStandardColor(16);
+    game.Play.TopBarBackColor = GUI::GetStandardColor(8);
+    game.Play.TopBarTextColor = GUI::GetStandardColor(16);
+    game.Play.TopBarBorderColor = GUI::GetStandardColor(8);
+    game.Play.ShowSingleDialogOption = game.Options[OPT_DISPLAYSINGLEDIALOGOPTION];
+    game.Play.DialogOptionsHighlightColor = GUI::GetStandardColor(DIALOG_OPTIONS_HIGHLIGHT_COLOR_DEFAULT);
+    game.Play.NarratorSpeech = game.PlayerCharacterID;
+    game.Play.SpeechTextWindowGui = game.Options[OPT_TWCUSTOM];
+    if (game.Play.SpeechTextWindowGui == 0)
+        game.Play.SpeechTextWindowGui = -1;
+    game.Play.GameName = game_def.Name;
+    game.Play.FaceDirectionRatio = game_def.FaceDirectionRatio;
+    game.Play.DefaultAudioTypeVolumes.resize(game.AudioClipTypes.size(), -1);
+    // the configuration's accessibility options last: they may replace the game's speech skip style
+    ApplyAccessibilityOptions(game.Play, config);
+}
+
 HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion data_ver)
 {
     EngineServices &services = EngineServices::Current();
@@ -580,13 +669,6 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     GUIRefCollection gui_control_refs(game.GuiButtons, game.GuiInvWindows, game.GuiLabels, game.GuiListBoxes,
                                       game.GuiSliders, game.GuiTextBoxes);
     GUI::RebuildGUI(game.Guis, gui_control_refs);
-    game.Play.GuiProperties.resize(game_def.GuiCount);
-    game.Play.GuiControlProperties[kGUIButton].resize(game.GuiButtons.size());
-    game.Play.GuiControlProperties[kGUILabel].resize(game.GuiLabels.size());
-    game.Play.GuiControlProperties[kGUIInvWindow].resize(game.GuiInvWindows.size());
-    game.Play.GuiControlProperties[kGUISlider].resize(game.GuiSliders.size());
-    game.Play.GuiControlProperties[kGUITextBox].resize(game.GuiTextBoxes.size());
-    game.Play.GuiControlProperties[kGUIListBox].resize(game.GuiListBoxes.size());
     HError err = InitAndRegisterGameEntities(game, ents);
     if (!err)
         return new GameInitError(err, kGameInitErr_EntityInitFail);
@@ -596,20 +678,17 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     //
     // 3. Initialize certain runtime variables
     //
-    // TODO: merge this with engine_init_game_settings()
-    game.Paused = 0; // reset the game paused flag
-    game.IfacePopped = -1;
+    // The game's starting values: after the registration, which writes the characters' loop (InitAndRegisterCharacters),
+    // and after the fonts, whose height one of them takes. The palette is not among them: engine_init_game_settings
+    // copies it (see there).
+    StartGameValues(game, services.Config, (services.Debug.Flags & DBG_DEBUGMODE) != 0);
 
     String svg_suffix;
     if (game_def.SaveGameFileExtension[0] != 0)
         svg_suffix.Format(".%s", game_def.SaveGameFileExtension);
     set_save_game_suffix(svg_suffix);
 
-    game.Play.FadeEffect = game.Options[OPT_FADETYPE];
-    game.Play.StandardGuiTextHeight = get_font_height_outlined(0) + 1;
     SetGameTextLanguage(game_def.GameTextLanguage);
-    if (game_def.GameInfo.count("dev_error_text") > 0)
-        game.Play.SetGameErrorText(game_def.GameInfo.at("dev_error_text"));
     SetBaseTextParser(CreateTextParser(game_def.ParserDictionary.get(), true, services.TextLocaleName));
     SetTranslationTextParser(CreateTextParser(game_def.ParserDictionary.get(), true, services.TextLocaleName));
 
@@ -654,11 +733,8 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     if (!err)
         return new GameInitError(err, kGameInitErr_ScriptInitFailed);
 
-    // Apply accessibility options, must be done last, because some
-    // may override startup game settings.
-    ApplyAccessibilityOptions(game.Play, services.Config);
-    // Applies behavior options (the runtime behavior switches)
-    ApplyBehaviorOptions(game.Play, services.Config);
+    // the GUIs follow the game's text direction switch (StartGameValues)
+    GUI::Options.ApplyTextDirection = game.Play.GetRBSwitches()[kRBO_ApplyGUITextDirection];
 
     // Optionally dump joint RTTI into the log
     if (services.LogScriptRTTI && RuntimeScript::GetJointRTTI())
@@ -713,8 +789,6 @@ void ApplyBehaviorOptions(GameState &play, const EngineConfig &setup)
         behavior_switches[i] |= setup.BehaviorOverrides[i];
     }
     play.SetRBSwitches(behavior_switches);
-
-    GUI::Options.ApplyTextDirection = play.GetRBSwitches()[kRBO_ApplyGUITextDirection];
 }
 
 void PrintBehaviorOptions(const GameState &play)

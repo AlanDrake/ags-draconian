@@ -181,7 +181,7 @@ constexpr FieldRow<GameState> kGameStateFields[] = {
     Field<&GameState::SpeechVolume>("SpeechVolume"),
     Field<&GameState::NormalFont>("NormalFont"),
     Field<&GameState::SpeechFont>("SpeechFont"),
-    // the height of font 0 (InitGameState)
+    // the height of font 0 (StartGameValues)
     Field<&GameState::StandardGuiTextHeight>("StandardGuiTextHeight", FieldRole::Derived),
     Field<&GameState::WaitSkipType>("WaitSkipType"),
     Field<&GameState::SwapPortraitLastCharacter>("SwapPortraitLastCharacter"),
@@ -257,7 +257,7 @@ constexpr FieldRow<GameState> kGameStateFields[] = {
     Field<&GameState::SpeechPortraitScriptHandle>("SpeechPortraitScriptHandle", FieldRole::Transient),
     // from the shake's fields and the loop counter, at every update (update_shakescreen)
     Field<&GameState::ShakeScreenOffsetY>("ShakeScreenOffsetY", FieldRole::Derived),
-    // the game's "dev_error_text", translated (InitGameState, a change of translation)
+    // the game's "dev_error_text", translated (StartGameValues, a change of translation)
     Field<&GameState::GameErrorText>("GameErrorText", FieldRole::Derived),
     // from the engine's configuration (ApplyBehaviorOptions, which a restore calls)
     Field<&GameState::RBSwitches>("RBSwitches", FieldRole::Derived),

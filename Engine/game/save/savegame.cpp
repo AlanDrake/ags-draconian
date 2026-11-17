@@ -872,6 +872,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
     ApplyAccessibilityOptions(game.Play, services.Config);
     // Applies behavior options, also hacks and backwards compatibility fixes
     ApplyBehaviorOptions(game.Play, services.Config);
+    GUI::Options.ApplyTextDirection = game.Play.GetRBSwitches()[kRBO_ApplyGUITextDirection];
 
     game.Play.ClearIgnoreInput(); // don't keep ignored input after save restore
     update_polled_stuff();

@@ -20,9 +20,11 @@
 // frames and of the inventory items, and of every field of the items, cursors,
 // views, dialogs and audio types by their definitions' field
 // tables (the saved ones restored, the others the definition's), and of the items' and the dialogs' play state by
-// theirs; the fix-up that engine_init_game_settings
-// makes at start (the loader's are Common's GameLoader tests), and the whole
-// game state it leaves, field by field, against a new GameState; the values a
+// theirs; the fix-up that the start makes (StartGameValues; the loader's are
+// Common's GameLoader tests), and the whole game state, the characters, the
+// options and the palette that the start leaves, field by field, the game state
+// against a new GameState; a second Game started on the same definition while
+// the first runs; the values a
 // started game has, which are its definition's; ViewFrame.YOffset, which gave
 // the x offset; the sprite table, which the sprite cache writes in the game's live
 // copy (sizes, dynamic sprites, deleted sprites, flags), with Game::IsSpriteValid.
@@ -625,7 +627,7 @@ private:
 // - Game::Current(), Room::Current(), EngineServices::Current(): the fixture's own
 // - the managed pool (pool): the audio clips and the script strings that the getters return
 // - the script error state (cc_get_error)
-// The tests that call engine_init_game_settings reset the globals it sets (RunEngineInitGameSettings). StartGame sets
+// The tests that call engine_init_game_settings reset the globals it sets (FinishStart). StartGame sets
 // GUI::Options.ClipControls while it links the GUIs, and puts it back. RestoreIntoTheRunningGame runs DoBeforeRestore,
 // which empties the engine's overlays, drawing caches, button animations and managed pool, all empty in these tests.
 class GameEntities : public ::testing::Test
@@ -760,6 +762,30 @@ protected:
 
         MakeGuis(def);
         MakeCustomProperties(def);
+    }
+
+    // The definition of the pinned start (StartedGameIsAsPinned): MakeDefinition's, with what the start reads of it
+    // besides the game state's values: a character whose view's first loop has frames and one whose view's first loop
+    // has none (the starting loop), an idle delay, two items that the player starts with, a global speech animation
+    // delay with its flag off, the game's error text, and a palette whose middle entries are the rooms' backgrounds
+    static void MakeStartDefinition(GameDef &def)
+    {
+        MakeDefinition(def);
+        def.Characters[0].View = kFramedView;
+        def.Characters[2].View = kEmptyView;
+        def.Characters[2].IdleDelay = 7;
+        def.InventoryItems[0].Flags = IFLG_STARTWITH;
+        def.InventoryItems[2].Flags = IFLG_STARTWITH;
+        def.Options[OPT_GLOBALTALKANIMSPD] = -3;
+        def.GameInfo["dev_error_text"] = "Something went wrong";
+        for (int i = 0; i < 256; ++i)
+        {
+            const bool background = i >= 16 && i < 240;
+            def.PaletteUses[i] = background ? PAL_BACKGROUND : PAL_GAMEWIDE;
+            def.DefaultPalette[i].r = static_cast<unsigned char>(i < 16 ? 10 : (background ? 40 : 1));
+            def.DefaultPalette[i].g = static_cast<unsigned char>(i < 16 ? 20 : (background ? 50 : 2));
+            def.DefaultPalette[i].b = static_cast<unsigned char>(i < 16 ? 30 : (background ? 60 : 3));
+        }
     }
 
     // The GUIs of MakeDefinition, as the loader reads them: each GUI's references to its controls in the six control
@@ -1050,11 +1076,15 @@ protected:
         EXPECT_EQ(static_cast<uint32_t>(SPF_KEEPDEPTH), game.SpriteInfos[kKeepDepthSprite].Flags);
     }
 
-    // Runs engine_init_game_settings, and puts back the globals it sets outside the fixture's contexts: the GUI
-    // options, the GUI data version, Allegro's palette and text format. The GUI's colour depth is set for it, as
-    // InitGameState sets it before (GUI::GetStandardColor asserts it).
-    static void RunEngineInitGameSettings()
+    // Finishes the start as the engine does after what the fixture's start (StartGame) does of InitGameState: the
+    // game's starting values (StartGameValues, with no fonts loaded: font 0 is 0 high), then engine_init_game_settings.
+    // Puts back the globals that the latter sets outside the fixture's contexts: the GUI options, the GUI data version,
+    // Allegro's palette and text format. The GUI's colour depth is set for them, as InitGameState sets it before
+    // (GUI::GetStandardColor asserts it).
+    static void FinishStart()
     {
+        Game &game = Game::Current();
+        const EngineServices &services = EngineServices::Current();
         const auto gui_options = GUI::Options;
         const GameDataVersion gui_data_version = GUI::DataVersion;
         const int gui_color_depth = GUI::Context.GameColorDepth;
@@ -1063,6 +1093,7 @@ protected:
         get_palette(palette);
 
         GUI::Context.GameColorDepth = 32;
+        StartGameValues(game, services.Config, false);
         engine_init_game_settings();
 
         set_palette_range(palette, 0, PAL_SIZE - 1, 0);
@@ -1979,7 +2010,7 @@ TEST_F(GameEntities, GameOptionsAndValuesComeBackFromASave)
 
 // The game file's global speech animation delay holds a flag and a delay: at start a value of 0 or more is the delay,
 // with the option on (1); a negative value -v is the delay v - 1, with the option off (0)
-// (engine_init_game_settings). The live option changes, the definition keeps the value of the game file.
+// (StartGameValues). The live option changes, the definition keeps the value of the game file.
 TEST_F(GameEntities, GlobalSpeechAnimationDelayIsSplitAtStart)
 {
     Game &game = Game::Current();
@@ -1997,7 +2028,7 @@ TEST_F(GameEntities, GlobalSpeechAnimationDelayIsSplitAtStart)
         MakeDefinition(Definition());
         Definition().Options[OPT_GLOBALTALKANIMSPD] = c.Loaded;
         StartGame();
-        RunEngineInitGameSettings();
+        FinishStart();
         EXPECT_EQ(c.Delay, game.Play.GlobalSpeechAnimationDelay);
         EXPECT_EQ(c.Option, GetGameOption(OPT_GLOBALTALKANIMSPD));
         EXPECT_EQ(c.Loaded, game_def.Options[OPT_GLOBALTALKANIMSPD]);
@@ -2060,21 +2091,59 @@ std::string CollapseRuns(const std::string &value)
     return text + "]";
 }
 
-// The fields of a game state, one line each, as PrintFields prints them ("Name: value"), the lists' runs collapsed
-// (CollapseRuns); the opaque fields are left out, as PrintFields leaves them
-std::string StateLines(const GameState &play)
+// The fields of an object by the rows of T's table, one line each, as PrintFields prints them ("Name: value") after a
+// prefix, the lists' runs collapsed (CollapseRuns); the opaque fields are left out, as PrintFields leaves them
+template <typename T>
+std::string FieldLines(const T &object, const std::string &prefix = std::string())
 {
     std::string text;
-    for (const FieldRow<GameState> &row : GameState::Fields())
+    for (const FieldRow<T> &row : T::Fields())
     {
         if (row.Role == FieldRole::Opaque)
             continue;
-        text += std::string(row.Name) + ": " + CollapseRuns(row.Ops->Print(row.Address(play)).GetCStr()) + "\n";
+        text += prefix + row.Name + ": " + CollapseRuns(row.Ops->Print(row.Address(object)).GetCStr()) + "\n";
     }
     return text;
 }
 
-// The game state that engine_init_game_settings leaves in the fixture's game: what a new game has at its start. A
+// The fields of a game state, one line each (FieldLines)
+std::string StateLines(const GameState &play)
+{
+    return FieldLines(play);
+}
+
+// The game's values that a start gives besides its game state, one line each: every field of every character by the
+// tables of its definition and its play state ("1 Loop: 0"), the options and the palette as lists, the runs collapsed
+// (CollapseRuns), the pause level, the pop-up GUI, the displayed room and the game's error text
+std::string StartedGameLines(const Game &game)
+{
+    std::string text;
+    for (size_t i = 0; i < game.Characters.size(); ++i)
+    {
+        const std::string prefix = std::to_string(i) + " ";
+        text += FieldLines<CharacterDef>(game.Characters[i], prefix);
+        text += FieldLines<CharacterState>(game.Characters[i], prefix);
+    }
+    std::string options = "[";
+    for (int opt = 0; opt < GameDef::MAX_OPTIONS; ++opt)
+        options += (opt > 0 ? ", " : "") + std::to_string(game.Options[opt]);
+    text += "Options: " + CollapseRuns(options + "]") + "\n";
+    std::string palette = "[";
+    for (int i = 0; i < 256; ++i)
+    {
+        const RGB &rgb = game.Palette[i];
+        palette += (i > 0 ? ", (" : "(") + std::to_string(rgb.r) + ", " + std::to_string(rgb.g) + ", " +
+                   std::to_string(rgb.b) + ")";
+    }
+    text += "Palette: " + CollapseRuns(palette + "]") + "\n";
+    text += "Paused: " + std::to_string(game.Paused) + "\n";
+    text += "IfacePopped: " + std::to_string(game.IfacePopped) + "\n";
+    text += "DisplayedRoom: " + std::to_string(game.DisplayedRoom) + "\n";
+    text += std::string("GameErrorText: ") + game.Play.GetGameErrorText().GetCStr() + "\n";
+    return text;
+}
+
+// The game state that the start leaves in the fixture's game (FinishStart): what a new game has at its start. A
 // change of a member initializer of GameState, or of a value the start gives, changes this text.
 constexpr const char kStartedGameState[] = R"(UsedMode: 0
 UserInterfaceDisabledCount: 0
@@ -2160,7 +2229,7 @@ SpeechOverlayZOrder: 2147483647
 SpeechVolume: 255
 NormalFont: 0
 SpeechFont: 1
-StandardGuiTextHeight: 0
+StandardGuiTextHeight: 1
 WaitSkipType: 0
 SwapPortraitLastCharacter: -1
 SwapPortraitLastLastCharacter: -1
@@ -2232,9 +2301,9 @@ IgnoreUserInputUntilTime: 0
 ScriptTimers: {}
 )";
 
-// The fields in which the game state after engine_init_game_settings differs from a new GameState (DiffFields, "Name:
-// new != started"), in the fixture's game: the values that the game and the configuration decide, which a start from
-// the definition still has to give. A value of the game that equals the initializer in this game is not listed
+// The fields in which the game state after the start (FinishStart) differs from a new GameState (DiffFields, "Name:
+// new != started"), in the fixture's game: the values that the game, the configuration and the fonts (font 0's height,
+// 0 here) decide, which a start from the definition still has to give. A value of the game that equals the initializer in this game is not listed
 // (GameName, ShowSingleDialogOption, FaceDirectionRatio), nor is one that only the configuration's accessibility
 // options change, which the fixture leaves unset (TextReadingSpeed, MinimumTextDisplayTimeMs, SpeechVoiceMode,
 // SkipDisplay).
@@ -2248,20 +2317,219 @@ TopBarTextColor: 0 != -16777216
 TopBarBorderColor: 0 != -11513776
 DialogOptionsHighlightColor: 0 != -176
 SpeechSkipStyle: 0 != 31
+StandardGuiTextHeight: 0 != 1
 DefaultAudioTypeVolumes: [] != [-1, -1, -1]
 GuiProperties: [] != [{}, {}]
 GuiControlProperties: [[], [], [], [], [], [], []] != [[], [{}, {}], [{}, {}], [{}, {}], [{}, {}], [{}, {}], [{}, {}]]
 RBSwitches: [0, 0, 0, 0, 0] != [0, 1, 1, 1, 1]
 )";
 
+// The game's values besides its game state after the start of the game of MakeStartDefinition (StartedGameLines)
+constexpr const char kStartedGame[] = R"(0 NormalView: 0
+0 SpeechView: 0
+0 View: 0
+0 Room: 0
+0 X: 0
+0 Y: 0
+0 Flags: 0
+0 IdleView: 0
+0 IdleDelay: 0
+0 Opacity: 255
+0 Baseline: -1
+0 SpeechColor: 0
+0 ThinkView: 0
+0 BlinkView: 0
+0 WalkSpeedY: 0
+0 SpeechAnimationDelay: 0
+0 IdleAnimationDelay: 0
+0 BlockingX: 0
+0 BlockingY: 0
+0 BlockingWidth: 0
+0 BlockingHeight: 0
+0 ID: 0
+0 WalkSpeedX: 0
+0 AnimationDelay: 0
+0 InventoryQuantity: {}
+0 ScriptName: "cPerson0"
+0 Name: "Person 0"
+0 BlendMode: 0
+0 GraphicAnchor: (0.5, 1)
+0 GraphicOffset: (0, 0)
+0 Graphic: {TintRed: 0, TintGreen: 0, TintBlue: 0, TintLevel: 0, TintLight: 0, Zoom: 100, Rotation: 0, Pivot: (0.5, 0.5), PivotOffset: (0, 0), ShaderID: 0, ShaderHandle: 0, SpriteWidth: 0, SpriteHeight: 0, Width: 0, Height: 0}
+0 ViewAnim: {Loop: 0, Frame: 0, AnimWait: 0, Anim: {Flow: {Flow: -1, InitialDirection: 0, Direction: 0}, Delay: 0, AudioVolume: 100}}
+0 Move: {MoveListID: 0, MoveListHandle: 0}
+0 FrameSound: {AnimationVolume: 100, AudioPanning: 0, AudioSpeed: 1000}
+0 PreviousRoom: 0
+0 IdleTimeLeft: 0
+0 ActiveInventory: -1
+0 BlinkInterval: 0
+0 BlinkTimer: 0
+0 BlinkFrame: 0
+0 Z: 0
+0 WalkWait: 0
+0 WalkWaitCounter: 0
+0 ViewOffset: (0, 0)
+0 ViewAnchor: (0.5, 1)
+0 EffectiveOffset: (0, 0)
+0 EffectiveAnchor: (0, 0)
+0 FrameOffsetX: 0
+0 FrameOffsetY: 0
+0 FullStepX: 30000
+0 FullStepY: 0
+0 ProcessIdleThisTime: 0
+0 SlowMoveCounter: 0
+0 WalkAnimWait: 0
+0 Following: -1
+0 FollowDistance: 0
+0 FollowEagerness: 0
+0 Inventory: []
+0 FaceDirectionRatio: 0
+0 RuntimeFlags: 0
+0 Turns: 0
+0 PropertyOverrides: {}
+0 OffsetZoom: 100
+1 NormalView: 0
+1 SpeechView: 0
+1 View: -1
+1 Room: 0
+1 X: 0
+1 Y: 0
+1 Flags: 0
+1 IdleView: 0
+1 IdleDelay: 0
+1 Opacity: 255
+1 Baseline: -1
+1 SpeechColor: 0
+1 ThinkView: 0
+1 BlinkView: 0
+1 WalkSpeedY: 0
+1 SpeechAnimationDelay: 0
+1 IdleAnimationDelay: 0
+1 BlockingX: 0
+1 BlockingY: 0
+1 BlockingWidth: 0
+1 BlockingHeight: 0
+1 ID: 1
+1 WalkSpeedX: 0
+1 AnimationDelay: 0
+1 InventoryQuantity: {0: 1, 2: 1}
+1 ScriptName: "cPerson1"
+1 Name: "Person 1"
+1 BlendMode: 0
+1 GraphicAnchor: (0.5, 1)
+1 GraphicOffset: (0, 0)
+1 Graphic: {TintRed: 0, TintGreen: 0, TintBlue: 0, TintLevel: 0, TintLight: 0, Zoom: 100, Rotation: 0, Pivot: (0.5, 0.5), PivotOffset: (0, 0), ShaderID: 0, ShaderHandle: 0, SpriteWidth: 0, SpriteHeight: 0, Width: 0, Height: 0}
+1 ViewAnim: {Loop: 0, Frame: 0, AnimWait: 0, Anim: {Flow: {Flow: -1, InitialDirection: 0, Direction: 0}, Delay: 0, AudioVolume: 100}}
+1 Move: {MoveListID: 0, MoveListHandle: 0}
+1 FrameSound: {AnimationVolume: 100, AudioPanning: 0, AudioSpeed: 1000}
+1 PreviousRoom: 0
+1 IdleTimeLeft: 0
+1 ActiveInventory: -1
+1 BlinkInterval: 0
+1 BlinkTimer: 0
+1 BlinkFrame: 0
+1 Z: 0
+1 WalkWait: 0
+1 WalkWaitCounter: 0
+1 ViewOffset: (0, 0)
+1 ViewAnchor: (0.5, 1)
+1 EffectiveOffset: (0, 0)
+1 EffectiveAnchor: (0, 0)
+1 FrameOffsetX: 0
+1 FrameOffsetY: 0
+1 FullStepX: 30000
+1 FullStepY: 0
+1 ProcessIdleThisTime: 0
+1 SlowMoveCounter: 0
+1 WalkAnimWait: 0
+1 Following: -1
+1 FollowDistance: 0
+1 FollowEagerness: 0
+1 Inventory: [0, 2]
+1 FaceDirectionRatio: 0
+1 RuntimeFlags: 0
+1 Turns: 0
+1 PropertyOverrides: {}
+1 OffsetZoom: 100
+2 NormalView: 0
+2 SpeechView: 0
+2 View: 1
+2 Room: 0
+2 X: 0
+2 Y: 0
+2 Flags: 0
+2 IdleView: 0
+2 IdleDelay: 7
+2 Opacity: 255
+2 Baseline: -1
+2 SpeechColor: 0
+2 ThinkView: 0
+2 BlinkView: 0
+2 WalkSpeedY: 0
+2 SpeechAnimationDelay: 0
+2 IdleAnimationDelay: 0
+2 BlockingX: 0
+2 BlockingY: 0
+2 BlockingWidth: 0
+2 BlockingHeight: 0
+2 ID: 2
+2 WalkSpeedX: 0
+2 AnimationDelay: 0
+2 InventoryQuantity: {}
+2 ScriptName: "cPerson2"
+2 Name: "Person 2"
+2 BlendMode: 0
+2 GraphicAnchor: (0.5, 1)
+2 GraphicOffset: (0, 0)
+2 Graphic: {TintRed: 0, TintGreen: 0, TintBlue: 0, TintLevel: 0, TintLight: 0, Zoom: 100, Rotation: 0, Pivot: (0.5, 0.5), PivotOffset: (0, 0), ShaderID: 0, ShaderHandle: 0, SpriteWidth: 0, SpriteHeight: 0, Width: 0, Height: 0}
+2 ViewAnim: {Loop: 1, Frame: 0, AnimWait: 0, Anim: {Flow: {Flow: -1, InitialDirection: 0, Direction: 0}, Delay: 0, AudioVolume: 100}}
+2 Move: {MoveListID: 0, MoveListHandle: 0}
+2 FrameSound: {AnimationVolume: 100, AudioPanning: 0, AudioSpeed: 1000}
+2 PreviousRoom: 0
+2 IdleTimeLeft: 7
+2 ActiveInventory: -1
+2 BlinkInterval: 0
+2 BlinkTimer: 0
+2 BlinkFrame: 0
+2 Z: 0
+2 WalkWait: 0
+2 WalkWaitCounter: 0
+2 ViewOffset: (0, 0)
+2 ViewAnchor: (0.5, 1)
+2 EffectiveOffset: (0, 0)
+2 EffectiveAnchor: (0, 0)
+2 FrameOffsetX: 0
+2 FrameOffsetY: 0
+2 FullStepX: 30000
+2 FullStepY: 0
+2 ProcessIdleThisTime: 0
+2 SlowMoveCounter: 0
+2 WalkAnimWait: 0
+2 Following: -1
+2 FollowDistance: 0
+2 FollowEagerness: 0
+2 Inventory: []
+2 FaceDirectionRatio: 0
+2 RuntimeFlags: 0
+2 Turns: 0
+2 PropertyOverrides: {}
+2 OffsetZoom: 100
+Options: [1, 0 x21, 1, 0 x8, 1, 0 x67, 1]
+Palette: [(10, 20, 30) x16, (0, 0, 0) x224, (1, 2, 3) x16]
+Paused: 0
+IfacePopped: -1
+DisplayedRoom: -10
+GameErrorText: Something went wrong
+)";
+
 } // namespace
 
-// The whole game state after engine_init_game_settings, field by field, against the text kept above. RandomSeed (the
+// The whole game state after the start (FinishStart), field by field, against the text kept above. RandomSeed (the
 // clock) and IgnoreUserInputUntilTime (a point in real time) are given fixed values before the print.
 TEST_F(GameEntities, StartedGameStateIsAsPinned)
 {
     Game &game = Game::Current();
-    RunEngineInitGameSettings();
+    FinishStart();
     game.Play.RandomSeed = 0;
     game.Play.IgnoreUserInputUntilTime = {};
     EXPECT_EQ(kStartedGameState, StateLines(game.Play));
@@ -2272,7 +2540,7 @@ TEST_F(GameEntities, StartedGameStateIsAsPinned)
 TEST_F(GameEntities, NewGameStateDiffersFromTheStartedOneByTheGame)
 {
     Game &game = Game::Current();
-    RunEngineInitGameSettings();
+    FinishStart();
     GameState fresh;
     fresh.RandomSeed = game.Play.RandomSeed;
     fresh.IgnoreUserInputUntilTime = game.Play.IgnoreUserInputUntilTime;
@@ -2280,6 +2548,83 @@ TEST_F(GameEntities, NewGameStateDiffersFromTheStartedOneByTheGame)
     for (const String &line : DiffFields(fresh, game.Play))
         lines += std::string(line.GetCStr()) + "\n";
     EXPECT_EQ(kStartedGameStateFromTheGame, lines);
+}
+
+// The game's values besides its game state after the start, in a game whose definition gives the start more to do
+// (MakeStartDefinition), against the text kept above
+TEST_F(GameEntities, StartedGameIsAsPinned)
+{
+    Game &game = Game::Current();
+    pool.Reset();
+    MakeStartDefinition(Definition());
+    StartGame();
+    FinishStart();
+    EXPECT_EQ(kStartedGame, StartedGameLines(game));
+}
+
+// A start reads nothing of the running game: Games on the same definition, started (StartFromDefinitions,
+// StartGameValues) while another is the current one, are equal field by field, whether the current one is started
+// too or has changed during play since; the current one keeps its changes
+TEST_F(GameEntities, SecondGameStartsAsTheFirstDid)
+{
+    const EngineServices &services = EngineServices::Current();
+    Game &first = Game::Current();
+    pool.Reset();
+    MakeStartDefinition(Definition());
+    const int gui_color_depth = GUI::Context.GameColorDepth;
+    GUI::Context.GameColorDepth = 32;
+    auto start = [&services](Game &game)
+    {
+        StartFromDefinitions(game);
+        StartGameValues(game, services.Config, false);
+    };
+    // the two games have the same fields: the game state, the characters by the tables of their parts, the options
+    auto expect_same = [](const Game &a, const Game &b)
+    {
+        EXPECT_EQ(std::vector<String>(), DiffFields(a.Play, b.Play));
+        ASSERT_EQ(a.Characters.size(), b.Characters.size());
+        for (size_t i = 0; i < a.Characters.size(); ++i)
+        {
+            EXPECT_EQ(std::vector<String>(),
+                      (DiffParts<CharacterDef, CharacterState>(a.Characters[i], b.Characters[i])))
+                << "character " << i;
+        }
+        EXPECT_TRUE(std::equal(std::begin(a.Options), std::end(a.Options), std::begin(b.Options)));
+        // the palette, the pause level, the pop-up GUI, the displayed room and the error text too
+        EXPECT_EQ(StartedGameLines(a), StartedGameLines(b));
+    };
+    start(first);
+
+    Game second(Definition());
+    start(second);
+    EXPECT_EQ(&first, &Game::Current());
+    expect_same(first, second);
+
+    // the first game during play
+    AlterFields(first.Play, FieldRole::Saved);
+    AlterFields(first.Play, FieldRole::Transient);
+    for (Character &ch : first.Characters)
+    {
+        AlterParts<CharacterDef, CharacterState>(ch, FieldRole::Saved);
+        AlterParts<CharacterDef, CharacterState>(ch, FieldRole::FromDefinition);
+    }
+    for (int &option : first.Options)
+        option += 2;
+    first.Palette[0].r = 33;
+    first.Paused = 2;
+    first.IfacePopped = 1;
+    first.DisplayedRoom = 4;
+    const std::string played_state = StateLines(first.Play);
+    const std::string played_lines = StartedGameLines(first);
+    ASSERT_NE(StartedGameLines(second), played_lines);
+
+    Game third(Definition());
+    start(third);
+    GUI::Context.GameColorDepth = gui_color_depth;
+    EXPECT_EQ(&first, &Game::Current());
+    expect_same(second, third);
+    EXPECT_EQ(played_state, StateLines(first.Play));
+    EXPECT_EQ(played_lines, StartedGameLines(first));
 }
 
 // A started game's items, cursors, view frames, dialog options, audio types, options and values are its definition's:
