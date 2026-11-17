@@ -948,7 +948,7 @@ void RunObjectInteraction(int obj_id, int mood)
     // For USE verb: remember active inventory
     if (game.HasCursorRole(mood, kCursorRole_UseInv))
     {
-        game.Play.usedinv = game.PlayerChar->ActiveInventory;
+        game.Play.UsedInventory = game.PlayerChar->ActiveInventory;
     }
 
     const auto obj_evt =
@@ -965,13 +965,13 @@ void RunObjectInteraction(int obj_id, int mood)
 bool Object_IsInteractionAvailable(ScriptObject *obj, int mood)
 {
     Game &game = Game::Current();
-    game.Play.check_interaction_only = 1;
+    game.Play.CheckInteractionOnly = 1;
     RunObjectInteraction(obj->id, mood);
-    // In the check-only mode run_event_script runs no handler, but sets check_interaction_only to 2
+    // In the check-only mode run_event_script runs no handler, but sets CheckInteractionOnly to 2
     // if it found one (for the event, or for "any click")
-    // TODO: return the check result from run_event_script, instead of passing it through game.Play.check_interaction_only
-    int ciwas = game.Play.check_interaction_only;
-    game.Play.check_interaction_only = 0;
+    // TODO: return the check result from run_event_script, instead of passing it through game.Play.CheckInteractionOnly
+    int ciwas = game.Play.CheckInteractionOnly;
+    game.Play.CheckInteractionOnly = 0;
     return (ciwas == 2);
 }
 

@@ -561,13 +561,13 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     GUIRefCollection gui_control_refs(game.GuiButtons, game.GuiInvWindows, game.GuiLabels, game.GuiListBoxes,
                                       game.GuiSliders, game.GuiTextBoxes);
     GUI::RebuildGUI(game.Guis, gui_control_refs);
-    game.Play.guiProps.resize(game.GuiCount);
-    game.Play.guicontrolProps[kGUIButton].resize(game.GuiButtons.size());
-    game.Play.guicontrolProps[kGUILabel].resize(game.GuiLabels.size());
-    game.Play.guicontrolProps[kGUIInvWindow].resize(game.GuiInvWindows.size());
-    game.Play.guicontrolProps[kGUISlider].resize(game.GuiSliders.size());
-    game.Play.guicontrolProps[kGUITextBox].resize(game.GuiTextBoxes.size());
-    game.Play.guicontrolProps[kGUIListBox].resize(game.GuiListBoxes.size());
+    game.Play.GuiProperties.resize(game.GuiCount);
+    game.Play.GuiControlProperties[kGUIButton].resize(game.GuiButtons.size());
+    game.Play.GuiControlProperties[kGUILabel].resize(game.GuiLabels.size());
+    game.Play.GuiControlProperties[kGUIInvWindow].resize(game.GuiInvWindows.size());
+    game.Play.GuiControlProperties[kGUISlider].resize(game.GuiSliders.size());
+    game.Play.GuiControlProperties[kGUITextBox].resize(game.GuiTextBoxes.size());
+    game.Play.GuiControlProperties[kGUIListBox].resize(game.GuiListBoxes.size());
     HError err = InitAndRegisterGameEntities(game, ents);
     if (!err)
         return new GameInitError(err, kGameInitErr_EntityInitFail);
@@ -586,8 +586,8 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
         svg_suffix.Format(".%s", game.SaveGameFileExtension);
     set_save_game_suffix(svg_suffix);
 
-    game.Play.fade_effect = game.Options[OPT_FADETYPE];
-    game.Play.std_gui_textheight = get_font_height_outlined(0) + 1;
+    game.Play.FadeEffect = game.Options[OPT_FADETYPE];
+    game.Play.StandardGuiTextHeight = get_font_height_outlined(0) + 1;
     SetGameTextLanguage(game.GameTextLanguage);
     if (game.GameInfo.count("dev_error_text") > 0)
         game.Play.SetGameErrorText(game.GameInfo.at("dev_error_text"));
@@ -654,24 +654,24 @@ void ApplyAccessibilityOptions(GameState &play, const EngineConfig &setup)
 {
     if (setup.Access.SpeechSkipStyle != kSkipSpeechNone)
     {
-        play.speech_skip_style = user_to_internal_skip_speech(setup.Access.SpeechSkipStyle);
+        play.SpeechSkipStyle = user_to_internal_skip_speech(setup.Access.SpeechSkipStyle);
     }
     if (setup.Access.TextSkipStyle != kSkipSpeechNone)
     {
-        play.skip_display = setup.Access.TextSkipStyle;
+        play.SkipDisplay = setup.Access.TextSkipStyle;
     }
     if (setup.Access.TextReadSpeed > 0)
     {
-        play.text_speed = setup.Access.TextReadSpeed;
-        play.text_min_display_time_ms = Math::Clamp((int)(1000 * (15.f / setup.Access.TextReadSpeed)), 1000, 3000);
+        play.TextReadingSpeed = setup.Access.TextReadSpeed;
+        play.MinimumTextDisplayTimeMs = Math::Clamp((int)(1000 * (15.f / setup.Access.TextReadSpeed)), 1000, 3000);
     }
     if (setup.Access.SpeechMode != kSpeech_None)
     {
-        play.speech_mode = setup.Access.SpeechMode;
+        play.SpeechVoiceMode = setup.Access.SpeechMode;
     }
     if (setup.Access.AlwaysWaitForText)
     {
-        play.speech_always_wait_for_text = true;
+        play.AlwaysWaitForSpeechText = true;
     }
 }
 

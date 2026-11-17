@@ -360,7 +360,7 @@ std::vector<PropertyKind> PropertyKinds()
         { return Character_SetProperty(&Game::Current().Characters[i], name, value); };
         kind.SetText = [](int i, const char *name, const char *value)
         { return Character_SetTextProperty(&Game::Current().Characters[i], name, value); };
-        kind.Definition = [](const GameDef &def, int i) -> const StringIMap & { return def.charProps[i]; };
+        kind.Definition = [](const GameDef &def, int i) -> const StringIMap & { return def.CharacterProperties[i]; };
         kind.Component = kSaveCmp_Characters;
         kind.ComponentName = "Characters";
         kinds.push_back(kind);
@@ -389,7 +389,8 @@ std::vector<PropertyKind> PropertyKinds()
             ScriptInvItem item = ItemObject(i);
             return InventoryItem_SetTextProperty(&item, name, value);
         };
-        kind.Definition = [](const GameDef &def, int i) -> const StringIMap & { return def.invProps[i]; };
+        kind.Definition = [](const GameDef &def, int i) -> const StringIMap &
+        { return def.InventoryItemProperties[i]; };
         kind.Component = kSaveCmp_InvItems;
         kind.ComponentName = "Inventory Items";
         kinds.push_back(kind);
@@ -418,7 +419,7 @@ std::vector<PropertyKind> PropertyKinds()
             ScriptDialog dialog = DialogObject(i);
             return Dialog_SetTextProperty(&dialog, name, value);
         };
-        kind.Definition = [](const GameDef &def, int i) -> const StringIMap & { return def.dialogProps[i]; };
+        kind.Definition = [](const GameDef &def, int i) -> const StringIMap & { return def.DialogProperties[i]; };
         kind.Component = kSaveCmp_Dialogs;
         kind.ComponentName = "Dialogs";
         kinds.push_back(kind);
@@ -435,7 +436,7 @@ std::vector<PropertyKind> PropertyKinds()
         { return AudioClip_SetProperty(&Game::Current().AudioClips[i], name, value); };
         kind.SetText = [](int i, const char *name, const char *value)
         { return AudioClip_SetTextProperty(&Game::Current().AudioClips[i], name, value); };
-        kind.Definition = [](const GameDef &def, int i) -> const StringIMap & { return def.audioclipProps[i]; };
+        kind.Definition = [](const GameDef &def, int i) -> const StringIMap & { return def.AudioClipProperties[i]; };
         kinds.push_back(kind);
     }
     {
@@ -462,7 +463,7 @@ std::vector<PropertyKind> PropertyKinds()
             ScriptGUI gui = GuiObject(i);
             return GUI_SetTextProperty(&gui, name, value);
         };
-        kind.Definition = [](const GameDef &def, int i) -> const StringIMap & { return def.guiProps[i]; };
+        kind.Definition = [](const GameDef &def, int i) -> const StringIMap & { return def.GuiProperties[i]; };
         kind.Component = kSaveCmp_GUI;
         kind.ComponentName = "GUI";
         kinds.push_back(kind);
@@ -481,7 +482,7 @@ std::vector<PropertyKind> PropertyKinds()
         kind.SetText = [type](int i, const char *name, const char *value)
         { return GUIControl_SetTextProperty(ControlOf(Game::Current(), type, i), name, value); };
         kind.Definition = [type](const GameDef &def, int i) -> const StringIMap &
-        { return def.guicontrolProps[type][i]; };
+        { return def.GuiControlProperties[type][i]; };
         kind.Component = kSaveCmp_GUI;
         kind.ComponentName = "GUI";
         kinds.push_back(kind);
@@ -751,13 +752,13 @@ protected:
             lists[1][kNumberProperty] = String::FromFormat("%d", kNumberOfElement1);
             lists[1][kTextProperty] = kTextOfElement1;
         };
-        give_values(def.charProps, kCharacterCount);
-        give_values(def.invProps, kItemCount);
-        give_values(def.dialogProps, kDialogCount);
-        give_values(def.audioclipProps, kAudioClipCount);
-        give_values(def.guiProps, kGuiCount);
+        give_values(def.CharacterProperties, kCharacterCount);
+        give_values(def.InventoryItemProperties, kItemCount);
+        give_values(def.DialogProperties, kDialogCount);
+        give_values(def.AudioClipProperties, kAudioClipCount);
+        give_values(def.GuiProperties, kGuiCount);
         for (GUIControlType type : kControlTypes)
-            give_values(def.guicontrolProps[type], kGuiCount);
+            give_values(def.GuiControlProperties[type], kGuiCount);
     }
 
     // The views of MakeDefinition: in the framed view, frame n of FramePic(n)... with an event name "step<n>"
@@ -809,14 +810,14 @@ protected:
         HError err = GUI::RebuildGUI(game.Guis, gui_control_refs);
         GUI::Options.ClipControls = clip_controls;
         EXPECT_TRUE(err) << err->FullMessage().GetCStr();
-        game.Play.guiProps.resize(game.GuiCount);
-        game.Play.guicontrolProps[kGUIButton].resize(game.GuiButtons.size());
-        game.Play.guicontrolProps[kGUILabel].resize(game.GuiLabels.size());
-        game.Play.guicontrolProps[kGUIInvWindow].resize(game.GuiInvWindows.size());
-        game.Play.guicontrolProps[kGUISlider].resize(game.GuiSliders.size());
-        game.Play.guicontrolProps[kGUITextBox].resize(game.GuiTextBoxes.size());
-        game.Play.guicontrolProps[kGUIListBox].resize(game.GuiListBoxes.size());
-        game.Play.default_audio_type_volumes.assign(game.AudioClipTypes.size(), -1);
+        game.Play.GuiProperties.resize(game.GuiCount);
+        game.Play.GuiControlProperties[kGUIButton].resize(game.GuiButtons.size());
+        game.Play.GuiControlProperties[kGUILabel].resize(game.GuiLabels.size());
+        game.Play.GuiControlProperties[kGUIInvWindow].resize(game.GuiInvWindows.size());
+        game.Play.GuiControlProperties[kGUISlider].resize(game.GuiSliders.size());
+        game.Play.GuiControlProperties[kGUITextBox].resize(game.GuiTextBoxes.size());
+        game.Play.GuiControlProperties[kGUIListBox].resize(game.GuiListBoxes.size());
+        game.Play.DefaultAudioTypeVolumes.assign(game.AudioClipTypes.size(), -1);
         InitAndRegisterAudioObjects(game);
         setup_player_character(game.PlayerCharacterID);
     }
@@ -1453,7 +1454,7 @@ TEST_F(GameEntities, GameOptionsSetByTheScript)
     Game &game = Game::Current();
     EXPECT_EQ(1, SetGameOption(OPT_PORTRAITSIDE, PORTRAIT_ALTERNATE));
     EXPECT_EQ(PORTRAIT_ALTERNATE, GetGameOption(OPT_PORTRAITSIDE));
-    EXPECT_EQ(1, game.Play.swap_portrait_side);
+    EXPECT_EQ(1, game.Play.SwapPortraitSide);
 
     EXPECT_EQ(1, SetGameOption(OPT_DEBUGMODE, 0));
     EXPECT_EQ(1, GetGameOption(OPT_DEBUGMODE));
@@ -1840,7 +1841,7 @@ TEST_F(GameEntities, GlobalSpeechAnimationDelayIsSplitAtStart)
         Definition().Options[OPT_GLOBALTALKANIMSPD] = c.Loaded;
         StartGame();
         RunEngineInitGameSettings();
-        EXPECT_EQ(c.Delay, game.Play.talkanim_speed);
+        EXPECT_EQ(c.Delay, game.Play.GlobalSpeechAnimationDelay);
         EXPECT_EQ(c.Option, GetGameOption(OPT_GLOBALTALKANIMSPD));
         EXPECT_EQ(c.Loaded, game.Def().Options[OPT_GLOBALTALKANIMSPD]);
     }
@@ -2127,7 +2128,7 @@ TEST_F(GameEntities, RestoreTakesAwayPropertiesSetAfterTheSave)
 }
 
 // The same for the six types of GUI control. A value set after the save stayed after the restore until
-// GameState::FreeProperties (called by DoBeforeRestore) cleared the GUI controls' lists (guicontrolProps) too: the
+// GameState::FreeProperties (called by DoBeforeRestore) cleared the GUI controls' lists (GuiControlProperties) too: the
 // "GUI" component only adds the saved values to a map (Properties::ReadValues does not clear it). Upstream's
 // FreeProperties still leaves them.
 TEST_F(GameEntities, RestoreTakesAwayGuiControlPropertiesSetAfterTheSave)
@@ -2347,7 +2348,7 @@ TEST_F(GameEntities, DisableDialogParserLetsASingleOptionBeChosenAtOnce)
     Dialog_SetOptionState(&dialog0, 3, 0);
     Dialog_SetOptionState(&dialog1, 3, 0);
     game.Dialogs[0].Flags |= DTFLG_SHOWPARSER; // as the game file gives it
-    ASSERT_EQ(0, game.Play.show_single_dialog_option);
+    ASSERT_EQ(0, game.Play.ShowSingleDialogOption);
     for (const int value : {1, 5, -1})
     {
         GameStaticManager.WriteInt32(&game.Play, kDisableDialogParserOffset, value);
@@ -2385,10 +2386,10 @@ TEST_F(GameEntities, NoMultiLoopRepeatKeepsTheRepeatInItsLoop)
 TEST_F(GameEntities, WaitSkipTypeIsTheRunningGames)
 {
     Game &game = Game::Current();
-    game.Play.key_skip_wait = SKIP_KEYPRESS | SKIP_MOUSECLICK;
+    game.Play.WaitSkipType = SKIP_KEYPRESS | SKIP_MOUSECLICK;
     EXPECT_EQ(SKIP_KEYPRESS | SKIP_MOUSECLICK, game.Play.GetWaitSkipType());
     EXPECT_EQ((SKIP_KEYPRESS | SKIP_MOUSECLICK) << SKIP_RESULT_TYPE_SHIFT, Game_BlockingWaitSkipType());
-    game.Play.key_skip_wait = SKIP_NONE;
+    game.Play.WaitSkipType = SKIP_NONE;
     EXPECT_EQ(SKIP_NONE, game.Play.GetWaitSkipType());
 }
 
@@ -2413,8 +2414,8 @@ TEST_F(GameEntities, VoiceSpeechPlaysWithTheVoiceFilesAndNoSkipping)
         SCOPED_TRACE(testing::Message() << "voice " << c.VoiceAvail << ", fast forward " << c.FastForward << ", mode "
                                         << c.Mode);
         services.VoiceAvail = c.VoiceAvail;
-        game.Play.fast_forward = c.FastForward;
-        game.Play.speech_mode = c.Mode;
+        game.Play.FastForward = c.FastForward;
+        game.Play.SpeechVoiceMode = c.Mode;
         EXPECT_EQ(c.Blocking, game.Play.ShouldPlayVoiceSpeech());
         EXPECT_EQ(c.NonBlocking, game.Play.ShouldPlayVoiceSpeechNonBlocking());
     }

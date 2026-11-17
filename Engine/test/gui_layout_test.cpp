@@ -44,7 +44,7 @@ const int kScreenHeight = 200;
 // Fixture for the GUI layout. The engine state it touches, all reset in TearDown:
 // - game.Guis: two GUIs, 0 at (10,20) 100x50 and 1 at (60,40) 100x50, both visible and clickable;
 //   GUI 0 has two buttons, (10,10) 30x20 and (30,15) 30x20, the second drawn on top
-// - game.Play.gui_draw_order: GUI 0 below GUI 1
+// - game.Play.GuiDrawOrder: GUI 0 below GUI 1
 // - game.Play's UI viewport: 320x200
 // - GUI::Options.ClipControls: on, so control areas do not depend on fonts and sprites
 // - GUI::Context.DisabledState: GUIs enabled
@@ -69,7 +69,7 @@ protected:
         }
         game.Guis[0].SetPosition(10, 20);
         game.Guis[1].SetPosition(60, 40);
-        game.Play.gui_draw_order = {0, 1};
+        game.Play.GuiDrawOrder = {0, 1};
 
         for (int i = 0; i < 2; ++i)
         {
@@ -90,7 +90,7 @@ protected:
     {
         Game &game = Game::Current();
         game.Guis.clear();
-        game.Play.gui_draw_order.clear();
+        game.Play.GuiDrawOrder.clear();
         game.Viewports.SetUIViewport(Rect());
         GUI::Options.ClipControls = _wasClipControls;
     }
@@ -143,7 +143,7 @@ TEST_F(GuiLayout, GuiAtAPointFollowsTheDrawOrder)
     EXPECT_EQ(0, GetGUIAt(20, 25, kHit_Interactable));
     // both: the one drawn on top
     EXPECT_EQ(1, GetGUIAt(80, 50, kHit_Interactable));
-    Game::Current().Play.gui_draw_order = {1, 0};
+    Game::Current().Play.GuiDrawOrder = {1, 0};
     EXPECT_EQ(0, GetGUIAt(80, 50, kHit_Interactable));
     // none
     EXPECT_EQ(-1, GetGUIAt(300, 190, kHit_Interactable));

@@ -84,7 +84,7 @@ void WriteAllBytes(const String &path, const std::vector<uint8_t> &bytes)
 // Fixture for the savegame file. The engine globals it touches, all reset in TearDown:
 // - game.Guid, game.Name, game.UniqueID, game.BytesPerPixel: the game identity in the description
 // - EngineServices::ResPaths.GamePak.Name, Game::LoadedDataVersion: the game data identity in the description
-// - game.Play.messagetime: a value of the game state, to see the components restored
+// - game.Play.MessageTimeLeft: a value of the game state, to see the components restored
 // It writes save files to a directory of its own under the system's temporary directory.
 class SavegameFile : public ::testing::Test
 {
@@ -121,7 +121,7 @@ protected:
         game.BytesPerPixel = 0;
         EngineServices::Current().ResPaths.GamePak.Name = {};
         game.LoadedDataVersion = kGameVersion_Undefined;
-        game.Play.messagetime = 0;
+        game.Play.MessageTimeLeft = 0;
     }
 
     // The system's temporary directory
@@ -201,10 +201,10 @@ TEST_F(SavegameFile, ComponentsFollowTheDescription)
     const String path = FilePath("agssave.002");
     for (bool compress : {false, true})
     {
-        game.Play.messagetime = 4321;
+        game.Play.MessageTimeLeft = 4321;
         HSaveError err = SaveGame(path, "text", nullptr, kSaveCmp_GameState, compress);
         ASSERT_TRUE(err) << err->FullMessage().GetCStr();
-        game.Play.messagetime = 0;
+        game.Play.MessageTimeLeft = 0;
 
         SavegameSource src;
         SavegameDescription desc;
@@ -219,7 +219,7 @@ TEST_F(SavegameFile, ComponentsFollowTheDescription)
         const auto written = static_cast<SaveCmpSelection>(kSaveCmp_GameState | kSaveCmp_ObjectSprites);
         err = SavegameComponents::ReadAll(src.InputStream.get(), src.Version, written, pp, r_data);
         ASSERT_TRUE(err) << err->FullMessage().GetCStr();
-        EXPECT_EQ(4321, game.Play.messagetime) << "compress " << compress;
+        EXPECT_EQ(4321, game.Play.MessageTimeLeft) << "compress " << compress;
     }
 }
 

@@ -167,14 +167,14 @@ void RunHotspotInteraction(int hotspothere, int mood)
     // For USE verb: remember active inventory
     if (game.HasCursorRole(mood, kCursorRole_UseInv))
     {
-        game.Play.usedinv = game.PlayerChar->ActiveInventory;
+        game.Play.UsedInventory = game.PlayerChar->ActiveInventory;
     }
 
     if ((game.Options[OPT_WALKONLOOK] == 0) && (game.HasCursorRole(mood, kCursorRole_Look)))
         ;
-    else if (game.Play.auto_use_walkto_points == 0)
+    else if (game.Play.AutoUseWalkToPoints == 0)
         ;
-    else if ((!game.HasCursorRole(mood, kCursorRole_Walk)) && (game.Play.check_interaction_only == 0))
+    else if ((!game.HasCursorRole(mood, kCursorRole_Walk)) && (game.Play.CheckInteractionOnly == 0))
         MoveCharacterToHotspot(game.PlayerCharacterID, hotspothere);
 
     const auto obj_evt =
@@ -191,10 +191,10 @@ void RunHotspotInteraction(int hotspothere, int mood)
 bool Hotspot_IsInteractionAvailable(ScriptHotspot *hhot, int mood)
 {
     Game &game = Game::Current();
-    game.Play.check_interaction_only = 1;
+    game.Play.CheckInteractionOnly = 1;
     RunHotspotInteraction(hhot->id, mood);
-    int ciwas = game.Play.check_interaction_only;
-    game.Play.check_interaction_only = 0;
+    int ciwas = game.Play.CheckInteractionOnly;
+    game.Play.CheckInteractionOnly = 0;
     return (ciwas == 2);
 }
 

@@ -434,8 +434,8 @@ int GUIControl_GetProperty(GUIControl *control, const char *property)
     Game &game = Game::Current();
     int ctrl_type = game.Guis[control->GetParentID()].GetControlType(control->GetID());
     int ctrl_id = game.Guis[control->GetParentID()].GetControlID(control->GetID());
-    return get_int_property(game.guicontrolProps[ctrl_type][ctrl_id], game.Play.guicontrolProps[ctrl_type][ctrl_id],
-                            property);
+    return get_int_property(game.GuiControlProperties[ctrl_type][ctrl_id],
+                            game.Play.GuiControlProperties[ctrl_type][ctrl_id], property);
 }
 
 const char *GUIControl_GetTextProperty(GUIControl *control, const char *property)
@@ -443,8 +443,8 @@ const char *GUIControl_GetTextProperty(GUIControl *control, const char *property
     Game &game = Game::Current();
     int ctrl_type = game.Guis[control->GetParentID()].GetControlType(control->GetID());
     int ctrl_id = game.Guis[control->GetParentID()].GetControlID(control->GetID());
-    return get_text_property_dynamic_string(game.guicontrolProps[ctrl_type][ctrl_id],
-                                            game.Play.guicontrolProps[ctrl_type][ctrl_id], property);
+    return get_text_property_dynamic_string(game.GuiControlProperties[ctrl_type][ctrl_id],
+                                            game.Play.GuiControlProperties[ctrl_type][ctrl_id], property);
 }
 
 bool GUIControl_SetProperty(GUIControl *control, const char *property, int value)
@@ -452,7 +452,7 @@ bool GUIControl_SetProperty(GUIControl *control, const char *property, int value
     Game &game = Game::Current();
     int ctrl_type = game.Guis[control->GetParentID()].GetControlType(control->GetID());
     int ctrl_id = game.Guis[control->GetParentID()].GetControlID(control->GetID());
-    return set_int_property(game.Play.guicontrolProps[ctrl_type][ctrl_id], property, value);
+    return set_int_property(game.Play.GuiControlProperties[ctrl_type][ctrl_id], property, value);
 }
 
 bool GUIControl_SetTextProperty(GUIControl *control, const char *property, const char *value)
@@ -460,7 +460,7 @@ bool GUIControl_SetTextProperty(GUIControl *control, const char *property, const
     Game &game = Game::Current();
     int ctrl_type = game.Guis[control->GetParentID()].GetControlType(control->GetID());
     int ctrl_id = game.Guis[control->GetParentID()].GetControlID(control->GetID());
-    return set_text_property(game.Play.guicontrolProps[ctrl_type][ctrl_id], property, value);
+    return set_text_property(game.Play.GuiControlProperties[ctrl_type][ctrl_id], property, value);
 }
 
 ScriptShaderInstance *GUIControl_GetShader(GUIControl *control)

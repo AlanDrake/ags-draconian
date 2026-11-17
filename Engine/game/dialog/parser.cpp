@@ -41,20 +41,20 @@ int Parser_FindWordID(const char *wordToFind)
 const char *Parser_SaidUnknownWord()
 {
     Game &game = Game::Current();
-    if (game.Play.bad_parsed_word.IsEmpty())
+    if (game.Play.BadParsedWord.IsEmpty())
         return nullptr;
-    return CreateNewScriptString(game.Play.bad_parsed_word);
+    return CreateNewScriptString(game.Play.BadParsedWord);
 }
 
 void ParseText(const char *text)
 {
     Game &game = Game::Current();
-    game.Play.parsed_words.clear();
-    game.Play.bad_parsed_word = {};
+    game.Play.ParsedWords.clear();
+    game.Play.BadParsedWord = {};
     // We always use a translated text parser here (this may be still a default language parser)
     auto *parser = GetTranslationTextParser();
     if (parser)
-        parser->ParseSentence(text, game.Play.parsed_words, MAX_PARSED_WORDS, &game.Play.bad_parsed_word);
+        parser->ParseSentence(text, game.Play.ParsedWords, MAX_PARSED_WORDS, &game.Play.BadParsedWord);
 }
 
 // Said: call with argument for example "get apple"; we then check
@@ -83,7 +83,7 @@ int Parser_Said(const char *checkwords)
     ITextParser::ParsedPattern pattern;
     if (parser->ParsePattern(checkwords, pattern, MAX_PARSED_WORDS, nullptr))
     {
-        return parser->MatchPattern(game.Play.parsed_words, pattern) ? 1 : 0;
+        return parser->MatchPattern(game.Play.ParsedWords, pattern) ? 1 : 0;
     }
     return 0;
 }

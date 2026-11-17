@@ -74,12 +74,12 @@ void CursorGraphicState::SetSpriteNum(int sprnum)
 
 void Mouse_SetVisible(int on)
 {
-    Game::Current().Play.mouse_cursor_shown = on;
+    Game::Current().Play.IsMouseCursorShown = on;
 }
 
 int Mouse_GetVisible()
 {
-    return Game::Current().Play.mouse_cursor_shown ? 1 : 0;
+    return Game::Current().Play.IsMouseCursorShown ? 1 : 0;
 }
 
 void Mouse_SetBounds(int x1, int y1, int x2, int y2)
@@ -107,8 +107,8 @@ void Mouse_SetBounds(int x1, int y1, int x2, int y2)
 
     debug_script_log("Mouse bounds constrained to (%d,%d)-(%d,%d)", x1, y1, x2, y2);
 
-    game.Play.mbounds = Rect(x1, y1, x2, y2);
-    Mouse::SetMoveLimit(game.Play.mbounds);
+    game.Play.MouseBounds = Rect(x1, y1, x2, y2);
+    Mouse::SetMoveLimit(game.Play.MouseBounds);
 }
 
 void set_cursor_look(int newcurs, bool force_update)
@@ -458,14 +458,14 @@ int Mouse_IsButtonDown(int which)
     if ((which < kMouseLeft) || (which > kMouseMiddle))
         quit("!IsButtonDown: only works with eMouseLeft, eMouseRight, eMouseMiddle");
 
-    if (!Game::Current().Play.mouse_input_enabled)
+    if (!Game::Current().Play.IsMouseInputEnabled)
         return 0;
     return ags_misbuttondown(static_cast<eAGSMouseButton>(which)) ? 1 : 0;
 }
 
 bool IsAnyButtonDown()
 {
-    if (!Game::Current().Play.mouse_input_enabled)
+    if (!Game::Current().Play.IsMouseInputEnabled)
         return false;
     return ags_misanybuttondown();
 }
@@ -482,19 +482,19 @@ void Mouse_SaveCursorForLocationChange()
 {
     EngineServices &services = EngineServices::Current();
     Game &game = Game::Current();
-    if (!game.Play.mouse_input_enabled)
+    if (!game.Play.IsMouseInputEnabled)
         return;
 
     // update the current location name (ignore return value)
     GetLocationName(services.Input.MouseX, services.Input.MouseY, kHit_Interactable);
 
-    if (game.Play.get_loc_name_save_cursor != game.Play.get_loc_name_last_time)
+    if (game.Play.LocationNameSaveCursor != game.Play.LastNamedLocation)
     {
-        game.Play.get_loc_name_save_cursor = game.Play.get_loc_name_last_time;
-        game.Play.restore_cursor_mode_to = Mouse_GetCursorMode();
-        game.Play.restore_cursor_image_to = Mouse_GetCursor();
-        debug_script_log("Saving mouse: mode %d cursor %d", game.Play.restore_cursor_mode_to,
-                         game.Play.restore_cursor_image_to);
+        game.Play.LocationNameSaveCursor = game.Play.LastNamedLocation;
+        game.Play.RestoreCursorModeTo = Mouse_GetCursorMode();
+        game.Play.RestoreCursorImageTo = Mouse_GetCursor();
+        debug_script_log("Saving mouse: mode %d cursor %d", game.Play.RestoreCursorModeTo,
+                         game.Play.RestoreCursorImageTo);
     }
 }
 
@@ -535,12 +535,12 @@ void Mouse_SetAutoLock(bool on)
 
 bool Mouse_GetEnabled()
 {
-    return Game::Current().Play.mouse_input_enabled;
+    return Game::Current().Play.IsMouseInputEnabled;
 }
 
 void Mouse_SetEnabled(bool on)
 {
-    Game::Current().Play.mouse_input_enabled = on;
+    Game::Current().Play.IsMouseInputEnabled = on;
 }
 
 ScriptShaderInstance *Mouse_GetCursorShader()
@@ -562,7 +562,7 @@ void update_script_mouse_coords()
 {
     EngineServices &services = EngineServices::Current();
     Game &game = Game::Current();
-    if (game.Play.mouse_input_enabled)
+    if (game.Play.IsMouseInputEnabled)
     {
         game.ScMouse.x = services.Input.MouseX;
         game.ScMouse.y = services.Input.MouseY;

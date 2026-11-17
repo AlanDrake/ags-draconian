@@ -35,7 +35,7 @@ int AudioChannel_GetID(ScriptAudioChannel *channel)
 
 int AudioChannel_GetIsPlaying(ScriptAudioChannel *channel)
 {
-    if (Game::Current().Play.fast_forward)
+    if (Game::Current().Play.FastForward)
     {
         return 0;
     }

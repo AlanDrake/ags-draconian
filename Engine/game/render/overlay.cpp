@@ -767,20 +767,20 @@ void remove_screen_overlay(int type)
     // Do necessary changes to the game state after overlay's removal
     // TODO: move these custom settings outside of this function
     // TODO: consider using a callback function ptr, run when overlay is removed
-    if (over.GetID() == game.Play.complete_overlay_on)
+    if (over.GetID() == game.Play.CompleteOverlayID)
     {
-        game.Play.complete_overlay_on = 0;
+        game.Play.CompleteOverlayID = 0;
     }
-    else if (over.GetID() == game.Play.text_overlay_on)
+    else if (over.GetID() == game.Play.TextOverlayID)
     {
         // reset ref for speech text
-        game.Play.speech_text_schandle = ccRemoveObjectHandle(game.Play.speech_text_schandle);
-        game.Play.text_overlay_on = 0;
+        game.Play.SpeechTextScriptHandle = ccRemoveObjectHandle(game.Play.SpeechTextScriptHandle);
+        game.Play.TextOverlayID = 0;
     }
     else if (over.GetID() == OVER_PICTURE)
     {
         // reset ref for speech face
-        game.Play.speech_face_schandle = ccRemoveObjectHandle(game.Play.speech_face_schandle);
+        game.Play.SpeechPortraitScriptHandle = ccRemoveObjectHandle(game.Play.SpeechPortraitScriptHandle);
         game.Speech.FaceTalking = -1;
     }
     else if (over.GetCharacterRef() >= 0)
@@ -793,10 +793,10 @@ void remove_screen_overlay(int type)
 
     reset_drawobj_for_overlay(type);
 
-    game.Play.overlay_count--;
+    game.Play.OverlayCount--;
     // If all overlays have been removed, reset dynamic draw index (helps vs overflows);
     // we do this here, because overlays are the only dynamic objects atm
-    if (game.Play.overlay_count == 0)
+    if (game.Play.OverlayCount == 0)
         reset_drawobj_dynamic_index();
 }
 
@@ -843,32 +843,32 @@ static size_t add_screen_overlay_impl(bool room_layer, int x, int y, int type, i
     if (room_layer || type == OVER_TEXTMSG)
         over.SetZOrder(INT32_MAX);
     else if (type == OVER_PICTURE || type == OVER_TEXTSPEECH)
-        over.SetZOrder(game.Play.speech_zorder);
+        over.SetZOrder(game.Play.SpeechOverlayZOrder);
     else
         over.SetZOrder(INT_MIN);
     over.SetRoomLayer(room_layer);
     // TODO: move these custom settings outside of this function
     if (type == OVER_COMPLETE)
     {
-        game.Play.complete_overlay_on = type;
+        game.Play.CompleteOverlayID = type;
     }
     else if (type == OVER_TEXTMSG || type == OVER_TEXTSPEECH)
     {
-        game.Play.text_overlay_on = type;
+        game.Play.TextOverlayID = type;
         // only make script object for blocking speech now, because messagebox blocks all script
         // and therefore cannot be accessed, so no practical reason for that atm
         if (type == OVER_TEXTSPEECH)
         {
-            game.Play.speech_text_schandle = ccAssignObjectHandle(over.CreateScriptObject());
+            game.Play.SpeechTextScriptHandle = ccAssignObjectHandle(over.CreateScriptObject());
         }
     }
     else if (type == OVER_PICTURE)
     {
-        game.Play.speech_face_schandle = ccAssignObjectHandle(over.CreateScriptObject());
+        game.Play.SpeechPortraitScriptHandle = ccAssignObjectHandle(over.CreateScriptObject());
     }
     over.MarkChanged();
     screenover[type] = std::move(over);
-    game.Play.overlay_count++;
+    game.Play.OverlayCount++;
     add_drawobj_for_overlay(type);
     return type;
 }

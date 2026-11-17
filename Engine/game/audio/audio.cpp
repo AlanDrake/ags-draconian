@@ -104,8 +104,8 @@ int get_playback_start_volume(const AudioPlayback &aplay)
     Game &game = Game::Current();
     // Accoring to the existing rules, audio type's volume, if set at runtime,
     // will override the clip's own default volume.
-    if (game.Play.default_audio_type_volumes[aplay.AudioType] >= 0)
-        return game.Play.default_audio_type_volumes[aplay.AudioType];
+    if (game.Play.DefaultAudioTypeVolumes[aplay.AudioType] >= 0)
+        return game.Play.DefaultAudioTypeVolumes[aplay.AudioType];
 
     return aplay.Clip->DefaultVolume;
 }
@@ -116,9 +116,9 @@ void start_fading_in_new_track_if_applicable(int fadeInChannel, const AudioPlayb
     int crossfade_speed = game.AudioClipTypes[newSound.AudioType].CrossfadeSpeed;
     if (crossfade_speed > 0)
     {
-        game.Play.crossfade_in_volume_per_step = crossfade_speed;
-        game.Play.crossfade_final_volume_in = get_playback_start_volume(newSound);
-        game.Play.crossfading_in_channel = fadeInChannel;
+        game.Play.CrossfadeInVolumePerStep = crossfade_speed;
+        game.Play.CrossfadeFinalVolumeIn = get_playback_start_volume(newSound);
+        game.Play.CrossfadingInChannel = fadeInChannel;
     }
 }
 
@@ -131,12 +131,12 @@ static void move_track_to_crossfade_channel(int currentChannel, int crossfadeSpe
     if (!cfade_clip)
         return;
 
-    game.Play.crossfading_out_channel = SPECIAL_CROSSFADE_CHANNEL;
-    game.Play.crossfade_step = 0;
-    game.Play.crossfade_initial_volume_out = cfade_clip->get_volume100();
-    game.Play.crossfade_out_volume_per_step = crossfadeSpeed;
+    game.Play.CrossfadingOutChannel = SPECIAL_CROSSFADE_CHANNEL;
+    game.Play.CrossfadeStep = 0;
+    game.Play.CrossfadeInitialVolumeOut = cfade_clip->get_volume100();
+    game.Play.CrossfadeOutVolumePerStep = crossfadeSpeed;
 
-    game.Play.crossfading_in_channel = fadeInChannel;
+    game.Play.CrossfadingInChannel = fadeInChannel;
     if (newSound.Clip)
     {
         start_fading_in_new_track_if_applicable(fadeInChannel, newSound);
@@ -148,7 +148,7 @@ void stop_or_fade_out_channel(int fadeOutChannel, int fadeInChannel, const Audio
 {
     Game &game = Game::Current();
     int play_atype = AudioChannel_GetPlayingType(&game.ScAudioChannels[fadeOutChannel]);
-    if ((game.Play.fast_forward == 0) && // don't crossfade if skipping a cutscene
+    if ((game.Play.FastForward == 0) && // don't crossfade if skipping a cutscene
         (play_atype >= 0) && (game.AudioClipTypes[play_atype].CrossfadeSpeed > 0))
     {
         move_track_to_crossfade_channel(fadeOutChannel, game.AudioClipTypes[play_atype].CrossfadeSpeed, fadeInChannel,
@@ -222,7 +222,7 @@ static int find_free_audio_channel(const AudioPlayback &aplay, int priority, boo
         stop_or_fade_out_channel(lowestPriorityID, lowestPriorityID, aplay);
         channelToUse = lowestPriorityID;
     }
-    else if ((channelToUse >= 0) && (game.Play.crossfading_in_channel < 1))
+    else if ((channelToUse >= 0) && (game.Play.CrossfadingInChannel < 1))
     {
         start_fading_in_new_track_if_applicable(channelToUse, aplay);
     }
@@ -280,62 +280,62 @@ static void audio_update_polled_stuff()
     Game &game = Game::Current();
     ///////////////////////////////////////////////////////////////////////////
     // Do crossfade
-    game.Play.crossfade_step++;
+    game.Play.CrossfadeStep++;
 
-    if (game.Play.crossfading_out_channel > 0 && !AudioChans::GetChannelIfPlaying(game.Play.crossfading_out_channel))
-        game.Play.crossfading_out_channel = 0;
+    if (game.Play.CrossfadingOutChannel > 0 && !AudioChans::GetChannelIfPlaying(game.Play.CrossfadingOutChannel))
+        game.Play.CrossfadingOutChannel = 0;
 
-    if (game.Play.crossfading_out_channel > 0)
+    if (game.Play.CrossfadingOutChannel > 0)
     {
-        SoundClip *playback = AudioChans::GetChannel(game.Play.crossfading_out_channel);
-        int new_volume = playback ? playback->get_volume100() - game.Play.crossfade_out_volume_per_step : 0;
+        SoundClip *playback = AudioChans::GetChannel(game.Play.CrossfadingOutChannel);
+        int new_volume = playback ? playback->get_volume100() - game.Play.CrossfadeOutVolumePerStep : 0;
         if (new_volume > 0)
         {
             playback->set_volume100(new_volume);
         }
         else
         {
-            stop_and_destroy_channel(game.Play.crossfading_out_channel);
-            game.Play.crossfading_out_channel = 0;
+            stop_and_destroy_channel(game.Play.CrossfadingOutChannel);
+            game.Play.CrossfadingOutChannel = 0;
         }
     }
 
-    if (game.Play.crossfading_in_channel > 0 && !AudioChans::GetChannelIfPlaying(game.Play.crossfading_in_channel))
-        game.Play.crossfading_in_channel = 0;
+    if (game.Play.CrossfadingInChannel > 0 && !AudioChans::GetChannelIfPlaying(game.Play.CrossfadingInChannel))
+        game.Play.CrossfadingInChannel = 0;
 
-    if (game.Play.crossfading_in_channel > 0)
+    if (game.Play.CrossfadingInChannel > 0)
     {
-        SoundClip *playback = AudioChans::GetChannel(game.Play.crossfading_in_channel);
-        int new_volume = playback ? playback->get_volume100() + game.Play.crossfade_in_volume_per_step : 0;
-        if (new_volume > game.Play.crossfade_final_volume_in)
+        SoundClip *playback = AudioChans::GetChannel(game.Play.CrossfadingInChannel);
+        int new_volume = playback ? playback->get_volume100() + game.Play.CrossfadeInVolumePerStep : 0;
+        if (new_volume > game.Play.CrossfadeFinalVolumeIn)
         {
-            new_volume = game.Play.crossfade_final_volume_in;
+            new_volume = game.Play.CrossfadeFinalVolumeIn;
         }
 
         playback->set_volume100(new_volume);
 
-        if (new_volume >= game.Play.crossfade_final_volume_in)
+        if (new_volume >= game.Play.CrossfadeFinalVolumeIn)
         {
-            game.Play.crossfading_in_channel = 0;
+            game.Play.CrossfadingInChannel = 0;
         }
     }
 
     ///////////////////////////////////////////////////////////////////////////
     // Do audio queue
-    if (game.Play.new_music_queue_size > 0)
+    if (game.Play.NewMusicQueueSize > 0)
     {
-        for (int i = 0; i < game.Play.new_music_queue_size; i++)
+        for (int i = 0; i < game.Play.NewMusicQueueSize; i++)
         {
-            const AudioClip *clip = &game.AudioClips[game.Play.new_music_queue[i].audioClipIndex];
+            const AudioClip *clip = &game.AudioClips[game.Play.NewMusicQueue[i].audioClipIndex];
             int channel = find_free_audio_channel(clip, clip->DefaultPriority, false, true);
             if (channel >= 0)
             {
-                QueuedAudioItem item_to_play = std::move(game.Play.new_music_queue[i]);
+                QueuedAudioItem item_to_play = std::move(game.Play.NewMusicQueue[i]);
 
-                game.Play.new_music_queue_size--;
-                for (int j = i; j < game.Play.new_music_queue_size; j++)
+                game.Play.NewMusicQueueSize--;
+                for (int j = i; j < game.Play.NewMusicQueueSize; j++)
                 {
-                    game.Play.new_music_queue[j] = std::move(game.Play.new_music_queue[j + 1]);
+                    game.Play.NewMusicQueue[j] = std::move(game.Play.NewMusicQueue[j + 1]);
                 }
 
                 play_audio_clip_on_channel(clip, channel, item_to_play.priority, item_to_play.repeat, 0,
@@ -370,7 +370,7 @@ static void apply_volume_drop_to_clip(SoundClip *playback)
 static void queue_audio_clip_to_play(const AudioClipDef *clip, int priority, int repeat)
 {
     Game &game = Game::Current();
-    if (game.Play.new_music_queue_size >= MAX_QUEUED_MUSIC)
+    if (game.Play.NewMusicQueueSize >= MAX_QUEUED_MUSIC)
     {
         debug_script_log("Too many queued music, cannot add %s", clip->ScriptName.GetCStr());
         return;
@@ -379,11 +379,11 @@ static void queue_audio_clip_to_play(const AudioClipDef *clip, int priority, int
     std::unique_ptr<SoundClip> cachedClip = load_sound_clip(clip, (repeat != 0));
     if (cachedClip != nullptr)
     {
-        game.Play.new_music_queue[game.Play.new_music_queue_size].audioClipIndex = clip->ID;
-        game.Play.new_music_queue[game.Play.new_music_queue_size].priority = priority;
-        game.Play.new_music_queue[game.Play.new_music_queue_size].repeat = (repeat != 0);
-        game.Play.new_music_queue[game.Play.new_music_queue_size].cachedClip = std::move(cachedClip);
-        game.Play.new_music_queue_size++;
+        game.Play.NewMusicQueue[game.Play.NewMusicQueueSize].audioClipIndex = clip->ID;
+        game.Play.NewMusicQueue[game.Play.NewMusicQueueSize].priority = priority;
+        game.Play.NewMusicQueue[game.Play.NewMusicQueueSize].repeat = (repeat != 0);
+        game.Play.NewMusicQueue[game.Play.NewMusicQueueSize].cachedClip = std::move(cachedClip);
+        game.Play.NewMusicQueueSize++;
     }
 }
 
@@ -408,21 +408,21 @@ ScriptAudioChannel *play_audio_clip_direct(const AudioPlayback &aplay, int chann
     if (soundfx == nullptr)
     {
         debug_script_log("AudioClip.Play: unable to load sound file");
-        if (game.Play.crossfading_in_channel == channel)
+        if (game.Play.CrossfadingInChannel == channel)
         {
-            game.Play.crossfading_in_channel = 0;
+            game.Play.CrossfadingInChannel = 0;
         }
         return nullptr;
     }
     soundfx->priority = priority;
 
-    if (game.Play.crossfading_in_channel == channel)
+    if (game.Play.CrossfadingInChannel == channel)
     {
         soundfx->set_volume100(0);
     }
 
     // Mute the audio clip if fast-forwarding the cutscene
-    if (game.Play.fast_forward)
+    if (game.Play.FastForward)
     {
         soundfx->set_mute(true);
 
@@ -447,7 +447,7 @@ ScriptAudioChannel *play_audio_clip_direct(const AudioPlayback &aplay, int chann
     // NOTE: there is a confusing logic in sound clip classes, that they do not use
     // any modifiers when begin playing, therefore we must apply this only after
     // playback was started.
-    if (!game.Play.fast_forward && game.Play.speech_has_voice)
+    if (!game.Play.FastForward && game.Play.HasSpeechVoice)
         apply_volume_drop_to_clip(soundfx.get());
 
     AudioChans::SetChannel(channel, std::move(soundfx));
@@ -473,14 +473,14 @@ void remove_clips_of_type_from_queue(int audioType)
 {
     Game &game = Game::Current();
     int aa;
-    for (aa = 0; aa < game.Play.new_music_queue_size; aa++)
+    for (aa = 0; aa < game.Play.NewMusicQueueSize; aa++)
     {
-        const AudioClip *clip = &game.AudioClips[game.Play.new_music_queue[aa].audioClipIndex];
+        const AudioClip *clip = &game.AudioClips[game.Play.NewMusicQueue[aa].audioClipIndex];
         if ((audioType == SCR_NO_VALUE) || (clip->Type == audioType))
         {
-            game.Play.new_music_queue_size--;
-            for (int bb = aa; bb < game.Play.new_music_queue_size; bb++)
-                game.Play.new_music_queue[bb] = std::move(game.Play.new_music_queue[bb + 1]);
+            game.Play.NewMusicQueueSize--;
+            for (int bb = aa; bb < game.Play.NewMusicQueueSize; bb++)
+                game.Play.NewMusicQueue[bb] = std::move(game.Play.NewMusicQueue[bb + 1]);
             aa--;
         }
     }
@@ -489,13 +489,13 @@ void remove_clips_of_type_from_queue(int audioType)
 void update_queued_clips_volume(int audioType, int new_vol)
 {
     Game &game = Game::Current();
-    for (int i = 0; i < game.Play.new_music_queue_size; ++i)
+    for (int i = 0; i < game.Play.NewMusicQueueSize; ++i)
     {
         // NOTE: if clip is uncached, the volume will be set from defaults when it is loaded
-        SoundClip *playback = game.Play.new_music_queue[i].cachedClip.get();
+        SoundClip *playback = game.Play.NewMusicQueue[i].cachedClip.get();
         if (playback)
         {
-            const AudioClip *clip = &game.AudioClips[game.Play.new_music_queue[i].audioClipIndex];
+            const AudioClip *clip = &game.AudioClips[game.Play.NewMusicQueue[i].audioClipIndex];
             if (clip->Type == audioType)
                 playback->set_volume100(new_vol);
         }
@@ -564,10 +564,10 @@ void stop_and_destroy_channel(int chid)
 
     AudioChans::DeleteClipOnChannel(chid);
 
-    if (game.Play.crossfading_in_channel == chid)
-        game.Play.crossfading_in_channel = 0;
-    if (game.Play.crossfading_out_channel == chid)
-        game.Play.crossfading_out_channel = 0;
+    if (game.Play.CrossfadingInChannel == chid)
+        game.Play.CrossfadingInChannel = 0;
+    if (game.Play.CrossfadingOutChannel == chid)
+        game.Play.CrossfadingOutChannel = 0;
     // don't update 'crossFading' here as it is updated in all the cross-fading functions.
 }
 
@@ -616,7 +616,7 @@ void stop_all_sound_and_music()
         stop_and_destroy_channel(i);
     // Sound queues
     for (int i = 0; i < MAX_QUEUED_MUSIC; ++i)
-        game.Play.new_music_queue[i] = QueuedAudioItem();
+        game.Play.NewMusicQueue[i] = QueuedAudioItem();
 }
 
 void shutdown_sound()
@@ -691,7 +691,7 @@ void apply_volume_drop_modifier(bool applyModifier)
 // Checks if speech voice-over is currently playing, and reapply volume drop to all other active clips
 void update_volume_drop_if_voiceover()
 {
-    apply_volume_drop_modifier(Game::Current().Play.speech_has_voice);
+    apply_volume_drop_modifier(Game::Current().Play.HasSpeechVoice);
 }
 
 // Sync logical game channels with the audio backend:

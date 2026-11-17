@@ -1417,7 +1417,7 @@ void render_to_screen()
     {
         services.GfxDriver->BeginSpriteBatch(game.Viewports.GetMainViewport(),
                                              game.Viewports.GetGlobalTransform(drawstate.FullFrameRedraw),
-                                             (GraphicFlip)game.Play.screen_flipped);
+                                             (GraphicFlip)game.Play.ScreenFlip);
         services.GfxDriver->AddRenderEvent(kPluginEvt_FinalScreenDraw, 0);
         services.GfxDriver->EndSpriteBatch();
     }
@@ -1455,13 +1455,13 @@ void render_to_screen()
                 // This may be a matter for the future code improvement.
                 //
                 // For software renderer, need to blacken upper part of the game frame when shaking screen moves image down
-                if (game.Play.shake_screen_yoff > 0)
+                if (game.Play.ShakeScreenOffsetY > 0)
                 {
                     const Rect &viewport = game.Viewports.GetMainViewport();
                     services.GfxDriver->ClearRectangle(viewport.Left, viewport.Top, viewport.GetWidth() - 1,
-                                                       game.Play.shake_screen_yoff, nullptr);
+                                                       game.Play.ShakeScreenOffsetY, nullptr);
                 }
-                services.GfxDriver->Render(0, game.Play.shake_screen_yoff, (GraphicFlip)game.Play.screen_flipped);
+                services.GfxDriver->Render(0, game.Play.ShakeScreenOffsetY, (GraphicFlip)game.Play.ScreenFlip);
             }
             succeeded = true;
         }
@@ -1780,7 +1780,7 @@ void get_local_tint(Game &game, Room &room, int xpp, int ypp, bool use_region_ti
     {
         int on_region = 0;
 
-        if ((game.Play.ground_level_areas_disabled & GLED_EFFECTS) == 0)
+        if ((game.Play.GroundLevelAreasDisabled & GLED_EFFECTS) == 0)
         {
             // check if the player is on a region, to find its
             // light/tint level
@@ -1822,22 +1822,22 @@ void get_local_tint(Game &game, Room &room, int xpp, int ypp, bool use_region_ti
             tint_light = light_level;
         }
 
-        if (game.Play.rtint_enabled)
+        if (game.Play.IsAmbientTintEnabled)
         {
-            if (game.Play.rtint_level > 0)
+            if (game.Play.AmbientTintLevel > 0)
             {
                 // override with room tint
-                tint_red = game.Play.rtint_red;
-                tint_green = game.Play.rtint_green;
-                tint_blue = game.Play.rtint_blue;
-                tint_amount = game.Play.rtint_level;
-                tint_light = game.Play.rtint_light;
+                tint_red = game.Play.AmbientTintRed;
+                tint_green = game.Play.AmbientTintGreen;
+                tint_blue = game.Play.AmbientTintBlue;
+                tint_amount = game.Play.AmbientTintLevel;
+                tint_light = game.Play.AmbientTintLight;
             }
             else
             {
                 // override with room light level
                 tint_amount = 0;
-                light_level = game.Play.rtint_light;
+                light_level = game.Play.AmbientTintLight;
             }
         }
     }
@@ -2622,7 +2622,7 @@ void draw_fps(const Rect &viewport)
     if (!is_runtime_set())
         return;
 
-    const int font = game.Play.normal_font;
+    const int font = game.Play.NormalFont;
     auto &fps_display = gl_DrawFPS.bmp;
     if (fps_display == nullptr || gl_DrawFPS.font != font)
     {
@@ -2779,7 +2779,7 @@ void draw_gui_and_overlays()
     set_our_eip(35);
     if (((services.Debug.Flags & DBG_NOIFACE) == 0) && (game.DisplayedRoom >= 0))
     {
-        GUI::Options.GreyOutInvWindow = game.Play.inventory_greys_out;
+        GUI::Options.GreyOutInvWindow = game.Play.GreyOutInventory;
 
         set_our_eip(37);
         // Prepare and update GUI textures
@@ -3212,7 +3212,7 @@ void construct_game_scene(bool full_redraw)
     pl_run_plugin_hooks(kPluginEvt_PreRender, 0);
 
     // Possible reasons to invalidate whole screen for the software renderer
-    if (full_redraw || game.Play.screen_tint > 0 || game.Play.shakesc_length > 0)
+    if (full_redraw || game.Play.ScreenTint > 0 || game.Play.ShakeScreenLength > 0)
         invalidate_screen();
 
     // Overlays may be both in rooms and ui layer, prepare their textures beforehand
@@ -3221,10 +3221,10 @@ void construct_game_scene(bool full_redraw)
     // Begin with the parent scene node, defining global offset and flip
     services.GfxDriver->BeginSpriteBatch(game.Viewports.GetMainViewport(),
                                          game.Viewports.GetGlobalTransform(drawstate.FullFrameRedraw),
-                                         (GraphicFlip)game.Play.screen_flipped);
+                                         (GraphicFlip)game.Play.ScreenFlip);
 
     // Stage: room viewports
-    if (!game.Play.screen_is_faded_out && game.Play.complete_overlay_on == 0)
+    if (!game.Play.IsScreenFadedOut && game.Play.CompleteOverlayID == 0)
     {
         if (game.DisplayedRoom >= 0)
         {
@@ -3241,7 +3241,7 @@ void construct_game_scene(bool full_redraw)
     set_our_eip(4);
 
     // Stage: UI overlay
-    if (!game.Play.screen_is_faded_out)
+    if (!game.Play.IsScreenFadedOut)
     {
         construct_ui_view();
     }
@@ -3258,14 +3258,14 @@ void construct_game_screen_overlay(bool draw_cursor)
     Game &game = Game::Current();
     services.GfxDriver->BeginSpriteBatch(game.Viewports.GetMainViewport(),
                                          game.Viewports.GetGlobalTransform(drawstate.FullFrameRedraw),
-                                         (GraphicFlip)game.Play.screen_flipped);
+                                         (GraphicFlip)game.Play.ScreenFlip);
     if (pl_any_want_hook(kPluginEvt_PostScreenDraw))
     {
         services.GfxDriver->AddRenderEvent(kPluginEvt_PostScreenDraw, 0);
     }
 
     // Mouse cursor
-    if ((!game.Play.screen_is_faded_out) && draw_cursor && game.Play.ShouldDrawMouseCursor())
+    if ((!game.Play.IsScreenFadedOut) && draw_cursor && game.Play.ShouldDrawMouseCursor())
     {
         if (game.Cursor.GState.HasChanged() || cursor_tx.IsChangeNotified() ||
             // Test if must recache the unloaded sprite in software mode
@@ -3297,9 +3297,9 @@ void construct_game_screen_overlay(bool draw_cursor)
     }
 
     // Full screen tint fx, covers everything except for fade fx(?) and engine overlay
-    if ((game.Play.screen_tint >= 1) && (!game.Play.screen_is_faded_out))
-        services.GfxDriver->SetScreenTint(game.Play.screen_tint & 0xff, (game.Play.screen_tint >> 8) & 0xff,
-                                          (game.Play.screen_tint >> 16) & 0xff);
+    if ((game.Play.ScreenTint >= 1) && (!game.Play.IsScreenFadedOut))
+        services.GfxDriver->SetScreenTint(game.Play.ScreenTint & 0xff, (game.Play.ScreenTint >> 8) & 0xff,
+                                          (game.Play.ScreenTint >> 16) & 0xff);
     services.GfxDriver->EndSpriteBatch();
 
     // For hardware-accelerated renderers: legacy letterbox and global screen fade effect
@@ -3307,11 +3307,12 @@ void construct_game_screen_overlay(bool draw_cursor)
     {
         services.GfxDriver->BeginSpriteBatch(game.Viewports.GetMainViewport(), SpriteTransform());
         // Stage: legacy letterbox mode borders
-        if (!game.Play.screen_is_faded_out)
+        if (!game.Play.IsScreenFadedOut)
             render_black_borders();
         // Stage: full screen fade fx
-        if (game.Play.screen_is_faded_out)
-            services.GfxDriver->SetScreenFade(game.Play.fade_to_red, game.Play.fade_to_green, game.Play.fade_to_blue);
+        if (game.Play.IsScreenFadedOut)
+            services.GfxDriver->SetScreenFade(game.Play.FadeColorRed, game.Play.FadeColorGreen,
+                                              game.Play.FadeColorBlue);
         services.GfxDriver->EndSpriteBatch();
     }
 }
@@ -3332,11 +3333,11 @@ void update_shakescreen()
 {
     Game &game = Game::Current();
     // TODO: unify blocking and non-blocking shake update
-    game.Play.shake_screen_yoff = 0;
-    if (game.Play.shakesc_length > 0)
+    game.Play.ShakeScreenOffsetY = 0;
+    if (game.Play.ShakeScreenLength > 0)
     {
-        if ((get_loop_counter() % game.Play.shakesc_delay) < (game.Play.shakesc_delay / 2))
-            game.Play.shake_screen_yoff = game.Play.shakesc_amount;
+        if ((get_loop_counter() % game.Play.ShakeScreenDelay) < (game.Play.ShakeScreenDelay / 2))
+            game.Play.ShakeScreenOffsetY = game.Play.ShakeScreenAmount;
     }
 }
 
@@ -3429,7 +3430,7 @@ void render_graphics(IDriverDependantBitmap *extra_bitmap, int extra_x, int extr
     Game &game = Game::Current();
     Room &room = Room::Current();
     // Don't render if skipping cutscene
-    if (game.Play.fast_forward)
+    if (game.Play.FastForward)
         return;
     // Don't render if we've just entered new room and are before fade-in
     if (game.RoomChange.InNewRoom != kEnterRoom_None)
@@ -3451,7 +3452,7 @@ void render_graphics(IDriverDependantBitmap *extra_bitmap, int extra_x, int extr
     {
         services.GfxDriver->BeginSpriteBatch(game.Viewports.GetMainViewport(),
                                              game.Viewports.GetGlobalTransform(drawstate.FullFrameRedraw),
-                                             (GraphicFlip)game.Play.screen_flipped);
+                                             (GraphicFlip)game.Play.ScreenFlip);
         invalidate_sprite(extra_x, extra_y, extra_bitmap, false);
         services.GfxDriver->DrawSprite(extra_x, extra_y, extra_bitmap);
         services.GfxDriver->EndSpriteBatch();
@@ -3461,7 +3462,7 @@ void render_graphics(IDriverDependantBitmap *extra_bitmap, int extra_x, int extr
 
     services.Sprites.EnableAutoFreeMem(true);
 
-    if (!game.Play.screen_is_faded_out)
+    if (!game.Play.IsScreenFadedOut)
     {
         // always update the palette, regardless of whether the plugin
         // vetos the screen update
@@ -3514,6 +3515,6 @@ void UpdatePalette()
     if (game.BytesPerPixel > 1)
         invalidate_screen();
 
-    if (!game.Play.fast_forward)
+    if (!game.Play.FastForward)
         setpal();
 }

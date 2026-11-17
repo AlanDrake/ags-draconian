@@ -880,7 +880,7 @@ HSaveError WriteAudio(Stream *out)
     for (size_t i = 0; i < game.AudioClipTypes.size(); ++i)
     {
         WriteAudioClipType(game.AudioClipTypes[i], out);
-        out->WriteInt32(game.Play.default_audio_type_volumes[i]);
+        out->WriteInt32(game.Play.DefaultAudioTypeVolumes[i]);
     }
 
     // Audio playbacks (from channels)
@@ -969,7 +969,7 @@ HSaveError ReadAudio(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Preserv
     for (uint32_t i = 0; i < audiocliptype_read; ++i)
     {
         ReadAudioClipType(game.AudioClipTypes[i], in);
-        game.Play.default_audio_type_volumes[i] = in->ReadInt32();
+        game.Play.DefaultAudioTypeVolumes[i] = in->ReadInt32();
     }
 
     // Active playbacks and crossfade
@@ -1193,7 +1193,7 @@ HSaveError WriteGUI(Stream *out)
     for (int i = 0; i < game.GuiCount; ++i)
     {
         game.Guis[i].WriteToSavegame(out);
-        Properties::WriteValues(game.Play.guiProps[i], out);
+        Properties::WriteValues(game.Play.GuiProperties[i], out);
     }
 
     WriteFormatTag(out, "GUIButtons");
@@ -1201,7 +1201,7 @@ HSaveError WriteGUI(Stream *out)
     for (size_t i = 0; i < game.GuiButtons.size(); ++i)
     {
         game.GuiButtons[i].WriteToSavegame(out);
-        Properties::WriteValues(game.Play.guicontrolProps[kGUIButton][i], out);
+        Properties::WriteValues(game.Play.GuiControlProperties[kGUIButton][i], out);
     }
 
     WriteFormatTag(out, "GUILabels");
@@ -1209,7 +1209,7 @@ HSaveError WriteGUI(Stream *out)
     for (size_t i = 0; i < game.GuiLabels.size(); ++i)
     {
         game.GuiLabels[i].WriteToSavegame(out);
-        Properties::WriteValues(game.Play.guicontrolProps[kGUILabel][i], out);
+        Properties::WriteValues(game.Play.GuiControlProperties[kGUILabel][i], out);
     }
 
     WriteFormatTag(out, "GUIInvWindows");
@@ -1217,7 +1217,7 @@ HSaveError WriteGUI(Stream *out)
     for (size_t i = 0; i < game.GuiInvWindows.size(); ++i)
     {
         game.GuiInvWindows[i].WriteToSavegame(out);
-        Properties::WriteValues(game.Play.guicontrolProps[kGUIInvWindow][i], out);
+        Properties::WriteValues(game.Play.GuiControlProperties[kGUIInvWindow][i], out);
     }
 
     WriteFormatTag(out, "GUISliders");
@@ -1225,7 +1225,7 @@ HSaveError WriteGUI(Stream *out)
     for (size_t i = 0; i < game.GuiSliders.size(); ++i)
     {
         game.GuiSliders[i].WriteToSavegame(out);
-        Properties::WriteValues(game.Play.guicontrolProps[kGUISlider][i], out);
+        Properties::WriteValues(game.Play.GuiControlProperties[kGUISlider][i], out);
     }
 
     WriteFormatTag(out, "GUITextBoxes");
@@ -1233,7 +1233,7 @@ HSaveError WriteGUI(Stream *out)
     for (size_t i = 0; i < game.GuiTextBoxes.size(); ++i)
     {
         game.GuiTextBoxes[i].WriteToSavegame(out);
-        Properties::WriteValues(game.Play.guicontrolProps[kGUITextBox][i], out);
+        Properties::WriteValues(game.Play.GuiControlProperties[kGUITextBox][i], out);
     }
 
     WriteFormatTag(out, "GUIListBoxes");
@@ -1241,7 +1241,7 @@ HSaveError WriteGUI(Stream *out)
     for (size_t i = 0; i < game.GuiListBoxes.size(); ++i)
     {
         game.GuiListBoxes[i].WriteToSavegame(out);
-        Properties::WriteValues(game.Play.guicontrolProps[kGUIListBox][i], out);
+        Properties::WriteValues(game.Play.GuiControlProperties[kGUIListBox][i], out);
     }
 
     // Animated buttons
@@ -1340,7 +1340,7 @@ bool ReadGUIControlArray(std::vector<TGUIControl> &obj_arr, Stream *in, GuiSvgVe
     {
         guiobj_read[i].ReadFromSavegame(in, svg_ver);
         if (svg_ver >= kGuiSvgVersion_40008)
-            Properties::ReadValues(game.Play.guicontrolProps[control_type][i], in);
+            Properties::ReadValues(game.Play.GuiControlProperties[control_type][i], in);
     }
     MoveGUIControlArray<TGUIControl>(guiobj_read, obj_arr, ctrlidx_per_gui_old, ctrlidx_per_gui_new);
     return true;
@@ -1362,7 +1362,7 @@ HSaveError ReadGUI(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Preserved
     {
         game.Guis[i].ReadFromSavegame(in, svg_ver, guictrl_refs_old[i]);
         if (svg_ver >= kGuiSvgVersion_40008)
-            Properties::ReadValues(game.Play.guiProps[i], in);
+            Properties::ReadValues(game.Play.GuiProperties[i], in);
     }
 
     r_data.DataCounts.GUIControls.resize(guis_read);

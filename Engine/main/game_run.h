@@ -40,7 +40,7 @@ void GameLoopUntilValueIsNegative(const short *value);
 void GameLoopUntilValueIsNegative(const int *value);
 // Until the pointed move counter drops below 1 (a character or object stops moving)
 void GameLoopUntilNotMoving(const short *move);
-// Until there is no speech or text overlay on screen (game.Play.text_overlay_on is 0)
+// Until there is no speech or text overlay on screen (game.Play.TextOverlayID is 0)
 void GameLoopUntilNoOverlay();
 // Until the GUI button's animation is over (button btn_id on GUI gui_id)
 void GameLoopUntilButAnimEnd(int gui_id, int btn_id);

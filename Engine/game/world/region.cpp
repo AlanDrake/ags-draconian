@@ -275,17 +275,17 @@ void DisableGroundLevelAreas(int alsoEffects)
     if ((alsoEffects < 0) || (alsoEffects > 1))
         quit("!DisableGroundLevelAreas: invalid parameter: must be 0 or 1");
 
-    game.Play.ground_level_areas_disabled = GLED_INTERACTION;
+    game.Play.GroundLevelAreasDisabled = GLED_INTERACTION;
 
     if (alsoEffects)
-        game.Play.ground_level_areas_disabled |= GLED_EFFECTS;
+        game.Play.GroundLevelAreasDisabled |= GLED_EFFECTS;
 
     debug_script_log("Ground-level areas disabled");
 }
 
 void EnableGroundLevelAreas()
 {
-    Game::Current().Play.ground_level_areas_disabled = 0;
+    Game::Current().Play.GroundLevelAreasDisabled = 0;
 
     debug_script_log("Ground-level areas re-enabled");
 }

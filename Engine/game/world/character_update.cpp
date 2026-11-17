@@ -386,8 +386,9 @@ bool UpdateCharacterAnimating(Game &game, Character *ch, int &doing_nothing)
             ch->AnimWait = update_lip_sync(view, ch->Loop, &fraa) - 1;
             // closed mouth at end of sentence
             // NOTE: standard lip-sync is synchronized with text timer, not voice file
-            if (game.Play.speech_in_post_state ||
-                ((game.Play.messagetime >= 0) && (game.Play.messagetime < game.Play.close_mouth_speech_time)))
+            if (game.Play.IsSpeechInPostState ||
+                ((game.Play.MessageTimeLeft >= 0) &&
+                 (game.Play.MessageTimeLeft < game.Play.SpeechAnimationStopTimeMargin)))
             {
                 ch->Frame = 0;
             }
@@ -407,9 +408,9 @@ bool UpdateCharacterAnimating(Game &game, Character *ch, int &doing_nothing)
 
             bool done_anim = false;
             if ((ch->ID == game.Speech.CharSpeakingAnim) &&
-                (game.Play.speech_in_post_state ||
-                 ((!game.Play.speech_voice_blocking) && (game.Play.close_mouth_speech_time > 0) &&
-                  (game.Play.messagetime < game.Play.close_mouth_speech_time))))
+                (game.Play.IsSpeechInPostState ||
+                 ((!game.Play.IsSpeechVoiceBlocking) && (game.Play.SpeechAnimationStopTimeMargin > 0) &&
+                  (game.Play.MessageTimeLeft < game.Play.SpeechAnimationStopTimeMargin))))
             {
                 // finished talking - stop animation
                 done_anim = true;
@@ -486,7 +487,7 @@ void UpdateCharacterFollower(Game &game, Room &room, Character *ch, std::vector<
         }
         if (ch->Room < 0)
         {
-            // A negative room is the countdown set below (-follow_change_room_timer), the delay before the follower
+            // A negative room is the countdown set below (-FollowingRoomDelay), the delay before the follower
             // appears in the room the followed character is in. It counts up by one per update while the
             // character has nothing else to do, and the follower enters at 0.
             ch->Room++;
@@ -537,7 +538,7 @@ void UpdateCharacterFollower(Game &game, Room &room, Character *ch, std::vector<
                 {
                     // not at one of the edges
                     // delay for a few seconds to let the player move
-                    ch->Room = -game.Play.follow_change_room_timer;
+                    ch->Room = -game.Play.FollowingRoomDelay;
                 }
                 if (ch->Room >= 0)
                 {

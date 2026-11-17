@@ -78,7 +78,7 @@ void remove_popup_interface(int gui_id);
 // Runs the script handler of a click on a GUI (btn_id < 0: the GUI background) or on one of its controls;
 // falls back to the old-style interface_click function when the control has no handler of its own.
 void process_interface_click(int gui_id, int btn_id, int mbut);
-// Re-sorts game.Play.gui_draw_order by z-order (ties by GUI index).
+// Re-sorts game.Play.GuiDrawOrder by z-order (ties by GUI index).
 void update_gui_zorder();
 // Initializes all GUI and controls for runtime state;
 // this must be done after creating or loading GUIs.

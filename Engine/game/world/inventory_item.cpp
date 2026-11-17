@@ -265,7 +265,7 @@ void RunInventoryInteraction(int item_id, int mood)
     // For USE verb: remember active inventory
     if (game.HasCursorRole(mood, kCursorRole_UseInv))
     {
-        game.Play.usedinv = game.PlayerChar->ActiveInventory;
+        game.Play.UsedInventory = game.PlayerChar->ActiveInventory;
     }
 
     const auto obj_evt =
@@ -285,12 +285,12 @@ static int IsInventoryInteractionAvailable(int item_id, int mood)
     if ((item_id < 0) || (item_id >= game.InventoryItemCount))
         quit("!IsInventoryInteractionAvailable: invalid inventory number");
 
-    game.Play.check_interaction_only = 1;
+    game.Play.CheckInteractionOnly = 1;
 
     RunInventoryInteraction(item_id, mood);
 
-    int result = game.Play.check_interaction_only;
-    game.Play.check_interaction_only = 0;
+    int result = game.Play.CheckInteractionOnly;
+    game.Play.CheckInteractionOnly = 0;
 
     if (result == 2)
         return 1;
@@ -311,20 +311,22 @@ int InventoryItem_CheckInteractionAvailable(ScriptInvItem *item, int mood)
 int InventoryItem_GetProperty(ScriptInvItem *item, const char *property)
 {
     Game &game = Game::Current();
-    return get_int_property(game.invProps[item->id], game.InventoryItems[item->id].PropertyOverrides, property);
+    return get_int_property(game.InventoryItemProperties[item->id], game.InventoryItems[item->id].PropertyOverrides,
+                            property);
 }
 
 void InventoryItem_GetPropertyText(ScriptInvItem *item, const char *property, char *buffer)
 {
     Game &game = Game::Current();
-    get_text_property(game.invProps[item->id], game.InventoryItems[item->id].PropertyOverrides, property, buffer);
+    get_text_property(game.InventoryItemProperties[item->id], game.InventoryItems[item->id].PropertyOverrides, property,
+                      buffer);
 }
 
 const char *InventoryItem_GetTextProperty(ScriptInvItem *item, const char *property)
 {
     Game &game = Game::Current();
-    return get_text_property_dynamic_string(game.invProps[item->id], game.InventoryItems[item->id].PropertyOverrides,
-                                            property);
+    return get_text_property_dynamic_string(game.InventoryItemProperties[item->id],
+                                            game.InventoryItems[item->id].PropertyOverrides, property);
 }
 
 bool InventoryItem_SetProperty(ScriptInvItem *item, const char *property, int value)

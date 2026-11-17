@@ -360,7 +360,7 @@ SpriteTransform GameViewports::GetGlobalTransform(bool full_frame_rend) const
     // NOTE: the screen shake is a part of the sprite batches' transform only when the whole frame is redrawn
     // each time (full_frame_rend); otherwise it is applied as a final render offset (optimization)
     // TODO: also add global flip to the same transform, instead of passing separately?
-    return SpriteTransform(_mainViewport.Left, _mainViewport.Top + Game::Current().Play.shake_screen_yoff *
+    return SpriteTransform(_mainViewport.Left, _mainViewport.Top + Game::Current().Play.ShakeScreenOffsetY *
                                                                        static_cast<int>(full_frame_rend));
 }
 

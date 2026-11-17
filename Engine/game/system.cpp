@@ -136,7 +136,7 @@ int System_GetSupportsGammaControl()
 
 int System_GetGamma()
 {
-    return Game::Current().Play.gamma_adjustment;
+    return Game::Current().Play.GammaAdjustment;
 }
 
 void System_SetGamma(int newValue)
@@ -146,10 +146,10 @@ void System_SetGamma(int newValue)
     if ((newValue < 0) || (newValue > 200))
         quitprintf("!System.Gamma: value must be between 0-200 (not %d)", newValue);
 
-    if (game.Play.gamma_adjustment != newValue)
+    if (game.Play.GammaAdjustment != newValue)
     {
         debug_script_log("Gamma control set to %d", newValue);
-        game.Play.gamma_adjustment = newValue;
+        game.Play.GammaAdjustment = newValue;
 
         if (services.GfxDriver->SupportsGammaControl())
             services.GfxDriver->SetGamma(newValue);
@@ -173,7 +173,7 @@ ScriptAudioChannel *System_GetAudioChannels(int index)
 
 int System_GetVolume()
 {
-    return Game::Current().Play.audio_master_volume;
+    return Game::Current().Play.AudioMasterVolume;
 }
 
 void System_SetVolume(int newvol)
@@ -182,10 +182,10 @@ void System_SetVolume(int newvol)
     if ((newvol < 0) || (newvol > 100))
         quit("!System.Volume: invalid volume - must be from 0-100");
 
-    if (newvol == game.Play.audio_master_volume)
+    if (newvol == game.Play.AudioMasterVolume)
         return;
 
-    game.Play.audio_master_volume = newvol;
+    game.Play.AudioMasterVolume = newvol;
     auto newvol_f = static_cast<float>(newvol) / 100.0;
     audio_core_set_master_volume(newvol_f);
 }

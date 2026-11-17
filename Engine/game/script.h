@@ -116,7 +116,7 @@ void run_function_on_non_blocking_thread(NonBlockingScriptFunction *func_to_run)
 // If there is no enabled handler for 'event_id', runs nothing and returns 0: when 'any_handlers' has an
 // enabled one for 'any_event_id' the caller is expected to run it (the "Any Click" case), otherwise
 // the "unhandled_event" callback is run if 'do_unhandled_event' is set.
-// Returns -1 if the handler was found while game.Play.check_interaction_only is set (it does not run then),
+// Returns -1 if the handler was found while game.Play.CheckInteractionOnly is set (it does not run then),
 // or if the room changed while it ran; 0 otherwise.
 int run_event_script(const ObjectEvent &obj_evt, ScriptEventsBase *handlers, int event_id,
                      ScriptEventsBase *any_handlers, int any_event_id, bool do_unhandled_event);
@@ -124,7 +124,7 @@ int run_event_script(const ObjectEvent &obj_evt, ScriptEventsBase *handlers, int
 int run_event_script(const ObjectEvent &obj_evt, ScriptEventsBase *handlers, int event_id,
                      bool do_unhandled_event = false);
 // Runs the handler for 'event_id' if there is an enabled one: unlike run_event_script, it does not look
-// at game.Play.check_interaction_only, and has no "Any Click" or "unhandled_event" fallback.
+// at game.Play.CheckInteractionOnly, and has no "Any Click" or "unhandled_event" fallback.
 // Returns -1 if the room changed while it ran, 0 otherwise.
 int run_event_script_always(const ObjectEvent &obj_evt, ScriptEventsBase *handlers, int event_id);
 // Runs the game's "unhandled_event" callback for an interaction that had no handler, giving it the location

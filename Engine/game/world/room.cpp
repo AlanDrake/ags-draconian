@@ -467,8 +467,8 @@ void unload_old_room()
         game.Characters[i].FullStepX = INVALID_X;
     }
 
-    game.Play.swap_portrait_lastchar = -1;
-    game.Play.swap_portrait_lastlastchar = -1;
+    game.Play.SwapPortraitLastCharacter = -1;
+    game.Play.SwapPortraitLastLastCharacter = -1;
 
     // Remove named room elements from script
     for (uint32_t i = 0; i < room.State->ObjectCount; ++i)
@@ -508,10 +508,10 @@ void unload_old_room()
     clear_drawobj_cache(true /* keep object callbacks */);
 
     // if Hide Player Character was ticked, restore it to visible
-    if (game.Play.temporarily_turned_off_character >= 0)
+    if (game.Play.TemporarilyTurnedOffCharacter >= 0)
     {
-        game.Characters[game.Play.temporarily_turned_off_character].set_enabled(true);
-        game.Play.temporarily_turned_off_character = -1;
+        game.Characters[game.Play.TemporarilyTurnedOffCharacter].set_enabled(true);
+        game.Play.TemporarilyTurnedOffCharacter = -1;
     }
 
     pool.PrintStats();
@@ -707,7 +707,7 @@ void load_new_room(int room_id, Character *ch)
 
     String room_filename;
     game.Events.DoneAsError = false;
-    game.Play.room_changes++;
+    game.Play.RoomChanges++;
     game.DisplayedRoom = room_id;
 
     room_filename.Format("room%d.crm", room_id);
@@ -750,7 +750,7 @@ void load_new_room(int room_id, Character *ch)
     room.LoadedWidth = room.Width;
     room.LoadedHeight = room.Height;
     room.AnimBackgroundDelay = room.BgAnimDelay;
-    game.Play.bg_anim_delay = room.AnimBackgroundDelay;
+    game.Play.BgAnimWait = room.AnimBackgroundDelay;
     room.BgModified.resize(room.BgFrameCount);
 
     // Fixup the frame index, in case the new room does not have enough background frames
@@ -1076,7 +1076,7 @@ void load_new_room(int room_id, Character *ch)
             // remember which character we turned off, in case they
             // use SetPlayerCharacter within this room (so we re-enable
             // the correct character when leaving the room)
-            game.Play.temporarily_turned_off_character = game.PlayerCharacterID;
+            game.Play.TemporarilyTurnedOffCharacter = game.PlayerCharacterID;
         }
         if (ch->Flags & CHF_FIXVIEW)
             ;
@@ -1107,8 +1107,8 @@ void load_new_room(int room_id, Character *ch)
     set_our_eip(212);
     invalidate_screen();
     new_room_flags = 0;
-    game.Play.gscript_timer = -1; // avoid screw-ups with changing screens
-    game.Play.player_on_region = 0;
+    game.Play.GlobalScriptTimer = -1; // avoid screw-ups with changing screens
+    game.Play.PlayerRegionID = 0;
 
     // drop any input which they might have done while it was loading
     ags_clear_input_queue();
@@ -1416,12 +1416,12 @@ void SetAmbientTint(int red, int green, int blue, int opacity, int luminance)
 
     debug_script_log("Set ambient tint RGB(%d,%d,%d) %d", red, green, blue, opacity);
 
-    game.Play.rtint_enabled = opacity > 0;
-    game.Play.rtint_red = red;
-    game.Play.rtint_green = green;
-    game.Play.rtint_blue = blue;
-    game.Play.rtint_level = opacity;
-    game.Play.rtint_light = luminance;
+    game.Play.IsAmbientTintEnabled = opacity > 0;
+    game.Play.AmbientTintRed = red;
+    game.Play.AmbientTintGreen = green;
+    game.Play.AmbientTintBlue = blue;
+    game.Play.AmbientTintLevel = opacity;
+    game.Play.AmbientTintLight = luminance;
 }
 
 void SetAmbientLightLevel(int light_level)
@@ -1429,9 +1429,9 @@ void SetAmbientLightLevel(int light_level)
     Game &game = Game::Current();
     light_level = Math::Clamp(light_level, -255, 255);
 
-    game.Play.rtint_enabled = light_level != 0;
-    game.Play.rtint_level = 0;
-    game.Play.rtint_light = light_level;
+    game.Play.IsAmbientTintEnabled = light_level != 0;
+    game.Play.AmbientTintLevel = 0;
+    game.Play.AmbientTintLight = light_level;
 }
 
 void NewRoom(int nrnum)
@@ -1573,7 +1573,7 @@ void RoomProcessClick(int x, int y, int mood)
             ;
         else if (room.Hotspots[hotspot_id].WalkTo.X < 1)
             ;
-        else if (game.Play.auto_use_walkto_points == 0)
+        else if (game.Play.AutoUseWalkToPoints == 0)
             ;
         else
         {
@@ -1584,7 +1584,7 @@ void RoomProcessClick(int x, int y, int mood)
         walk_character(game.PlayerChar, x, y, false /* walk areas */);
         return;
     }
-    game.Play.usedmode = mood;
+    game.Play.UsedMode = mood;
 
     if (loc_type == 0)
     {
@@ -1623,7 +1623,7 @@ int IsInteractionAvailable(int x, int y, int mood)
     if (game.HasCursorRole(mood, kCursorRole_Walk) && (game.Options[OPT_NOWALKMODE] == 0))
         return 1;
 
-    game.Play.check_interaction_only = 1;
+    game.Play.CheckInteractionOnly = 1;
 
     if (loc_type == 0)
     {
@@ -1643,8 +1643,8 @@ int IsInteractionAvailable(int x, int y, int mood)
     else if (loc_type == LOCTYPE_HOTSPOT)
         RunHotspotInteraction(loc_id, mood);
 
-    int check_result = game.Play.check_interaction_only;
-    game.Play.check_interaction_only = 0;
+    int check_result = game.Play.CheckInteractionOnly;
+    game.Play.CheckInteractionOnly = 0;
 
     if (check_result == 2)
         return 1;

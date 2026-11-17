@@ -232,7 +232,7 @@ void GUI_SetPopupStyle(ScriptGUI *sgui, int popup_style)
             UnPauseGame();
         }
 
-        if (gui.IsDisplayed() && game.Play.mouse_input_enabled)
+        if (gui.IsDisplayed() && game.Play.IsMouseInputEnabled)
         {
             gui.Poll(services.Input.MouseX, services.Input.MouseY,
                      GetGUIAt(services.Input.MouseX, services.Input.MouseY, kHit_Interactable) == gui.GetID());
@@ -560,7 +560,7 @@ int GetGUIAt(int x, int y, int hit_options)
     Game &game = Game::Current();
     const bool only_clickable = (hit_options & kHit_Interactable) != 0;
     // Test in the opposite order (from closer to further)
-    for (auto g = game.Play.gui_draw_order.crbegin(); g < game.Play.gui_draw_order.crend(); ++g)
+    for (auto g = game.Play.GuiDrawOrder.crbegin(); g < game.Play.GuiDrawOrder.crend(); ++g)
     {
         if (game.Guis[*g].IsDisplayed())
         {
@@ -670,23 +670,23 @@ void GUI_SetScale(ScriptGUI *sgui, float scale_x, float scale_y)
 int GUI_GetProperty(ScriptGUI *sgui, const char *property)
 {
     Game &game = Game::Current();
-    return get_int_property(game.guiProps[sgui->id], game.Play.guiProps[sgui->id], property);
+    return get_int_property(game.GuiProperties[sgui->id], game.Play.GuiProperties[sgui->id], property);
 }
 
 const char *GUI_GetTextProperty(ScriptGUI *sgui, const char *property)
 {
     Game &game = Game::Current();
-    return get_text_property_dynamic_string(game.guiProps[sgui->id], game.Play.guiProps[sgui->id], property);
+    return get_text_property_dynamic_string(game.GuiProperties[sgui->id], game.Play.GuiProperties[sgui->id], property);
 }
 
 bool GUI_SetProperty(ScriptGUI *sgui, const char *property, int value)
 {
-    return set_int_property(Game::Current().Play.guiProps[sgui->id], property, value);
+    return set_int_property(Game::Current().Play.GuiProperties[sgui->id], property, value);
 }
 
 bool GUI_SetTextProperty(ScriptGUI *sgui, const char *property, const char *value)
 {
-    return set_text_property(Game::Current().Play.guiProps[sgui->id], property, value);
+    return set_text_property(Game::Current().Play.GuiProperties[sgui->id], property, value);
 }
 
 //=============================================================================
@@ -700,7 +700,7 @@ void remove_popup_interface(int gui_id)
     game.IfacePopped = -1;
     UnPauseGame();
     game.Guis[gui_id].SetConceal(true);
-    if (game.Play.mouse_input_enabled && services.Input.MouseY <= game.Guis[gui_id].GetPopupAtY())
+    if (game.Play.IsMouseInputEnabled && services.Input.MouseY <= game.Guis[gui_id].GetPopupAtY())
         Mouse::SetPosition(Point(services.Input.MouseX, game.Guis[gui_id].GetPopupAtY() + 2));
     if ((!IsInterfaceEnabled()) && (game.Cursor.Look == game.Cursor.Mode))
         // Only change the mouse cursor if it hasn't been specifically changed first
@@ -796,7 +796,7 @@ bool sort_gui_less(const int g1, const int g2)
 void update_gui_zorder()
 {
     Game &game = Game::Current();
-    std::sort(game.Play.gui_draw_order.begin(), game.Play.gui_draw_order.end(), sort_gui_less);
+    std::sort(game.Play.GuiDrawOrder.begin(), game.Play.GuiDrawOrder.end(), sort_gui_less);
 }
 
 void prepare_gui_runtime(bool startup)
@@ -813,8 +813,8 @@ void prepare_gui_runtime(bool startup)
         }
     }
 
-    game.Play.gui_draw_order.resize(game.Guis.size());
-    std::iota(game.Play.gui_draw_order.begin(), game.Play.gui_draw_order.end(), 0);
+    game.Play.GuiDrawOrder.resize(game.Guis.size());
+    std::iota(game.Play.GuiDrawOrder.begin(), game.Play.GuiDrawOrder.end(), 0);
     update_gui_zorder();
 
     // Restore subscription to dynamic sprite notifications
@@ -954,21 +954,21 @@ int gui_on_mouse_move(const int mx, const int my)
     // interactable at the mouse position (the nearest one) stays in mouse_over_gui;
     // except when the loop stops early, on a GUI that pops up or while a blocking
     // overlay disables the interface: the GUIs after that one are not tested.
-    for (int gui_id : game.Play.gui_draw_order)
+    for (int gui_id : game.Play.GuiDrawOrder)
     {
         if (game.Guis[gui_id].IsInteractableAt(mx, my))
             mouse_over_gui = gui_id;
 
         if (game.Guis[gui_id].GetPopupStyle() != kGUIPopupMouseY)
             continue;
-        if (game.Play.complete_overlay_on > 0)
+        if (game.Play.CompleteOverlayID > 0)
             break; // interfaces disabled
         if (game.IfacePopped == gui_id)
             continue;
         if (!game.Guis[gui_id].IsVisible())
             continue;
         // Don't allow it to be popped up while skipping cutscene
-        if (game.Play.fast_forward)
+        if (game.Play.FastForward)
             continue;
 
         if (services.Input.MouseY < game.Guis[gui_id].GetPopupAtY())
@@ -1045,7 +1045,7 @@ void gui_on_mouse_up(const int wasongui, const int wasbutdown, const int mx, con
             int item_id = InvWindow_GetItemAtXY(static_cast<GUIInvWindow *>(control), gobjpt.X, gobjpt.Y);
             if (item_id >= 0)
             {
-                game.Play.used_inv_on = item_id;
+                game.Play.InventoryActivated = item_id;
                 if (game.Options[OPT_HANDLEINVCLICKS])
                 {
                     // Let the script handle the click
@@ -1203,7 +1203,7 @@ void InterfaceOn(int ifn)
     // modal interface
     if (game.Guis[ifn].GetPopupStyle() == kGUIPopupModal)
         PauseGame();
-    if (game.Play.mouse_input_enabled)
+    if (game.Play.IsMouseInputEnabled)
         game.Guis[ifn].Poll(services.Input.MouseX, services.Input.MouseY,
                             GetGUIAt(services.Input.MouseX, services.Input.MouseY, kHit_Interactable) == ifn);
 }
@@ -1227,8 +1227,8 @@ void InterfaceOff(int ifn)
 void DisableInterfaceEx(bool update_cursor)
 {
     Game &game = Game::Current();
-    game.Play.disabled_user_interface++;
-    if (game.Play.disabled_user_interface == 1) // if just switched to disabled
+    game.Play.UserInterfaceDisabledCount++;
+    if (game.Play.UserInterfaceDisabledCount == 1) // if just switched to disabled
     {
         // If GUI looks change when disabled, then mark all of them for redraw
         GUIE::MarkAllGUIForUpdate(GUI::Options.DisabledStyle != kGuiDis_Unchanged, true);
@@ -1252,10 +1252,10 @@ void DisableInterface()
 void EnableInterfaceEx(bool update_cursor)
 {
     Game &game = Game::Current();
-    game.Play.disabled_user_interface--;
-    if (game.Play.disabled_user_interface < 1) // if just switched to enabled
+    game.Play.UserInterfaceDisabledCount--;
+    if (game.Play.UserInterfaceDisabledCount < 1) // if just switched to enabled
     {
-        game.Play.disabled_user_interface = 0; // clamp to 0
+        game.Play.UserInterfaceDisabledCount = 0; // clamp to 0
         // If GUI looks change when disabled, then mark all of them for redraw
         GUIE::MarkAllGUIForUpdate(GUI::Options.DisabledStyle != kGuiDis_Unchanged, true);
         // Also mark "overhotspot" labels for update, as their text gets reset
@@ -1276,7 +1276,7 @@ void EnableInterface()
 // Returns 1 if user interface is enabled, 0 if disabled
 int IsInterfaceEnabled()
 {
-    return (Game::Current().Play.disabled_user_interface > 0) ? 0 : 1;
+    return (Game::Current().Play.UserInterfaceDisabledCount > 0) ? 0 : 1;
 }
 
 void SetTextWindowGUI(int guinum)
@@ -1290,7 +1290,7 @@ void SetTextWindowGUI(int guinum)
     else if (!game.Guis[guinum].IsTextWindow())
         quit("!SetTextWindowGUI: specified GUI is not a text window");
 
-    if (game.Play.speech_textwindow_gui == game.Options[OPT_TWCUSTOM])
-        game.Play.speech_textwindow_gui = guinum;
+    if (game.Play.SpeechTextWindowGui == game.Options[OPT_TWCUSTOM])
+        game.Play.SpeechTextWindowGui = guinum;
     game.Options[OPT_TWCUSTOM] = guinum;
 }

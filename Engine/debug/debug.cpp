@@ -676,7 +676,7 @@ int scrlockWasDown = 0;
 
 void check_debug_keys()
 {
-    if (Game::Current().Play.debug_mode)
+    if (Game::Current().Play.DebugMode)
     {
         // do the run-time script debugging
 

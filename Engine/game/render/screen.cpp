@@ -163,7 +163,7 @@ public:
         // Alpha goes 0-255 in steps of speed * 4, as the software fade (64 / speed steps)
         _speed *= 4;
         // Create a "screenshot" on a texture
-        game.Play.screen_is_faded_out = false; // force all game elements to draw
+        game.Play.IsScreenFadedOut = false; // force all game elements to draw
 
         _view = game.Viewports.GetMainViewport();
         _sprTrans = game.Viewports.GetGlobalTransform(true);
@@ -240,7 +240,7 @@ public:
             set_palette(*_fadeInPal);
         }
 
-        game.Play.screen_is_faded_out = false; // force all game elements to draw
+        game.Play.IsScreenFadedOut = false; // force all game elements to draw
         _alpha = 0;
 
         if (game.BytesPerPixel > 1)
@@ -380,7 +380,7 @@ public:
             _speed = 16;
 
         // Create a "screenshot" on a texture
-        game.Play.screen_is_faded_out = false; // force all game elements to draw
+        game.Play.IsScreenFadedOut = false; // force all game elements to draw
 
         _view = game.Viewports.GetMainViewport();
         _sprTrans = game.Viewports.GetGlobalTransform(true);
@@ -476,7 +476,7 @@ public:
         // First of all we render the game once again and get the drawn frame as a bitmap.
         // Then we keep drawing saved image of the game, simulating "box-out".
         // TODO: maybe use screenshot_to_ddb instead?
-        game.Play.screen_is_faded_out = false;      // force all game elements to draw
+        game.Play.IsScreenFadedOut = false;         // force all game elements to draw
         set_palette_range(game.Palette, 0, 255, 0); // TODO: investigate and comment the meaning of this
         _bmpFrame = game_frame_to_bmp(_fadein);
 
@@ -551,7 +551,7 @@ public:
         if (game.BytesPerPixel == 1)
             quit("!Cannot use crossfade screen transition in 256-colour games");
 
-        game.Play.screen_is_faded_out = false; // force all game elements to draw
+        game.Play.IsScreenFadedOut = false; // force all game elements to draw
         _view = game.Viewports.GetMainViewport();
         _sprTrans =
             game.Viewports.GetGlobalTransform(EngineServices::Current().GfxDriver->RequiresFullRedrawEachFrame());
@@ -613,7 +613,7 @@ public:
     void Begin() override
     {
         Game &game = Game::Current();
-        game.Play.screen_is_faded_out = false; // force all game elements to draw
+        game.Play.IsScreenFadedOut = false; // force all game elements to draw
         _view = game.Viewports.GetMainViewport();
         _sprTrans =
             game.Viewports.GetGlobalTransform(EngineServices::Current().GfxDriver->RequiresFullRedrawEachFrame());
@@ -685,7 +685,7 @@ private:
 inline bool should_instant_transition(ScreenTransitionStyle style)
 {
     return (style == kScrTran_Instant) ||
-           Game::Current().Play.screen_tint > 0; // for some reason we do not play fade if screen is tinted
+           Game::Current().Play.ScreenTint > 0; // for some reason we do not play fade if screen is tinted
 }
 
 // Tells if the screen blackouts on the given transition (may skip scene render)
@@ -700,7 +700,7 @@ inline bool should_blackout_on_transition(ScreenTransitionStyle style)
 void run_screen_transition(ScreenTransitionStyle style, bool fade_in, int speed)
 {
     Game &game = Game::Current();
-    if (should_blackout_on_transition(style) && (game.Play.screen_is_faded_out == !fade_in))
+    if (should_blackout_on_transition(style) && (game.Play.IsScreenFadedOut == !fade_in))
         return; // already in the wanted state
 
     const bool software_mode = EngineServices::Current().GfxDriver->UsesMemoryBackBuffer();
@@ -710,17 +710,17 @@ void run_screen_transition(ScreenTransitionStyle style, bool fade_in, int speed)
     case kScrTran_Fade:
         scrtr.reset(software_mode
                         ? (ScreenTransition *)new ScreenFadeSoftware(&game.Palette, fade_in, speed,
-                                                                     game.Play.fade_to_red, game.Play.fade_to_green,
-                                                                     game.Play.fade_to_blue)
-                        : (ScreenTransition *)new ScreenFade(fade_in, speed, game.Play.fade_to_red,
-                                                             game.Play.fade_to_green, game.Play.fade_to_blue));
+                                                                     game.Play.FadeColorRed, game.Play.FadeColorGreen,
+                                                                     game.Play.FadeColorBlue)
+                        : (ScreenTransition *)new ScreenFade(fade_in, speed, game.Play.FadeColorRed,
+                                                             game.Play.FadeColorGreen, game.Play.FadeColorBlue));
         break;
     case kScrTran_Boxout:
         scrtr.reset(software_mode
-                        ? (ScreenTransition *)new ScreenBoxOutSoftware(fade_in, speed, game.Play.fade_to_red,
-                                                                       game.Play.fade_to_green, game.Play.fade_to_blue)
-                        : (ScreenTransition *)new ScreenBoxOut(fade_in, speed, game.Play.fade_to_red,
-                                                               game.Play.fade_to_green, game.Play.fade_to_blue));
+                        ? (ScreenTransition *)new ScreenBoxOutSoftware(
+                              fade_in, speed, game.Play.FadeColorRed, game.Play.FadeColorGreen, game.Play.FadeColorBlue)
+                        : (ScreenTransition *)new ScreenBoxOut(fade_in, speed, game.Play.FadeColorRed,
+                                                               game.Play.FadeColorGreen, game.Play.FadeColorBlue));
         break;
     case kScrTran_Crossfade: scrtr.reset(new ScreenCrossfade(fade_in, speed)); break;
     case kScrTran_Dissolve: scrtr.reset(new ScreenDissolve(fade_in, speed)); break;
@@ -733,13 +733,13 @@ void run_screen_transition(ScreenTransitionStyle style, bool fade_in, int speed)
     scrtr->End();
 
     if (should_blackout_on_transition(style))
-        game.Play.screen_is_faded_out = !fade_in;
+        game.Play.IsScreenFadedOut = !fade_in;
 }
 
 void run_fade_in_effect(ScreenTransitionStyle style, int speed)
 {
     Game &game = Game::Current();
-    const bool ignore_transition = (game.Play.screen_tint > 0);
+    const bool ignore_transition = (game.Play.ScreenTint > 0);
     if ((style == kScrTran_Instant) || ignore_transition)
     {
         set_palette_range(game.Palette, 0, 255, 0);
@@ -749,7 +749,7 @@ void run_fade_in_effect(ScreenTransitionStyle style, int speed)
         run_screen_transition(style, true, speed);
     }
 
-    game.Play.screen_is_faded_out = false; // mark screen as clear
+    game.Play.IsScreenFadedOut = false; // mark screen as clear
 }
 
 void run_fade_out_effect(ScreenTransitionStyle style, int speed)
@@ -757,7 +757,7 @@ void run_fade_out_effect(ScreenTransitionStyle style, int speed)
     Game &game = Game::Current();
     if (should_instant_transition(style))
     {
-        if (!game.Play.keep_screen_during_instant_transition)
+        if (!game.Play.KeepScreenDuringInstantTransition)
             set_palette_range(black_palette, 0, 255, 0);
     }
     else if (style == kScrTran_Crossfade || style == kScrTran_Dissolve)
@@ -770,7 +770,7 @@ void run_fade_out_effect(ScreenTransitionStyle style, int speed)
     }
 
     // NOTE: the screen could have been faded out prior to transition out
-    game.Play.screen_is_faded_out |= should_blackout_on_transition(style); // mark screen as faded
+    game.Play.IsScreenFadedOut |= should_blackout_on_transition(style); // mark screen as faded
 }
 
 void current_fade_in_effect()
@@ -779,27 +779,27 @@ void current_fade_in_effect()
     debug_script_log("Transition-in in room %d", game.DisplayedRoom);
 
     // determine the transition style
-    ScreenTransitionStyle trans_style = static_cast<ScreenTransitionStyle>(game.Play.fade_effect);
+    ScreenTransitionStyle trans_style = static_cast<ScreenTransitionStyle>(game.Play.FadeEffect);
     // if a one-off transition was selected, then use it
-    if (game.Play.next_screen_transition >= 0)
+    if (game.Play.NextScreenTransition >= 0)
     {
-        trans_style = static_cast<ScreenTransitionStyle>(game.Play.next_screen_transition);
-        game.Play.next_screen_transition = -1;
+        trans_style = static_cast<ScreenTransitionStyle>(game.Play.NextScreenTransition);
+        game.Play.NextScreenTransition = -1;
     }
 
     if (pl_run_plugin_hooks(kPluginEvt_TransitionIn, 0))
     {
-        game.Play.screen_is_faded_out = false; // mark screen as clear
+        game.Play.IsScreenFadedOut = false; // mark screen as clear
         return;
     }
 
-    if (game.Play.fast_forward)
+    if (game.Play.FastForward)
     {
-        game.Play.screen_is_faded_out = false; // mark screen as clear
+        game.Play.IsScreenFadedOut = false; // mark screen as clear
         return;
     }
 
-    const bool ignore_transition = (game.Play.screen_tint > 0);
+    const bool ignore_transition = (game.Play.ScreenTint > 0);
     if (((trans_style == kScrTran_Crossfade) || (trans_style == kScrTran_Dissolve)) &&
         (game.SavedViewportBitmap == nullptr) && !ignore_transition)
     {
@@ -834,17 +834,17 @@ void current_fade_out_effect()
         return;
 
     // get the screen transition type
-    ScreenTransitionStyle trans_style = (game.Play.next_screen_transition >= 0)
+    ScreenTransitionStyle trans_style = (game.Play.NextScreenTransition >= 0)
                                             ?
                                             // was a temporary transition selected? if so, use it
-                                            static_cast<ScreenTransitionStyle>(game.Play.next_screen_transition)
+                                            static_cast<ScreenTransitionStyle>(game.Play.NextScreenTransition)
                                             :
                                             // else use default game setting
-                                            static_cast<ScreenTransitionStyle>(game.Play.fade_effect);
+                                            static_cast<ScreenTransitionStyle>(game.Play.FadeEffect);
 
-    if (game.Play.fast_forward)
+    if (game.Play.FastForward)
     {
-        game.Play.screen_is_faded_out |= should_blackout_on_transition(trans_style); // mark screen as faded
+        game.Play.IsScreenFadedOut |= should_blackout_on_transition(trans_style); // mark screen as faded
         return;
     }
 
@@ -937,7 +937,7 @@ ScriptUserObject *Screen_RoomToScreenPoint(int roomx, int roomy)
 void FlipScreen(int direction)
 {
     direction = ValidateFlip("FlipScreen", direction);
-    Game::Current().Play.screen_flipped = direction;
+    Game::Current().Play.ScreenFlip = direction;
 }
 
 class ShakeScreenState : public GameLoopState
@@ -958,10 +958,10 @@ public:
         int compat_shake_delay = static_cast<int>(50.f / (1000.f / GetGameSpeed()));
         int compat_duration = static_cast<int>(40 * (50.f / (1000.f / GetGameSpeed())));
 
-        _game.Play.shakesc_length = compat_duration;
-        _game.Play.shakesc_delay = 2 * compat_shake_delay;
-        _game.Play.shakesc_amount = _severe;
-        _game.Play.mouse_cursor_shown = false;
+        _game.Play.ShakeScreenLength = compat_duration;
+        _game.Play.ShakeScreenDelay = 2 * compat_shake_delay;
+        _game.Play.ShakeScreenAmount = _severe;
+        _game.Play.IsMouseCursorShown = false;
 
         // Optimized variant for software render: create game scene once and shake it
         // TODO: split implementations into two state classes?
@@ -981,10 +981,10 @@ public:
             clear_letterbox_borders();
             render_to_screen();
         }
-        _game.Play.mouse_cursor_shown = true;
-        _game.Play.shakesc_length = 0;
-        _game.Play.shakesc_delay = 0;
-        _game.Play.shakesc_amount = 0;
+        _game.Play.IsMouseCursorShown = true;
+        _game.Play.ShakeScreenLength = 0;
+        _game.Play.ShakeScreenDelay = 0;
+        _game.Play.ShakeScreenAmount = 0;
     }
     // Draw the state
     void Draw() override {}
@@ -1008,7 +1008,7 @@ public:
             update_polled_stuff();
             WaitForNextFrame();
         }
-        return ++_step < _game.Play.shakesc_length;
+        return ++_step < _game.Play.ShakeScreenLength;
     }
 
 private:
@@ -1023,7 +1023,7 @@ void ShakeScreen(int severe)
 {
     EndSkippingUntilCharStops();
 
-    if (Game::Current().Play.fast_forward)
+    if (Game::Current().Play.FastForward)
         return;
 
     // FIXME: we have to sync audio here explicitly, because ShakeScreen
@@ -1044,9 +1044,9 @@ void ShakeScreenBackground(int delay, int amount, int length)
     Game &game = Game::Current();
     if (delay < 2)
         quit("!ShakeScreenBackground: invalid delay parameter");
-    game.Play.shakesc_amount = amount;
-    game.Play.shakesc_delay = delay;
-    game.Play.shakesc_length = length;
+    game.Play.ShakeScreenAmount = amount;
+    game.Play.ShakeScreenDelay = delay;
+    game.Play.ShakeScreenLength = length;
 }
 
 void TintScreen(int red, int grn, int blu)
@@ -1059,10 +1059,10 @@ void TintScreen(int red, int grn, int blu)
 
     if ((red == 0) && (grn == 0) && (blu == 0))
     {
-        game.Play.screen_tint = -1;
+        game.Play.ScreenTint = -1;
         return;
     }
-    game.Play.screen_tint = red + (grn << 8) + (blu << 16);
+    game.Play.ScreenTint = red + (grn << 8) + (blu << 16);
 }
 
 void FadeOut(int sppd)
@@ -1070,9 +1070,9 @@ void FadeOut(int sppd)
     Game &game = Game::Current();
     EndSkippingUntilCharStops();
 
-    if (game.Play.fast_forward)
+    if (game.Play.FastForward)
     {
-        game.Play.screen_is_faded_out = true;
+        game.Play.IsScreenFadedOut = true;
         return;
     }
 
@@ -1091,7 +1091,7 @@ void SetScreenTransition(int newtrans)
     if ((newtrans < 0) || (newtrans >= kNumScrTransitions))
         quit("!SetScreenTransition: invalid transition type");
 
-    Game::Current().Play.fade_effect = newtrans;
+    Game::Current().Play.FadeEffect = newtrans;
 
     debug_script_log("Screen transition changed");
 }
@@ -1101,7 +1101,7 @@ void SetNextScreenTransition(int newtrans)
     if ((newtrans < 0) || (newtrans >= kNumScrTransitions))
         quit("!SetNextScreenTransition: invalid transition type");
 
-    Game::Current().Play.next_screen_transition = newtrans;
+    Game::Current().Play.NextScreenTransition = newtrans;
 
     debug_script_log("SetNextScreenTransition engaged");
 }
@@ -1112,9 +1112,9 @@ void SetFadeColor(int red, int green, int blue)
     if ((red < 0) || (red > 255) || (green < 0) || (green > 255) || (blue < 0) || (blue > 255))
         quit("!SetFadeColor: Red, Green and Blue must be 0-255");
 
-    game.Play.fade_to_red = red;
-    game.Play.fade_to_green = green;
-    game.Play.fade_to_blue = blue;
+    game.Play.FadeColorRed = red;
+    game.Play.FadeColorGreen = green;
+    game.Play.FadeColorBlue = blue;
 }
 
 void FadeIn(int sppd)
@@ -1122,9 +1122,9 @@ void FadeIn(int sppd)
     Game &game = Game::Current();
     EndSkippingUntilCharStops();
 
-    if (game.Play.fast_forward)
+    if (game.Play.FastForward)
     {
-        game.Play.screen_is_faded_out = false;
+        game.Play.IsScreenFadedOut = false;
         return;
     }
 

@@ -116,12 +116,12 @@ public:
 // Runtime game state, held by the game context as Game::Play (game/game_context.h).
 // ReadFromSavegame and WriteForSavegame keep the save layout of the fields below; it is not the order of the
 // fields here, and has gaps for removed fields, so it changes only with a new GameStateSvgVersion.
-// Not saved by them: stop_dialog_at_end, screen_is_faded_out, wait_skipped_by, wait_skipped_by_data,
-// std_gui_textheight, swap_portrait_lastlastchar, room_changes,
-// speech_in_post_state, overlay_count, complete_overlay_on, text_overlay_on, speech_text_schandle,
-// speech_face_schandle, shake_screen_yoff, get_loc_name_last_time, get_loc_name_save_cursor and gui_draw_order.
-// Saved by other save components: default_audio_type_volumes and the custom property vectors (guiProps,
-// guicontrolProps).
+// Not saved by them: DialogRequestResult, IsScreenFadedOut, WaitSkippedBy, WaitSkippedByData,
+// StandardGuiTextHeight, SwapPortraitLastLastCharacter, RoomChanges,
+// IsSpeechInPostState, OverlayCount, CompleteOverlayID, TextOverlayID, SpeechTextScriptHandle,
+// SpeechPortraitScriptHandle, ShakeScreenOffsetY, LastNamedLocation, LocationNameSaveCursor and GuiDrawOrder.
+// Saved by other save components: DefaultAudioTypeVolumes and the custom property vectors (GuiProperties,
+// GuiControlProperties).
 // The save layout also holds the room's ScriptFinished, AnimBackgroundDelay, BgFrame, BgFrameLocked,
 // WalkableAreasOn, EnteredAtX, EnteredAtY and EnteredEdge (game/world/room_context.h), at the places their
 // GameState fields had: ReadFromSavegame and WriteForSavegame read and write them in the current Room.
@@ -134,187 +134,198 @@ struct GameState
     static const int LEGACY_MAXGLOBALSTRINGS = 51;
     static const int LEGACY_MAXSAVEGAMES = 50;
 
-    int usedmode = 0;                                   // set by ProcessClick to last cursor mode used
-    int disabled_user_interface = 0;                    // >0 while in cutscene/etc
-    int gscript_timer = 0;                              // obsolete; counts down each update while above 0
-    int debug_mode = 0;                                 // whether we're in debug mode
-    int messagetime = 0;                                // time left for auto-remove messages
-    int usedinv = 0;                                    // inventory item last used
-    int text_speed = 0;                                 // how quickly text is removed
-    int talkanim_speed = 0;                             // animation speed of talking anims
-    int inv_item_wid, inv_item_hit = 0;                 // set by SetInvDimensions
-    int speech_text_shadow = 0;                         // colour of outline fonts (default black)
-    int swap_portrait_side = 0;                         // sierra-style speech swap sides
-    int speech_textwindow_gui = 0;                      // textwindow used for sierra-style speech
-    int follow_change_room_timer = 0;                   // delay before moving following characters into new room
-    SkipSpeechStyle skip_display = kSkipSpeechKeyMouse; // how the user can skip normal Display windows
-    int no_multiloop_repeat = 0;                        // for backwards compatibility
-    int used_inv_on = 0;                                // inv item they clicked on
-    int no_textbg_when_voice = 0;                       // no textwindow bgrnd when voice speech is used
-    int max_dialogoption_width = 0;                     // max width of dialog options text window
-    int no_hicolor_fadein = 0;               // (DEPRECATED, lo-end optimization) fade out but instant in for hi-color
-    int bgspeech_game_speed = 0;             // is background speech relative to game speed
-    int bgspeech_stay_on_display = 0;        // whether to remove bg speech when DisplaySpeech is used
-    int unfactor_speech_from_textlength = 0; // remove "&10" when calculating time for text to stay
-    int speech_music_drop = 0;               // how much to drop music volume by when speech is played
-    int in_cutscene = 0;                     // we are between a StartCutscene and EndCutscene
-    int fast_forward = 0;                    // player has elected to skip cutscene
-    int game_speed_modifier = 0;
-    int takeover_data = 0;        // value passed to RunAGSGame in previous game
-    int replay_hotkey_unused = 0; // (UNUSED!) StartRecording: not supported
-    int dialog_options_pad_x = 0; // dialog options x padding within the gui
-    int dialog_options_pad_y = 0; // dialog options y padding within the gui
-    int narrator_speech = 0;
-    int lipsync_speed = 0;
-    int close_mouth_speech_time = 0; // the speech animation closes the mouth once messagetime falls below this
-                                     // (this is designed to work in text-only mode); 0 animates until the end
+    int UsedMode = 0;                   // set by ProcessClick to last cursor mode used; script: game.used_mode
+    int UserInterfaceDisabledCount = 0; // >0 while in cutscene/etc; script: game.disabled_user_interface
+    int GlobalScriptTimer = 0;          // obsolete; counts down each update while above 0; script: game.gscript_timer
+    int DebugMode = 0;                  // whether we're in debug mode
+    int MessageTimeLeft = 0;            // time left for auto-remove messages; script: game.messagetime
+    int UsedInventory = 0;              // inventory item last used; script: game.usedinv
+    int TextReadingSpeed = 0;           // how quickly text is removed; script: game.text_speed
+    int GlobalSpeechAnimationDelay = 0; // animation speed of talking anims; script: game.talkanim_speed
+    // script: game.inv_item_wid, game.inv_item_hit
+    int InventoryItemWidth, InventoryItemHeight = 0; // set by SetInvDimensions
+    int TextShadowColor = 0;     // colour of outline fonts (default black); script: game.text_shadow_color
+    int SwapPortraitSide = 0;    // sierra-style speech swap sides; script: game.swap_portrait
+    int SpeechTextWindowGui = 0; // textwindow used for sierra-style speech; script: game.speech_text_gui
+    // script: game.following_room_timer
+    int FollowingRoomDelay = 0;                        // delay before moving following characters into new room
+    SkipSpeechStyle SkipDisplay = kSkipSpeechKeyMouse; // how the user can skip normal Display windows
+    int no_multiloop_repeat = 0;                       // for backwards compatibility
+    int InventoryActivated = 0;                        // inv item they clicked on; script: game.inv_activated
+    // script: game.no_textbg_when_voice
+    int NoTextBackgroundWhenVoice = 0; // no textwindow bgrnd when voice speech is used
+    int MaxDialogOptionWidth = 0;      // max width of dialog options text window; script: game.max_dialogoption_width
+    // script: game.no_hicolor_fadein
+    int NoHighColorFadeIn = 0;         // (DEPRECATED, lo-end optimization) fade out but instant in for hi-color
+    int BackgroundSpeechGameSpeed = 0; // is background speech relative to game speed; script: game.bgspeech_game_speed
+    // script: game.bgspeech_stay_on_display
+    int KeepBackgroundSpeechOnDisplay = 0; // whether to remove bg speech when DisplaySpeech is used
+    // script: game.unfactor_speech_from_textlength
+    int UnfactorSpeechFromTextLength = 0; // remove "&10" when calculating time for text to stay
+    int SpeechMusicDrop = 0;              // how much to drop music volume by when speech is played
+    int RunningCutsceneSkipStyle = 0;     // we are between a StartCutscene and EndCutscene; script: game.in_cutscene
+    int FastForward = 0;                  // player has elected to skip cutscene; script: game.skipping_cutscene
+    int GameSpeedModifier = 0;
+    int PreviousGameData = 0;      // value passed to RunAGSGame in previous game; script: game.previous_game_data
+    int ReplayHotkeyUnused = 0;    // (UNUSED!) StartRecording: not supported
+    int DialogOptionsPaddingX = 0; // dialog options x padding within the gui; script: game.dialog_options_x
+    int DialogOptionsPaddingY = 0; // dialog options y padding within the gui; script: game.dialog_options_y
+    int NarratorSpeech = 0;
+    int LipSyncSpeed = 0; // script: game.lipsync_speed
+    // The speech animation closes the mouth once MessageTimeLeft falls below this
+    // (this is designed to work in text-only mode); 0 animates until the end; script: Speech.AnimationStopTimeMargin
+    int SpeechAnimationStopTimeMargin = 0;
     int disable_antialiasing = 0;
-    int text_speed_modifier = 0;
-    HorAlignment text_align = kHAlignNone;
-    int speech_bubble_width = 0;
-    int min_dialogoption_width = 0;
+    int TextReadingSpeedModifier = 0;         // script: game.text_speed_modifier
+    HorAlignment TextAlignment = kHAlignNone; // script: game.text_align
+    int SpeechBubbleWidth = 0;
+    int MinDialogOptionWidth = 0; // script: game.min_dialogoption_width
     int disable_dialog_parser = 0;
-    int top_bar_backcolor = 0;
-    int top_bar_textcolor = 0;
-    int top_bar_bordercolor = 0;
-    int top_bar_borderwidth = 0;
-    int top_bar_ypos = 0;
-    int screenshot_width = 0;
-    int screenshot_height = 0;
-    int top_bar_font = 0;
-    HorAlignment speech_text_align = kHAlignNone;
-    int auto_use_walkto_points = 0;
-    int inventory_greys_out = 0;
-    int skip_speech_specific_key = 0;
-    int abort_key = 0;
-    int fade_to_red = 0;
-    int fade_to_green = 0;
-    int fade_to_blue = 0;
-    int show_single_dialog_option = 0;
-    int keep_screen_during_instant_transition = 0;
-    int read_dialog_option_colour = 0;
-    int stop_dialog_at_end = 0; // used to record state-changing commands inside "dialog_request" callback
+    int TopBarBackColor = 0;   // script: game.top_bar_backcolor
+    int TopBarTextColor = 0;   // script: game.top_bar_textcolor
+    int TopBarBorderColor = 0; // script: game.top_bar_bordercolor
+    int TopBarBorderWidth = 0; // script: game.top_bar_borderwidth
+    int TopBarY = 0;           // script: game.top_bar_ypos
+    int ScreenshotWidth = 0;
+    int ScreenshotHeight = 0;
+    int TopBarFont = 0;
+    HorAlignment SpeechTextAlignment = kHAlignNone; // script: Speech.TextAlignment
+    int AutoUseWalkToPoints = 0;                    // script: game.auto_use_walkto_points
+    int GreyOutInventory = 0;                       // script: game.inventory_greys_out
+    int SpeechSkipKey = 0;                          // script: Speech.SkipKey
+    int AbortKey = 0;
+    int FadeColorRed = 0;   // script: game.fade_color_red
+    int FadeColorGreen = 0; // script: game.fade_color_green
+    int FadeColorBlue = 0;  // script: game.fade_color_blue
+    int ShowSingleDialogOption = 0;
+    int KeepScreenDuringInstantTransition = 0;
+    int ReadDialogOptionColor = 0; // script: game.read_dialog_option_color
+    int DialogRequestResult = 0;   // used to record state-changing commands inside "dialog_request" callback
         // (a DIALOG_* value, see dialog.cpp)
         // FIXME: StopDialog, RunDialog and NewRoom called inside "dialog_request" are recorded here, and only the first
         // one counts, unlike the other scheduled script commands that are queued; merge with that handling
-    int speech_portrait_placement = 0;   // speech portrait placement mode (automatic/custom)
-    int speech_portrait_x = 0;           // a speech portrait x offset from corresponding screen side
-    int speech_portrait_y = 0;           // a speech portrait y offset
-    int speech_display_post_time_ms = 0; // keep speech text/portrait on screen after text/voice has finished playing;
+    // script: Speech.CustomPortraitPlacement
+    int IsSpeechCustomPortraitPlacement = 0; // speech portrait placement mode (automatic/custom)
+    // script: Speech.PortraitXOffset
+    int SpeechPortraitOffsetX = 0; // a speech portrait x offset from corresponding screen side
+    int SpeechPortraitY = 0;       // a speech portrait y offset; script: Speech.PortraitY
+    // script: Speech.DisplayPostTimeMs
+    int SpeechDisplayPostTimeMs = 0;     // keep speech text/portrait on screen after text/voice has finished playing;
                                          // no speech animation is supposed to be played at this time
-    int dialog_options_highlight_color = 0; // The colour used for highlighted (hovered over) text in dialog options
-    long randseed = 0;                      // random seed
-    int player_on_region = 0;               // player's current region
-    bool screen_is_faded_out = false;       // the screen is currently black
-    int check_interaction_only = 0;
-    int bg_anim_delay = 0;
-    short wait_counter = 0;
-    char wait_skipped_by = 0;     // tells how last blocking wait was skipped [not serialized]
-    int wait_skipped_by_data = 0; // extended data telling how last blocking wait was skipped [not serialized]
-    Rect mbounds;                 // mouse cursor bounds
-    int fade_effect = 0;
-    int audio_master_volume = 0; // in 0-100
-    short screen_flipped = 0;
-    SpeechMode speech_mode = kSpeech_TextOnly; // speech mode (text, voice, or both)
-    int speech_skip_style = 0;                 // stores SKIP_* flags
-    bool speech_always_wait_for_text = false;
-    int speech_zorder = INT32_MAX; // z-order for the blocking speech overlays (text & portrait)
-    int speech_volume = 0;         // in 0-255 !!
-    int normal_font = 0;
-    int speech_font = 0;
-    int std_gui_textheight = 0; // text height for built-in gui dialogs (TODO: use font setting instead)
-    char key_skip_wait = 0;
-    int swap_portrait_lastchar = 0;
-    int swap_portrait_lastlastchar = 0;
-    int in_conversation = 0;
-    int screen_tint = 0;
-    std::vector<uint16_t> parsed_words;
-    AGS::Common::String bad_parsed_word;
-    int room_changes = 0;
+    int DialogOptionsHighlightColor = 0; // The colour used for highlighted (hovered over) text in dialog options
+    long RandomSeed = 0;                 // random seed
+    int PlayerRegionID = 0;              // player's current region
+    bool IsScreenFadedOut = false;       // the screen is currently black
+    int CheckInteractionOnly = 0;
+    int BgAnimWait = 0;
+    short WaitCounter = 0;     // script: Game.BlockingWaitCounter
+    char WaitSkippedBy = 0;    // tells how last blocking wait was skipped [not serialized]
+    int WaitSkippedByData = 0; // extended data telling how last blocking wait was skipped [not serialized]
+    Rect MouseBounds;          // mouse cursor bounds
+    int FadeEffect = 0;
+    int AudioMasterVolume = 0; // in 0-100
+    short ScreenFlip = 0;
+    SpeechMode SpeechVoiceMode = kSpeech_TextOnly; // speech mode (text, voice, or both); script: Speech.VoiceMode
+    int SpeechSkipStyle = 0;                       // stores SKIP_* flags; script: Speech.SkipStyle
+    bool AlwaysWaitForSpeechText = false;          // script: Speech.AlwaysWaitForText
+    // script: Speech.OverlayZOrder
+    int SpeechOverlayZOrder = INT32_MAX; // z-order for the blocking speech overlays (text & portrait)
+    int SpeechVolume = 0;                // in 0-255 !!
+    int NormalFont = 0;
+    int SpeechFont = 0;
+    int StandardGuiTextHeight = 0; // text height for built-in gui dialogs (TODO: use font setting instead)
+    char WaitSkipType = 0;         // script: Game.BlockingWaitSkipType
+    int SwapPortraitLastCharacter = 0;
+    int SwapPortraitLastLastCharacter = 0;
+    int ConversationDepth = 0;
+    int ScreenTint = 0;
+    std::vector<uint16_t> ParsedWords;
+    AGS::Common::String BadParsedWord;
+    int RoomChanges = 0;
 
     // Disables mouse input *in game*. Note that the mouse input may still affect the "engine layer",
     // if it's used in debugging menus or whatever other purposes.
-    bool mouse_input_enabled = true;
-    bool mouse_cursor_shown = true;
-    uint32_t shakesc_delay = 0; // unsigned to match the loop counter (get_loop_counter)
-    int shakesc_amount = 0;
-    int shakesc_length = 0;
-    int rtint_red = 0;
-    int rtint_green = 0;
-    int rtint_blue = 0;
-    int rtint_level = 0;
-    int rtint_light = 0;
-    bool rtint_enabled = false;
-    int skip_until_char_stops = 0;
-    SceneLocationRef get_loc_name_last_time;
-    SceneLocationRef get_loc_name_save_cursor;
-    int restore_cursor_mode_to = 0;
-    int restore_cursor_image_to = 0;
-    short crossfading_out_channel = 0;
-    short crossfade_step = 0;
-    short crossfade_out_volume_per_step = 0;
-    short crossfade_initial_volume_out = 0;
-    short crossfading_in_channel = 0;
-    short crossfade_in_volume_per_step = 0;
-    short crossfade_final_volume_in = 0;
-    short new_music_queue_size = 0;
-    QueuedAudioItem new_music_queue[MAX_QUEUED_MUSIC]{};
-    char lastParserEntry[MAX_MAXSTRLEN]{};
-    AGS::Common::String game_name;
-    int ground_level_areas_disabled = 0;
-    int next_screen_transition = 0;
-    int gamma_adjustment = 0;
-    short temporarily_turned_off_character = 0; // Hide Player Charactr ticked
-    std::vector<int> gui_draw_order;            // used only for hit detection now
-    std::unordered_set<AGS::Common::String> do_once_tokens;
-    int text_min_display_time_ms = 0;
-    int ignore_user_input_after_text_timeout_ms = 0;
-    std::vector<int> default_audio_type_volumes;
+    bool IsMouseInputEnabled = true; // script: Mouse.ControlEnabled
+    bool IsMouseCursorShown = true;  // script: Mouse.Visible
+    uint32_t ShakeScreenDelay = 0;   // unsigned to match the loop counter (get_loop_counter)
+    int ShakeScreenAmount = 0;
+    int ShakeScreenLength = 0;
+    int AmbientTintRed = 0;
+    int AmbientTintGreen = 0;
+    int AmbientTintBlue = 0;
+    int AmbientTintLevel = 0;
+    int AmbientTintLight = 0;
+    bool IsAmbientTintEnabled = false;
+    int SkipUntilCharacterStops = 0;
+    SceneLocationRef LastNamedLocation;
+    SceneLocationRef LocationNameSaveCursor;
+    int RestoreCursorModeTo = 0;
+    int RestoreCursorImageTo = 0;
+    short CrossfadingOutChannel = 0;
+    short CrossfadeStep = 0;
+    short CrossfadeOutVolumePerStep = 0;
+    short CrossfadeInitialVolumeOut = 0;
+    short CrossfadingInChannel = 0;
+    short CrossfadeInVolumePerStep = 0;
+    short CrossfadeFinalVolumeIn = 0;
+    short NewMusicQueueSize = 0;
+    QueuedAudioItem NewMusicQueue[MAX_QUEUED_MUSIC]{};
+    char LastParserEntry[MAX_MAXSTRLEN]{};
+    AGS::Common::String GameName; // script: Game.Name
+    int GroundLevelAreasDisabled = 0;
+    int NextScreenTransition = 0;
+    int GammaAdjustment = 0;
+    short TemporarilyTurnedOffCharacter = 0; // Hide Player Charactr ticked
+    std::vector<int> GuiDrawOrder;           // used only for hit detection now
+    std::unordered_set<AGS::Common::String> DoOnceTokens;
+    int MinimumTextDisplayTimeMs = 0;
+    int IgnoreUserInputAfterTextTimeoutMs = 0;
+    std::vector<int> DefaultAudioTypeVolumes;
     // GUI position for dialog options, -1 to use default pos
-    int dialog_options_gui_x = -1;
+    int DialogOptionsGuiX = -1;
     // GUI position for dialog options, -1 to use default pos
-    int dialog_options_gui_y = -1;
+    int DialogOptionsGuiY = -1;
     // Horizontal alignment of dialog options texts
-    HorAlignment dialog_options_textalign = kHAlignLeft;
+    HorAlignment DialogOptionsTextAlignment = kHAlignLeft;
     // Font of dialog options texts, if FONT_UNDEFINED then use "normal font"
-    int dialog_options_font = FONT_UNDEFINED;
-    int dialog_options_zorder = INT32_MAX;
-    float face_dir_ratio = 1.f; // character face direction ratio, defines y/x relation
+    int DialogOptionsFont = FONT_UNDEFINED;
+    int DialogOptionsZOrder = INT32_MAX;
+    float FaceDirectionRatio = 1.f; // character face direction ratio, defines y/x relation
 
     // The custom property values that the script set during play on the GUIs and, by control type, on the GUI
     // controls (the other entities hold theirs: Character, InventoryItem, Dialog, AudioClip::PropertyOverrides)
-    std::vector<AGS::Common::StringIMap> guiProps;
-    std::vector<AGS::Common::StringIMap> guicontrolProps[AGS::Common::kGUIControlTypeNum];
+    std::vector<AGS::Common::StringIMap> GuiProperties;
+    std::vector<AGS::Common::StringIMap> GuiControlProperties[AGS::Common::kGUIControlTypeNum];
 
     // Dynamic speech state
     //
     // Tells whether there is a voice-over played during current speech
-    bool speech_has_voice = false;
+    bool HasSpeechVoice = false;
     // Tells whether the voice was played in blocking mode;
     // atm blocking speech handles itself, and we only need to finalize
     // non-blocking voice speech during game update; speech refactor would be
     // required to get rid of this rule.
-    bool speech_voice_blocking = false;
+    bool IsSpeechVoiceBlocking = false;
     // Tells whether character speech stays on screen not animated for additional time
-    bool speech_in_post_state = false;
+    bool IsSpeechInPostState = false;
 
     // Special overlays
     //
     // Total number of existing overlays, only for the reference
-    int overlay_count = 0;
+    int OverlayCount = 0;
     // Is there a QFG4-style dialog overlay on screen (contains overlay ID)
-    int complete_overlay_on = 0;
+    int CompleteOverlayID = 0;
     // Is there a blocking text overlay on screen (contains overlay ID)
-    int text_overlay_on = 0;
+    int TextOverlayID = 0; // script: Speech.TextOverlay
     // Script overlay handles, because we must return same script objects
     // whenever user script queries for them.
     // Blocking speech overlay managed handle
-    int speech_text_schandle = 0;
+    int SpeechTextScriptHandle = 0;
     // Speech portrait overlay managed handle
-    int speech_face_schandle = 0;
+    int SpeechPortraitScriptHandle = 0; // script: Speech.PortraitOverlay
 
     // y offset of the shaking screen
-    int shake_screen_yoff = 0;
+    int ShakeScreenOffsetY = 0;
 
 
     GameState();
@@ -345,7 +356,7 @@ struct GameState
     bool ShouldAASprites() const;
 
     // Tells if the mouse cursor should be drawn on screen
-    bool ShouldDrawMouseCursor() const { return mouse_input_enabled && mouse_cursor_shown; }
+    bool ShouldDrawMouseCursor() const { return IsMouseInputEnabled && IsMouseCursorShown; }
 
     //
     // User input management
@@ -374,7 +385,7 @@ struct GameState
     // Returns the wait counter: above 0 for a wait with a timeout (the ticks left), below 0 for a wait without
     // a timeout, 0 if there is no wait
     int GetWaitCounter() const;
-    // Returns which kinds of input may skip the current wait (the SKIP_* flags, key_skip_wait)
+    // Returns which kinds of input may skip the current wait (the SKIP_* flags, WaitSkipType)
     int GetWaitSkipType() const;
     // Returns the information about how the latest blocking wait was skipped.
     // The information is packed into int32 value like this:

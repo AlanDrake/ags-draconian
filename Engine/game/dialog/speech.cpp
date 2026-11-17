@@ -187,12 +187,12 @@ String get_voice_assetpath()
 
 ScriptOverlay *Speech_GetTextOverlay()
 {
-    return static_cast<ScriptOverlay *>(ccGetObjectAddressFromHandle(Game::Current().Play.speech_text_schandle));
+    return static_cast<ScriptOverlay *>(ccGetObjectAddressFromHandle(Game::Current().Play.SpeechTextScriptHandle));
 }
 
 ScriptOverlay *Speech_GetPortraitOverlay()
 {
-    return static_cast<ScriptOverlay *>(ccGetObjectAddressFromHandle(Game::Current().Play.speech_face_schandle));
+    return static_cast<ScriptOverlay *>(ccGetObjectAddressFromHandle(Game::Current().Play.SpeechPortraitScriptHandle));
 }
 
 Character *Speech_GetSpeakingCharacter()
@@ -203,58 +203,58 @@ Character *Speech_GetSpeakingCharacter()
 
 int Speech_GetOverlayZOrder()
 {
-    return Game::Current().Play.speech_zorder;
+    return Game::Current().Play.SpeechOverlayZOrder;
 }
 
 void Speech_SetOverlayZOrder(int zorder)
 {
-    Game::Current().Play.speech_zorder = zorder;
+    Game::Current().Play.SpeechOverlayZOrder = zorder;
 }
 
 bool Speech_GetAlwaysWaitForText()
 {
-    return Game::Current().Play.speech_always_wait_for_text;
+    return Game::Current().Play.AlwaysWaitForSpeechText;
 }
 
 void Speech_SetAlwaysWaitForText(bool on)
 {
     if (!EngineServices::Current().Config.Access.AlwaysWaitForText)
-        Game::Current().Play.speech_always_wait_for_text = on;
+        Game::Current().Play.AlwaysWaitForSpeechText = on;
 }
 
 int Speech_GetAnimationStopTimeMargin()
 {
-    return Game::Current().Play.close_mouth_speech_time;
+    return Game::Current().Play.SpeechAnimationStopTimeMargin;
 }
 
 void Speech_SetAnimationStopTimeMargin(int time)
 {
-    Game::Current().Play.close_mouth_speech_time = time;
+    Game::Current().Play.SpeechAnimationStopTimeMargin = time;
 }
 
 int Speech_GetCustomPortraitPlacement()
 {
-    return Game::Current().Play.speech_portrait_placement;
+    return Game::Current().Play.IsSpeechCustomPortraitPlacement;
 }
 
 void Speech_SetCustomPortraitPlacement(int placement)
 {
-    Game::Current().Play.speech_portrait_placement = placement;
+    Game::Current().Play.IsSpeechCustomPortraitPlacement = placement;
 }
 
 int Speech_GetDisplayPostTimeMs()
 {
-    return Game::Current().Play.speech_display_post_time_ms;
+    return Game::Current().Play.SpeechDisplayPostTimeMs;
 }
 
 void Speech_SetDisplayPostTimeMs(int time_ms)
 {
-    Game::Current().Play.speech_display_post_time_ms = time_ms;
+    Game::Current().Play.SpeechDisplayPostTimeMs = time_ms;
 }
 
 int Speech_GetGlobalSpeechAnimationDelay()
 {
-    return Game::Current().Play.talkanim_speed;
+    return Game::Current().Play.GlobalSpeechAnimationDelay;
 }
 
 void Speech_SetGlobalSpeechAnimationDelay(int delay)
@@ -266,27 +266,27 @@ void Speech_SetGlobalSpeechAnimationDelay(int delay)
                           "enabled; set Speech.UseGlobalSpeechAnimationDelay first!");
         return;
     }
-    game.Play.talkanim_speed = delay;
+    game.Play.GlobalSpeechAnimationDelay = delay;
 }
 
 int Speech_GetPortraitXOffset()
 {
-    return Game::Current().Play.speech_portrait_x;
+    return Game::Current().Play.SpeechPortraitOffsetX;
 }
 
 void Speech_SetPortraitXOffset(int x)
 {
-    Game::Current().Play.speech_portrait_x = x;
+    Game::Current().Play.SpeechPortraitOffsetX = x;
 }
 
 int Speech_GetPortraitY()
 {
-    return Game::Current().Play.speech_portrait_y;
+    return Game::Current().Play.SpeechPortraitY;
 }
 
 void Speech_SetPortraitY(int y)
 {
-    Game::Current().Play.speech_portrait_y = y;
+    Game::Current().Play.SpeechPortraitY = y;
 }
 
 int Speech_GetStyle()
@@ -303,7 +303,7 @@ void Speech_SetStyle(int newstyle)
 
 SkipSpeechStyle Speech_GetSkipStyle()
 {
-    return internal_skip_speech_to_user(Game::Current().Play.speech_skip_style);
+    return internal_skip_speech_to_user(Game::Current().Play.SpeechSkipStyle);
 }
 
 void Speech_SetSkipStyle(SkipSpeechStyle new_value)
@@ -314,28 +314,28 @@ void Speech_SetSkipStyle(SkipSpeechStyle new_value)
     if (EngineServices::Current().Config.Access.SpeechSkipStyle == kSkipSpeechNone)
     {
         debug_script_log("SkipSpeech style set to %d", new_value);
-        Game::Current().Play.speech_skip_style = user_to_internal_skip_speech((SkipSpeechStyle)new_value);
+        Game::Current().Play.SpeechSkipStyle = user_to_internal_skip_speech((SkipSpeechStyle)new_value);
     }
 }
 
 int Speech_GetSkipKey()
 {
-    return Game::Current().Play.skip_speech_specific_key;
+    return Game::Current().Play.SpeechSkipKey;
 }
 
 void Speech_SetSkipKey(int key)
 {
-    Game::Current().Play.skip_speech_specific_key = key;
+    Game::Current().Play.SpeechSkipKey = key;
 }
 
 int Speech_GetTextAlignment()
 {
-    return Game::Current().Play.speech_text_align;
+    return Game::Current().Play.SpeechTextAlignment;
 }
 
 void Speech_SetTextAlignment(int alignment)
 {
-    Game::Current().Play.speech_text_align = (HorAlignment)alignment;
+    Game::Current().Play.SpeechTextAlignment = (HorAlignment)alignment;
 }
 
 int Speech_GetUseGlobalSpeechAnimationDelay()
@@ -353,12 +353,12 @@ void Speech_SetVoiceMode(int newmod)
     if ((newmod < kSpeech_First) | (newmod > kSpeech_Last))
         quitprintf("!SetVoiceMode: invalid mode number %d", newmod);
     if (EngineServices::Current().Config.Access.SpeechMode == kSpeech_None)
-        Game::Current().Play.speech_mode = (SpeechMode)newmod;
+        Game::Current().Play.SpeechVoiceMode = (SpeechMode)newmod;
 }
 
 int Speech_GetVoiceMode()
 {
-    return (int)Game::Current().Play.speech_mode;
+    return (int)Game::Current().Play.SpeechVoiceMode;
 }
 
 //-----------------------------------------------------------------------------
@@ -374,7 +374,7 @@ void SetSpeechVolume(int volume)
     {
         playback->set_volume255(volume);
     }
-    Game::Current().Play.speech_volume = volume;
+    Game::Current().Play.SpeechVolume = volume;
 }
 
 int IsSpeechVoxAvailable()
@@ -444,7 +444,7 @@ static bool play_voice_clip_on_channel(const String &voice_name)
     {
         voice_clip->fileName = apath.Name;
         voice_clip->bundlingType = kAudioBundle_SpeechVox;
-        voice_clip->set_volume255(Game::Current().Play.speech_volume);
+        voice_clip->set_volume255(Game::Current().Play.SpeechVolume);
         if (!voice_clip->play())
             voice_clip.reset();
     }
@@ -470,8 +470,8 @@ static bool play_voice_clip_impl(const String &voice_name, bool as_speech, bool 
     if (!as_speech)
         return true;
 
-    game.Play.speech_has_voice = true;
-    game.Play.speech_voice_blocking = is_blocking;
+    game.Play.HasSpeechVoice = true;
+    game.Play.IsSpeechVoiceBlocking = is_blocking;
 
     cancel_scheduled_music_update();
     apply_volume_drop_modifier(true);
@@ -520,11 +520,11 @@ bool play_voice_speech(int char_id, int cue_id)
         game.Options[OPT_LIPSYNCTEXT] = 0;
 
     // change Sierra w/bgrnd to Sierra without background when the game asks for that
-    // with voice speech (no_textbg_when_voice; 2 marks the switch, stop_voice_speech reverts it)
-    if ((game.Options[OPT_SPEECHTYPE] == kSpeechStyle_SierraBackground) && (game.Play.no_textbg_when_voice > 0))
+    // with voice speech (NoTextBackgroundWhenVoice; 2 marks the switch, stop_voice_speech reverts it)
+    if ((game.Options[OPT_SPEECHTYPE] == kSpeechStyle_SierraBackground) && (game.Play.NoTextBackgroundWhenVoice > 0))
     {
         game.Options[OPT_SPEECHTYPE] = kSpeechStyle_SierraTransparent;
-        game.Play.no_textbg_when_voice = 2;
+        game.Play.NoTextBackgroundWhenVoice = 2;
     }
     return true;
 }
@@ -564,7 +564,7 @@ const ScriptAudioChannel *play_voice_clip_as_type(int char_id, int cue_id, int t
 void stop_voice_speech()
 {
     Game &game = Game::Current();
-    if (!game.Play.speech_has_voice)
+    if (!game.Play.HasSpeechVoice)
         return;
 
     stop_voice_clip_impl();
@@ -572,28 +572,28 @@ void stop_voice_speech()
     // Reset lipsync
     game.LipSync.CurLine = -1;
     // Set back to Sierra w/bgrnd, if play_voice_speech switched it
-    if (game.Play.no_textbg_when_voice == 2)
+    if (game.Play.NoTextBackgroundWhenVoice == 2)
     {
-        game.Play.no_textbg_when_voice = 1;
+        game.Play.NoTextBackgroundWhenVoice = 1;
         game.Options[OPT_SPEECHTYPE] = kSpeechStyle_SierraBackground;
     }
-    game.Play.speech_has_voice = false;
-    game.Play.speech_voice_blocking = false;
+    game.Play.HasSpeechVoice = false;
+    game.Play.IsSpeechVoiceBlocking = false;
 }
 
 void stop_voice_nonblocking()
 {
     Game &game = Game::Current();
-    if (!game.Play.speech_has_voice)
+    if (!game.Play.HasSpeechVoice)
         return;
     stop_voice_clip_impl();
     // Only reset speech flags if we are truly playing a non-blocking voice;
     // otherwise we might be inside blocking speech function and should let
     // it keep these flags to be able to finalize properly.
     // This is an imperfection of current speech implementation.
-    if (!game.Play.speech_voice_blocking)
+    if (!game.Play.IsSpeechVoiceBlocking)
     {
-        game.Play.speech_has_voice = false;
-        game.Play.speech_voice_blocking = false;
+        game.Play.HasSpeechVoice = false;
+        game.Play.IsSpeechVoiceBlocking = false;
     }
 }

@@ -229,7 +229,7 @@ void VideoPlayer_SetVolume(ScriptVideoPlayer *sc_video, int volume)
 void PlayFlic(int numb, int scr_flags)
 {
     EndSkippingUntilCharStops();
-    if (Game::Current().Play.fast_forward)
+    if (Game::Current().Play.FastForward)
         return;
     if (EngineServices::Current().Debug.Flags & DBG_NOVIDEO)
         return;
@@ -281,7 +281,7 @@ void PlayVideo(const char *name, int skip, int scr_flags)
 {
     EngineServices &services = EngineServices::Current();
     EndSkippingUntilCharStops();
-    if (Game::Current().Play.fast_forward)
+    if (Game::Current().Play.FastForward)
         return;
     if (services.Debug.Flags & DBG_NOVIDEO)
         return;

@@ -88,7 +88,7 @@
 #define EVENT_INPROGRESS 1
 #define EVENT_CLAIMED    2
 
-// Values for GameState::stop_dialog_at_end;
+// Values for GameState::DialogRequestResult;
 // tell what to do with the current Dialog after returning from the option script
 #define DIALOG_NONE     0
 #define DIALOG_RUNNING  1

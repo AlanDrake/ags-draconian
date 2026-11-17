@@ -61,7 +61,7 @@ void DrawingSurface_DrawTriangle(ScriptDrawingSurface *surface, int x1, int y1, 
 void DrawingSurface_DrawString(ScriptDrawingSurface *surface, int x, int y, int font, const char *text);
 // Breaks msg into lines no wider than width and draws them one under another from y, aligned inside the span from x to
 // x + width - 1; a voice-over token at the start of msg is skipped. The outline colour is the speech text shadow colour
-// (game.Play.speech_text_shadow).
+// (game.Play.TextShadowColor).
 void DrawingSurface_DrawStringWrapped(ScriptDrawingSurface *surface, int x, int y, int width, int font, int alignment,
                                       const char *msg);
 // Draws a line; a thickness above 1 is made of thickness * thickness one-pixel lines, each offset by whole pixels

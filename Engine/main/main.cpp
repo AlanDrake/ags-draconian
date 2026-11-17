@@ -406,7 +406,7 @@ int ags_entry_point(int argc, char *argv[])
 #endif
     services.Debug.Flags = 0;
     // FIXME: this should be in game data init, but currently also set by cmdline
-    Game::Current().Play.takeover_data = 0;
+    Game::Current().Play.PreviousGameData = 0;
 
     ConfigTree startup_opts;
     int res = main_process_cmdline(startup_opts, argc, argv);

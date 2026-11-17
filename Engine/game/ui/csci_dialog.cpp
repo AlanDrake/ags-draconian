@@ -223,15 +223,15 @@ int CSCICreateControl(int typeandflags, int x, int y, int width, int height, con
     }
     else if (type == CNT_LISTBOX)
     {
-        vobjs[ctrl_id] = new MyListBox(x, y, width, height, game.Play.std_gui_textheight);
+        vobjs[ctrl_id] = new MyListBox(x, y, width, height, game.Play.StandardGuiTextHeight);
     }
     else if (type == CNT_LABEL)
     {
-        vobjs[ctrl_id] = new MyLabel(x, y, width, title, game.Play.std_gui_textheight);
+        vobjs[ctrl_id] = new MyLabel(x, y, width, title, game.Play.StandardGuiTextHeight);
     }
     else if (type == CNT_TEXTBOX)
     {
-        vobjs[ctrl_id] = new MyTextBox(x, y, width, title, game.Play.std_gui_textheight);
+        vobjs[ctrl_id] = new MyTextBox(x, y, width, title, game.Play.StandardGuiTextHeight);
     }
     else
         quit("Unknown control type requested");
@@ -260,7 +260,7 @@ int checkcontrols()
 {
     EngineServices &services = EngineServices::Current();
     Game &game = Game::Current();
-    if (!game.Play.mouse_input_enabled)
+    if (!game.Play.IsMouseInputEnabled)
         return 0;
 
     // NOTE: this is because old code was working with full game screen

@@ -153,12 +153,12 @@ ScriptAudioChannel *AudioClip_PlayAsType(AudioClip *clip, int type, int chan, in
 
 int AudioClip_GetProperty(AudioClip *clip, const char *property)
 {
-    return get_int_property(Game::Current().audioclipProps[clip->ID], clip->PropertyOverrides, property);
+    return get_int_property(Game::Current().AudioClipProperties[clip->ID], clip->PropertyOverrides, property);
 }
 
 const char *AudioClip_GetTextProperty(AudioClip *clip, const char *property)
 {
-    return get_text_property_dynamic_string(Game::Current().audioclipProps[clip->ID], clip->PropertyOverrides,
+    return get_text_property_dynamic_string(Game::Current().AudioClipProperties[clip->ID], clip->PropertyOverrides,
                                             property);
 }
 

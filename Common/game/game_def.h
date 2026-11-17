@@ -109,12 +109,12 @@ public:
     std::vector<MouseCursorDef> MouseCursors;
     char lipSyncFrameLetters[MAXLIPSYNCFRAMES][50] = {{0}};
     AGS::Common::PropertySchema CustomPropertySchema;
-    std::vector<AGS::Common::StringIMap> charProps;
-    std::vector<AGS::Common::StringIMap> invProps;
-    std::vector<AGS::Common::StringIMap> audioclipProps;
-    std::vector<AGS::Common::StringIMap> dialogProps;
-    std::vector<AGS::Common::StringIMap> guiProps;
-    std::vector<AGS::Common::StringIMap> guicontrolProps[AGS::Common::kGUIControlTypeNum];
+    std::vector<AGS::Common::StringIMap> CharacterProperties;
+    std::vector<AGS::Common::StringIMap> InventoryItemProperties;
+    std::vector<AGS::Common::StringIMap> AudioClipProperties;
+    std::vector<AGS::Common::StringIMap> DialogProperties;
+    std::vector<AGS::Common::StringIMap> GuiProperties;
+    std::vector<AGS::Common::StringIMap> GuiControlProperties[AGS::Common::kGUIControlTypeNum];
     // NOTE: although the view names are stored in game data, they are never
     // used, nor registered as script exports; numeric IDs are used to
     // reference views instead.

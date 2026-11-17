@@ -127,7 +127,7 @@ size_t OnlyDifferingInt32(const std::vector<uint8_t> &a, const std::vector<uint8
 // - Game::Views, game.ViewCount: the views
 // - Game::Dialogs, game.DialogCount: the dialogs
 // - game.MouseCursors, game.MouseCursorCount: the mouse cursors
-// - game.AudioClipTypes, game.Play.default_audio_type_volumes: the audio types
+// - game.AudioClipTypes, game.Play.DefaultAudioTypeVolumes: the audio types
 // - the game's live options and values that the game state saves (GameSetupFields)
 // - EngineServices::Current().SeparateMusicLib
 // - game.Play's flags and bits that the tests change (PlayFlags), and the script timers kTestTimers
@@ -212,11 +212,11 @@ protected:
             flags.NoMultiLoopRepeat = play.no_multiloop_repeat;
             flags.DisableAntialiasing = play.disable_antialiasing;
             flags.DisableDialogParser = play.disable_dialog_parser;
-            flags.MouseInputEnabled = play.mouse_input_enabled;
-            flags.MouseCursorShown = play.mouse_cursor_shown;
-            flags.SpeechHasVoice = play.speech_has_voice;
-            flags.SpeechVoiceBlocking = play.speech_voice_blocking;
-            flags.SpeechAlwaysWaitForText = play.speech_always_wait_for_text;
+            flags.MouseInputEnabled = play.IsMouseInputEnabled;
+            flags.MouseCursorShown = play.IsMouseCursorShown;
+            flags.SpeechHasVoice = play.HasSpeechVoice;
+            flags.SpeechVoiceBlocking = play.IsSpeechVoiceBlocking;
+            flags.SpeechAlwaysWaitForText = play.AlwaysWaitForSpeechText;
             return flags;
         }
 
@@ -226,11 +226,11 @@ protected:
             play.no_multiloop_repeat = NoMultiLoopRepeat;
             play.disable_antialiasing = DisableAntialiasing;
             play.disable_dialog_parser = DisableDialogParser;
-            play.mouse_input_enabled = MouseInputEnabled;
-            play.mouse_cursor_shown = MouseCursorShown;
-            play.speech_has_voice = SpeechHasVoice;
-            play.speech_voice_blocking = SpeechVoiceBlocking;
-            play.speech_always_wait_for_text = SpeechAlwaysWaitForText;
+            play.IsMouseInputEnabled = MouseInputEnabled;
+            play.IsMouseCursorShown = MouseCursorShown;
+            play.HasSpeechVoice = SpeechHasVoice;
+            play.IsSpeechVoiceBlocking = SpeechVoiceBlocking;
+            play.AlwaysWaitForSpeechText = SpeechAlwaysWaitForText;
         }
     };
 
@@ -291,8 +291,8 @@ protected:
         Game &game = Game::Current();
         game.AudioClipTypes.clear();
         game.AudioClipTypes.resize(count);
-        game.Play.default_audio_type_volumes.clear();
-        game.Play.default_audio_type_volumes.resize(count);
+        game.Play.DefaultAudioTypeVolumes.clear();
+        game.Play.DefaultAudioTypeVolumes.resize(count);
     }
 
     // Makes the game's views, each with the same number of loops and frames; every frame has a sprite and
@@ -622,20 +622,20 @@ TEST_F(SavegameContent, UnselectedComponentsAreSkipped)
     // a save holds components that the restore leaves out (ignored components, a retry without some)
     SetCounts(2, 2);
     SetState();
-    game.Play.messagetime = 4321;
+    game.Play.MessageTimeLeft = 4321;
     std::vector<uint8_t> saved;
     std::string error;
     ASSERT_TRUE(Save(static_cast<SaveCmpSelection>(kSaveCmp_GameState | kCharactersAndItems), saved, error)) << error;
 
     SetCounts(2, 2);
-    game.Play.messagetime = 0;
+    game.Play.MessageTimeLeft = 0;
     RestoredData r_data;
     HSaveError err = Restore(saved, kSaveCmp_GameState, r_data);
     ASSERT_TRUE(err) << err->FullMessage().GetCStr();
-    EXPECT_EQ(4321, game.Play.messagetime);
+    EXPECT_EQ(4321, game.Play.MessageTimeLeft);
     EXPECT_EQ(0, game.Characters[0].X);
     EXPECT_TRUE(game.InventoryItems[0].Name.IsEmpty());
-    game.Play.messagetime = 0;
+    game.Play.MessageTimeLeft = 0;
 }
 
 TEST_F(SavegameContent, RestoreKeepsTheRunningEnginesMusicPack)
@@ -789,7 +789,7 @@ TEST_F(SavegameContent, AudioTypesAreRestored)
         game.AudioClipTypes[i].ReservedChannels = 1;
         game.AudioClipTypes[i].VolumeReductionWhileSpeechPlaying = 25 + i;
         game.AudioClipTypes[i].CrossfadeSpeed = 3 + i;
-        game.Play.default_audio_type_volumes[i] = 60 + i;
+        game.Play.DefaultAudioTypeVolumes[i] = 60 + i;
     }
     std::vector<uint8_t> saved;
     std::string error;
@@ -804,7 +804,7 @@ TEST_F(SavegameContent, AudioTypesAreRestored)
         EXPECT_EQ(0, game.AudioClipTypes[i].ReservedChannels);
         EXPECT_EQ(25 + i, game.AudioClipTypes[i].VolumeReductionWhileSpeechPlaying);
         EXPECT_EQ(3 + i, game.AudioClipTypes[i].CrossfadeSpeed);
-        EXPECT_EQ(60 + i, game.Play.default_audio_type_volumes[i]);
+        EXPECT_EQ(60 + i, game.Play.DefaultAudioTypeVolumes[i]);
     }
     EXPECT_EQ(2u, r_data.DataCounts.AudioClipTypes);
 }
@@ -922,14 +922,14 @@ TEST_F(SavegameContent, GameStateBitsComeBackAsTheirWords)
         std::vector<std::vector<uint8_t>> saves;
         for (const Pair &c : cases)
         {
-            game.Play.mouse_input_enabled = c.First;
-            game.Play.mouse_cursor_shown = c.Second;
+            game.Play.IsMouseInputEnabled = c.First;
+            game.Play.IsMouseCursorShown = c.Second;
             saves.push_back(SaveGameState());
-            game.Play.mouse_input_enabled = !c.First;
-            game.Play.mouse_cursor_shown = !c.Second;
+            game.Play.IsMouseInputEnabled = !c.First;
+            game.Play.IsMouseCursorShown = !c.Second;
             RestoreGameState(saves.back());
-            EXPECT_EQ(c.First, game.Play.mouse_input_enabled) << c.First << c.Second;
-            EXPECT_EQ(c.Second, game.Play.mouse_cursor_shown) << c.First << c.Second;
+            EXPECT_EQ(c.First, game.Play.IsMouseInputEnabled) << c.First << c.Second;
+            EXPECT_EQ(c.Second, game.Play.IsMouseCursorShown) << c.First << c.Second;
         }
         expect_words(saves, {0x02, 0x00, 0x03, 0x01});
     }
@@ -942,30 +942,30 @@ TEST_F(SavegameContent, GameStateBitsComeBackAsTheirWords)
         std::vector<std::vector<uint8_t>> saves;
         for (size_t i = 0; i < std::size(cases); ++i)
         {
-            game.Play.speech_has_voice = cases[i].First;
-            game.Play.speech_voice_blocking = cases[i].Second;
+            game.Play.HasSpeechVoice = cases[i].First;
+            game.Play.IsSpeechVoiceBlocking = cases[i].Second;
             saves.push_back(SaveGameState());
-            game.Play.speech_has_voice = !cases[i].First;
-            game.Play.speech_voice_blocking = !cases[i].Second;
+            game.Play.HasSpeechVoice = !cases[i].First;
+            game.Play.IsSpeechVoiceBlocking = !cases[i].Second;
             RestoreGameState(saves.back());
-            EXPECT_EQ(restored[i].First, game.Play.speech_has_voice) << "case " << i;
-            EXPECT_EQ(restored[i].Second, game.Play.speech_voice_blocking) << "case " << i;
+            EXPECT_EQ(restored[i].First, game.Play.HasSpeechVoice) << "case " << i;
+            EXPECT_EQ(restored[i].Second, game.Play.IsSpeechVoiceBlocking) << "case " << i;
         }
         expect_words({saves[0], saves[1], saves[2]}, {0x00, 0x01, 0x03});
         EXPECT_EQ(2, Int32At(saves[3], OnlyDifferingInt32(saves[0], saves[3])));
-        game.Play.speech_has_voice = false;
-        game.Play.speech_voice_blocking = false;
+        game.Play.HasSpeechVoice = false;
+        game.Play.IsSpeechVoiceBlocking = false;
     }
     // always wait for the text
     {
         std::vector<std::vector<uint8_t>> saves;
         for (const bool on : {false, true})
         {
-            game.Play.speech_always_wait_for_text = on;
+            game.Play.AlwaysWaitForSpeechText = on;
             saves.push_back(SaveGameState());
-            game.Play.speech_always_wait_for_text = !on;
+            game.Play.AlwaysWaitForSpeechText = !on;
             RestoreGameState(saves.back());
-            EXPECT_EQ(on, game.Play.speech_always_wait_for_text);
+            EXPECT_EQ(on, game.Play.AlwaysWaitForSpeechText);
         }
         expect_words(saves, {0x00, 0x01});
     }

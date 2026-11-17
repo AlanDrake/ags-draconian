@@ -995,17 +995,17 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
     else if (ext_id.CompareNoCase("v400_customprops") == 0)
     {
         auto &game = _ents.Game;
-        game.audioclipProps.resize(game.AudioClips.size());
-        game.dialogProps.resize(game.DialogCount);
-        game.guiProps.resize(game.GuiCount);
+        game.AudioClipProperties.resize(game.AudioClips.size());
+        game.DialogProperties.resize(game.DialogCount);
+        game.GuiProperties.resize(game.GuiCount);
 
-        err = ReadCustomProperties(in, "audio clips", _ents.Game.AudioClips.size(), game.audioclipProps);
+        err = ReadCustomProperties(in, "audio clips", _ents.Game.AudioClips.size(), game.AudioClipProperties);
         if (!err)
             return err;
-        err = ReadCustomProperties(in, "dialogs", game.DialogCount, game.dialogProps);
+        err = ReadCustomProperties(in, "dialogs", game.DialogCount, game.DialogProperties);
         if (!err)
             return err;
-        err = ReadCustomProperties(in, "guis", game.GuiCount, game.guiProps);
+        err = ReadCustomProperties(in, "guis", game.GuiCount, game.GuiProperties);
         if (!err)
             return err;
 
@@ -1020,7 +1020,7 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
                                                      _ents.Game.GuiListBoxes.size()};
         for (int i = kGUIButton; i < kGUIControlTypeNum; ++i)
         {
-            err = ReadCustomProperties(in, guictrl_names[i], guictrl_counts[i], game.guicontrolProps[i]);
+            err = ReadCustomProperties(in, guictrl_names[i], guictrl_counts[i], game.GuiControlProperties[i]);
             if (!err)
                 return err;
         }

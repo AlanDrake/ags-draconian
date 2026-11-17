@@ -87,8 +87,8 @@ void update_script_timers()
 {
     Game &game = Game::Current();
     // Deprecated "graphical script" timer (use unknown)
-    if (game.Play.gscript_timer > 0)
-        game.Play.gscript_timer--;
+    if (game.Play.GlobalScriptTimer > 0)
+        game.Play.GlobalScriptTimer--;
 
     game.Play.UpdateScriptTimers();
 }
@@ -173,7 +173,7 @@ void update_speech_and_messages()
 {
     Game &game = Game::Current();
     bool is_voice_playing = false;
-    if (game.Play.speech_voice_blocking)
+    if (game.Play.IsSpeechVoiceBlocking)
     {
         auto *playback = AudioChans::GetChannel(SCHAN_SPEECH);
         is_voice_playing = playback && playback->is_ready();
@@ -181,47 +181,47 @@ void update_speech_and_messages()
     // determine if speech text should be removed
     // TODO: this code is similar to the Display's box update (see DisplayMessageState::Run),
     // can we merge these two pieces of code? a kind of uniform DisplayText state?
-    if (game.Play.messagetime >= 0)
+    if (game.Play.MessageTimeLeft >= 0)
     {
-        game.Play.messagetime--;
+        game.Play.MessageTimeLeft--;
         // extend life of text if the voice hasn't finished yet
-        if (game.Play.speech_voice_blocking && !game.Play.speech_in_post_state)
+        if (game.Play.IsSpeechVoiceBlocking && !game.Play.IsSpeechInPostState)
         {
-            if ((is_voice_playing) && (game.Play.fast_forward == 0))
+            if ((is_voice_playing) && (game.Play.FastForward == 0))
             {
-                if (game.Play.messagetime <= 1)
-                    game.Play.messagetime = 1;
+                if (game.Play.MessageTimeLeft <= 1)
+                    game.Play.MessageTimeLeft = 1;
             }
             // if the voice has finished, and we're not required to wait for text, then remove the speech
-            else if (!game.Play.speech_always_wait_for_text)
+            else if (!game.Play.AlwaysWaitForSpeechText)
             {
                 // if the voice has finished, remove the speech
-                game.Play.messagetime = 0;
+                game.Play.MessageTimeLeft = 0;
             }
         }
 
         // Enter speech post-state: optionally increase final waiting time
-        if (!game.Play.speech_in_post_state && (game.Play.fast_forward == 0) && (game.Play.messagetime < 1))
+        if (!game.Play.IsSpeechInPostState && (game.Play.FastForward == 0) && (game.Play.MessageTimeLeft < 1))
         {
-            game.Play.speech_in_post_state = true;
-            if (game.Play.speech_display_post_time_ms > 0)
+            game.Play.IsSpeechInPostState = true;
+            if (game.Play.SpeechDisplayPostTimeMs > 0)
             {
-                game.Play.messagetime = ::lround(game.Play.speech_display_post_time_ms * get_game_fps() / 1000.0f);
+                game.Play.MessageTimeLeft = ::lround(game.Play.SpeechDisplayPostTimeMs * get_game_fps() / 1000.0f);
             }
         }
 
-        if (game.Play.messagetime < 1)
+        if (game.Play.MessageTimeLeft < 1)
         {
-            if (game.Play.fast_forward > 0)
+            if (game.Play.FastForward > 0)
             {
-                remove_screen_overlay(game.Play.text_overlay_on);
+                remove_screen_overlay(game.Play.TextOverlayID);
                 game.Play.SetWaitSkipResult(SKIP_AUTOTIMER);
             }
-            else if (game.Play.speech_skip_style & SKIP_AUTOTIMER)
+            else if (game.Play.SpeechSkipStyle & SKIP_AUTOTIMER)
             {
-                remove_screen_overlay(game.Play.text_overlay_on);
+                remove_screen_overlay(game.Play.TextOverlayID);
                 game.Play.SetWaitSkipResult(SKIP_AUTOTIMER);
-                game.Play.SetIgnoreInput(game.Play.ignore_user_input_after_text_timeout_ms);
+                game.Play.SetIgnoreInput(game.Play.IgnoreUserInputAfterTextTimeoutMs);
             }
         }
     }
@@ -230,7 +230,7 @@ void update_speech_and_messages()
 bool has_voice_lipsync()
 {
     Game &game = Game::Current();
-    return game.Play.speech_voice_blocking && (game.LipSync.CurLine >= 0);
+    return game.Play.IsSpeechVoiceBlocking && (game.LipSync.CurLine >= 0);
 }
 
 int update_voice_lipsync(int frame)
@@ -273,7 +273,7 @@ void update_sierra_speech()
 {
     Game &game = Game::Current();
     // Update sierra-style portrait (if active)
-    if ((game.Speech.FaceTalking >= 0) && (game.Play.fast_forward == 0))
+    if ((game.Speech.FaceTalking >= 0) && (game.Play.FastForward == 0))
     {
         int updatedFrame = 0;
 
@@ -324,24 +324,25 @@ void update_sierra_speech()
             game.Speech.FaceTalkWait--;
         }
         // don't animate if the speech has finished
-        else if ((game.Play.messagetime < 1) && (game.Speech.FaceTalkFrame == 0) &&
-                 // if game.Play.close_mouth_speech_time = 0, this means animation should play till
+        else if ((game.Play.MessageTimeLeft < 1) && (game.Speech.FaceTalkFrame == 0) &&
+                 // if game.Play.SpeechAnimationStopTimeMargin = 0, this means animation should play till
                  // the speech ends; but this should not work in voice mode, and also if the
                  // speech is in the "post" state
-                 (game.Play.speech_voice_blocking || game.Play.speech_in_post_state ||
-                  game.Play.close_mouth_speech_time > 0))
+                 (game.Play.IsSpeechVoiceBlocking || game.Play.IsSpeechInPostState ||
+                  game.Play.SpeechAnimationStopTimeMargin > 0))
         {
         }
         else
         {
             // Close mouth at end of sentence: if speech has entered the "post" state,
-            // or if this is a text only mode and close_mouth_speech_time is set
-            if (game.Play.speech_in_post_state ||
-                (!game.Play.speech_voice_blocking && (game.Play.messagetime < game.Play.close_mouth_speech_time) &&
-                 (game.Play.close_mouth_speech_time > 0)))
+            // or if this is a text only mode and SpeechAnimationStopTimeMargin is set
+            if (game.Play.IsSpeechInPostState ||
+                (!game.Play.IsSpeechVoiceBlocking &&
+                 (game.Play.MessageTimeLeft < game.Play.SpeechAnimationStopTimeMargin) &&
+                 (game.Play.SpeechAnimationStopTimeMargin > 0)))
             {
                 game.Speech.FaceTalkFrame = 0;
-                game.Speech.FaceTalkWait = game.Play.messagetime;
+                game.Speech.FaceTalkWait = game.Play.MessageTimeLeft;
             }
             else if ((game.Options[OPT_LIPSYNCTEXT]) && (game.Speech.FaceTalkRepeat > 0))
             {
@@ -358,8 +359,8 @@ void update_sierra_speech()
                 game.Speech.FaceTalkFrame++;
                 if ((game.Speech.FaceTalkFrame >=
                      game.Views[game.Speech.FaceTalkView].Loops[game.Speech.FaceTalkLoop].FrameCount) ||
-                    (!game.Play.speech_voice_blocking && (game.Play.messagetime < 1) &&
-                     (game.Play.close_mouth_speech_time > 0)))
+                    (!game.Play.IsSpeechVoiceBlocking && (game.Play.MessageTimeLeft < 1) &&
+                     (game.Play.SpeechAnimationStopTimeMargin > 0)))
                 {
                     if ((game.Speech.FaceTalkFrame >=
                          game.Views[game.Speech.FaceTalkView].Loops[game.Speech.FaceTalkLoop].FrameCount) &&
@@ -390,7 +391,7 @@ void update_sierra_speech()
         }
 
         // is_text_overlay might be 0 if it was only just destroyed this loop
-        if ((updatedFrame) && (game.Play.text_overlay_on > 0))
+        if ((updatedFrame) && (game.Play.TextOverlayID > 0))
         {
             const int frame_vol = game.Speech.FaceTalkChar->GetFrameSoundVolume();
             if (updatedFrame & 1)
@@ -415,11 +416,11 @@ void update_sierra_speech()
                 // QFG4-style fullscreen dialog
                 if (game.Speech.Qfg4OverridePlacementX)
                 {
-                    view_frame_x = game.Play.speech_portrait_x;
+                    view_frame_x = game.Play.SpeechPortraitOffsetX;
                 }
                 if (game.Speech.Qfg4OverridePlacementY)
                 {
-                    view_frame_y = game.Play.speech_portrait_y;
+                    view_frame_y = game.Play.SpeechPortraitY;
                 }
                 else
                 {

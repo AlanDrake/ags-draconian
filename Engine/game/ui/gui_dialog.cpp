@@ -132,7 +132,7 @@ int loadgamedialog(int min_slot, int max_slot)
     const int wnd_height = 120;
     const int boxleft = myscrnwid / 2 - wnd_width / 2;
     const int boxtop = myscrnhit / 2 - wnd_height / 2;
-    const int buttonhit = Game::Current().Play.std_gui_textheight + 5;
+    const int buttonhit = Game::Current().Play.StandardGuiTextHeight + 5;
 
     int handl = CSCIDrawWindow(boxleft, boxtop, wnd_width, wnd_height);
     int ctrlok = CSCICreateControl(CNT_PUSHBUTTON | CNF_DEFAULT, 135, 5, 60, 10, GUIDialog_Strings[MSG_RESTORE]);
@@ -191,7 +191,7 @@ int savegamedialog(int min_slot, int max_slot)
     const int wnd_height = 120;
     const int boxleft = myscrnwid / 2 - wnd_width / 2;
     const int boxtop = myscrnhit / 2 - wnd_height / 2;
-    const int buttonhit = Game::Current().Play.std_gui_textheight + 5;
+    const int buttonhit = Game::Current().Play.StandardGuiTextHeight + 5;
     int labeltop = 5;
 
     int handl = CSCIDrawWindow(boxleft, boxtop, wnd_width, wnd_height);

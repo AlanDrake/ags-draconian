@@ -83,52 +83,51 @@ bool GameState::IsInWait() const
     // * positive, and then there's a wait with timeout;
     // * negative, and then there's a wait without timeout;
     // * zero, which means there's no wait
-    return wait_counter != 0;
+    return WaitCounter != 0;
 }
 
 int GameState::GetWaitCounter() const
 {
-    return wait_counter;
+    return WaitCounter;
 }
 
 int GameState::GetWaitSkipType() const
 {
-    return Game::Current().Play.key_skip_wait;
+    return Game::Current().Play.WaitSkipType;
 }
 
 void GameState::SetWaitSkipResult(int skipped_by, int data)
 {
-    wait_counter = 0;
-    wait_skipped_by = skipped_by;
-    wait_skipped_by_data = data;
+    WaitCounter = 0;
+    WaitSkippedBy = skipped_by;
+    WaitSkippedByData = data;
 }
 
 int GameState::GetWaitSkipResult() const
 { // NOTE: we remove timer flag to make timeout reason = 0
-    return ((wait_skipped_by & ~SKIP_AUTOTIMER) << SKIP_RESULT_TYPE_SHIFT) |
-           (wait_skipped_by_data & SKIP_RESULT_DATA_MASK);
+    return ((WaitSkippedBy & ~SKIP_AUTOTIMER) << SKIP_RESULT_TYPE_SHIFT) | (WaitSkippedByData & SKIP_RESULT_DATA_MASK);
 }
 
 bool GameState::IsBlockingVoiceSpeech() const
 {
-    return speech_has_voice && speech_voice_blocking;
+    return HasSpeechVoice && IsSpeechVoiceBlocking;
 }
 
 bool GameState::IsNonBlockingVoiceSpeech() const
 {
-    return speech_has_voice && !speech_voice_blocking;
+    return HasSpeechVoice && !IsSpeechVoiceBlocking;
 }
 
 bool GameState::ShouldPlayVoiceSpeech() const
 {
     Game &game = Game::Current();
-    return !game.Play.fast_forward && (game.Play.speech_mode != kSpeech_TextOnly) &&
+    return !game.Play.FastForward && (game.Play.SpeechVoiceMode != kSpeech_TextOnly) &&
            EngineServices::Current().VoiceAvail;
 }
 
 bool GameState::ShouldPlayVoiceSpeechNonBlocking() const
 {
-    return !Game::Current().Play.fast_forward && EngineServices::Current().VoiceAvail;
+    return !Game::Current().Play.FastForward && EngineServices::Current().VoiceAvail;
 }
 
 bool GameState::ShouldAASprites() const
@@ -194,110 +193,110 @@ void GameState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameState
 {
     Room &room = Room::Current();
     in->ReadInt32(); // [DEPRECATED]
-    usedmode = in->ReadInt32();
-    disabled_user_interface = in->ReadInt32();
-    gscript_timer = in->ReadInt32();
-    debug_mode = in->ReadInt32();
+    UsedMode = in->ReadInt32();
+    UserInterfaceDisabledCount = in->ReadInt32();
+    GlobalScriptTimer = in->ReadInt32();
+    DebugMode = in->ReadInt32();
     in->Seek(sizeof(int32_t) * LEGACY_MAXGLOBALVARS);
-    messagetime = in->ReadInt32();
-    usedinv = in->ReadInt32();
+    MessageTimeLeft = in->ReadInt32();
+    UsedInventory = in->ReadInt32();
     in->ReadInt32(); // [DEPRECATED]
     in->ReadInt32();
     in->ReadInt32();
     in->ReadInt32();
-    text_speed = in->ReadInt32();
+    TextReadingSpeed = in->ReadInt32();
     in->ReadInt32(); // [DEPRECATED]
-    talkanim_speed = in->ReadInt32();
-    inv_item_wid = in->ReadInt32();
-    inv_item_hit = in->ReadInt32();
-    speech_text_shadow = in->ReadInt32();
-    swap_portrait_side = in->ReadInt32();
-    speech_textwindow_gui = in->ReadInt32();
-    follow_change_room_timer = in->ReadInt32();
+    GlobalSpeechAnimationDelay = in->ReadInt32();
+    InventoryItemWidth = in->ReadInt32();
+    InventoryItemHeight = in->ReadInt32();
+    TextShadowColor = in->ReadInt32();
+    SwapPortraitSide = in->ReadInt32();
+    SpeechTextWindowGui = in->ReadInt32();
+    FollowingRoomDelay = in->ReadInt32();
     in->ReadInt32(); // [DEPRECATED]
-    skip_display = static_cast<SkipSpeechStyle>(in->ReadInt32());
+    SkipDisplay = static_cast<SkipSpeechStyle>(in->ReadInt32());
     no_multiloop_repeat = in->ReadInt32();
     room.ScriptFinished = in->ReadInt32();
-    used_inv_on = in->ReadInt32();
-    no_textbg_when_voice = in->ReadInt32();
-    max_dialogoption_width = in->ReadInt32();
-    no_hicolor_fadein = in->ReadInt32();
-    bgspeech_game_speed = in->ReadInt32();
-    bgspeech_stay_on_display = in->ReadInt32();
-    unfactor_speech_from_textlength = in->ReadInt32();
+    InventoryActivated = in->ReadInt32();
+    NoTextBackgroundWhenVoice = in->ReadInt32();
+    MaxDialogOptionWidth = in->ReadInt32();
+    NoHighColorFadeIn = in->ReadInt32();
+    BackgroundSpeechGameSpeed = in->ReadInt32();
+    KeepBackgroundSpeechOnDisplay = in->ReadInt32();
+    UnfactorSpeechFromTextLength = in->ReadInt32();
     in->ReadInt32(); // [DEPRECATED]
-    speech_music_drop = in->ReadInt32();
-    in_cutscene = in->ReadInt32();
-    fast_forward = in->ReadInt32();
+    SpeechMusicDrop = in->ReadInt32();
+    RunningCutsceneSkipStyle = in->ReadInt32();
+    FastForward = in->ReadInt32();
     room.LoadedWidth = in->ReadInt32();
     room.LoadedHeight = in->ReadInt32();
-    game_speed_modifier = in->ReadInt32();
+    GameSpeedModifier = in->ReadInt32();
     in->ReadInt32(); // [DEPRECATED]
-    takeover_data = in->ReadInt32();
-    replay_hotkey_unused = in->ReadInt32();
-    dialog_options_pad_x = in->ReadInt32();
-    dialog_options_pad_y = in->ReadInt32();
-    narrator_speech = in->ReadInt32();
+    PreviousGameData = in->ReadInt32();
+    ReplayHotkeyUnused = in->ReadInt32();
+    DialogOptionsPaddingX = in->ReadInt32();
+    DialogOptionsPaddingY = in->ReadInt32();
+    NarratorSpeech = in->ReadInt32();
     in->ReadInt32(); // [DEPRECATED]
-    lipsync_speed = in->ReadInt32();
-    close_mouth_speech_time = in->ReadInt32();
+    LipSyncSpeed = in->ReadInt32();
+    SpeechAnimationStopTimeMargin = in->ReadInt32();
     disable_antialiasing = in->ReadInt32();
-    text_speed_modifier = in->ReadInt32();
-    text_align = (HorAlignment)in->ReadInt32();
-    speech_bubble_width = in->ReadInt32();
-    min_dialogoption_width = in->ReadInt32();
+    TextReadingSpeedModifier = in->ReadInt32();
+    TextAlignment = (HorAlignment)in->ReadInt32();
+    SpeechBubbleWidth = in->ReadInt32();
+    MinDialogOptionWidth = in->ReadInt32();
     disable_dialog_parser = in->ReadInt32();
     room.AnimBackgroundDelay = in->ReadInt32(); // the setting for this room
-    top_bar_backcolor = in->ReadInt32();
-    top_bar_textcolor = in->ReadInt32();
-    top_bar_bordercolor = in->ReadInt32();
-    top_bar_borderwidth = in->ReadInt32();
-    top_bar_ypos = in->ReadInt32();
-    screenshot_width = in->ReadInt32();
-    screenshot_height = in->ReadInt32();
-    top_bar_font = in->ReadInt32();
-    speech_text_align = (HorAlignment)in->ReadInt32();
-    auto_use_walkto_points = in->ReadInt32();
-    inventory_greys_out = in->ReadInt32();
-    skip_speech_specific_key = in->ReadInt32();
-    abort_key = in->ReadInt32();
-    fade_to_red = in->ReadInt32();
-    fade_to_green = in->ReadInt32();
-    fade_to_blue = in->ReadInt32();
-    show_single_dialog_option = in->ReadInt32();
-    keep_screen_during_instant_transition = in->ReadInt32();
-    read_dialog_option_colour = in->ReadInt32();
+    TopBarBackColor = in->ReadInt32();
+    TopBarTextColor = in->ReadInt32();
+    TopBarBorderColor = in->ReadInt32();
+    TopBarBorderWidth = in->ReadInt32();
+    TopBarY = in->ReadInt32();
+    ScreenshotWidth = in->ReadInt32();
+    ScreenshotHeight = in->ReadInt32();
+    TopBarFont = in->ReadInt32();
+    SpeechTextAlignment = (HorAlignment)in->ReadInt32();
+    AutoUseWalkToPoints = in->ReadInt32();
+    GreyOutInventory = in->ReadInt32();
+    SpeechSkipKey = in->ReadInt32();
+    AbortKey = in->ReadInt32();
+    FadeColorRed = in->ReadInt32();
+    FadeColorGreen = in->ReadInt32();
+    FadeColorBlue = in->ReadInt32();
+    ShowSingleDialogOption = in->ReadInt32();
+    KeepScreenDuringInstantTransition = in->ReadInt32();
+    ReadDialogOptionColor = in->ReadInt32();
     in->ReadInt32(); // [DEPRECATED]
-    speech_portrait_placement = in->ReadInt32();
-    speech_portrait_x = in->ReadInt32();
-    speech_portrait_y = in->ReadInt32();
-    speech_display_post_time_ms = in->ReadInt32();
-    dialog_options_highlight_color = in->ReadInt32();
-    randseed = in->ReadInt32();         // random seed
-    player_on_region = in->ReadInt32(); // player's current region
-    check_interaction_only = in->ReadInt32();
+    IsSpeechCustomPortraitPlacement = in->ReadInt32();
+    SpeechPortraitOffsetX = in->ReadInt32();
+    SpeechPortraitY = in->ReadInt32();
+    SpeechDisplayPostTimeMs = in->ReadInt32();
+    DialogOptionsHighlightColor = in->ReadInt32();
+    RandomSeed = in->ReadInt32();     // random seed
+    PlayerRegionID = in->ReadInt32(); // player's current region
+    CheckInteractionOnly = in->ReadInt32();
     room.BgFrame = in->ReadInt32();
-    bg_anim_delay = in->ReadInt32(); // for animating backgrounds
-    in->ReadInt32();                 // [DEPRECATED]
-    wait_counter = in->ReadInt16();
-    mbounds.Left = in->ReadInt16();
-    mbounds.Right = in->ReadInt16();
-    mbounds.Top = in->ReadInt16();
-    mbounds.Bottom = in->ReadInt16();
-    fade_effect = in->ReadInt32();
+    BgAnimWait = in->ReadInt32(); // for animating backgrounds
+    in->ReadInt32();              // [DEPRECATED]
+    WaitCounter = in->ReadInt16();
+    MouseBounds.Left = in->ReadInt16();
+    MouseBounds.Right = in->ReadInt16();
+    MouseBounds.Top = in->ReadInt16();
+    MouseBounds.Bottom = in->ReadInt16();
+    FadeEffect = in->ReadInt32();
     room.BgFrameLocked = in->ReadInt32();
     in->Seek(sizeof(int32_t) * LEGACY_MAXGSVALUES);
     in->ReadInt32(); // [DEPRECATED]
     in->ReadInt32();
     in->ReadInt32();
-    audio_master_volume = in->ReadInt32();
+    AudioMasterVolume = in->ReadInt32();
     in->Read(room.WalkableAreasOn, MAX_WALK_AREAS);
-    screen_flipped = in->ReadInt16();
+    ScreenFlip = in->ReadInt16();
     room.EnteredAtX = in->ReadInt32();
     room.EnteredAtY = in->ReadInt32();
     room.EnteredEdge = in->ReadInt32();
-    speech_mode = (SpeechMode)in->ReadInt32();
-    speech_skip_style = in->ReadInt32();
+    SpeechVoiceMode = (SpeechMode)in->ReadInt32();
+    SpeechSkipStyle = in->ReadInt32();
     // Old-style timers, limited to 20, with 1-based ID
     if (svg_ver < kGSSvgVersion_400_26)
     {
@@ -310,141 +309,141 @@ void GameState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameState
         }
     }
     in->ReadInt32(); // [DEPRECATED]
-    speech_volume = in->ReadInt32();
-    normal_font = in->ReadInt32();
-    speech_font = in->ReadInt32();
-    key_skip_wait = in->ReadInt8();
-    swap_portrait_lastchar = in->ReadInt32();
+    SpeechVolume = in->ReadInt32();
+    NormalFont = in->ReadInt32();
+    SpeechFont = in->ReadInt32();
+    WaitSkipType = in->ReadInt8();
+    SwapPortraitLastCharacter = in->ReadInt32();
     in->ReadInt32(); // separate_music_lib: says which packs the saving engine had, not kept
-    in_conversation = in->ReadInt32();
-    screen_tint = in->ReadInt32();
+    ConversationDepth = in->ReadInt32();
+    ScreenTint = in->ReadInt32();
     // TODO: investigate if parsed words should be serialized at all
     const size_t parsed_words_count = in->ReadInt32();
     std::array<uint16_t, MAX_PARSED_WORDS> parsed_words_temp;
     in->ReadArrayOfInt16(reinterpret_cast<int16_t *>(parsed_words_temp.data()), MAX_PARSED_WORDS);
-    std::copy_n(parsed_words_temp.begin(), parsed_words_count, std::back_inserter(parsed_words));
-    bad_parsed_word.ReadCount(in, 100);
+    std::copy_n(parsed_words_temp.begin(), parsed_words_count, std::back_inserter(ParsedWords));
+    BadParsedWord.ReadCount(in, 100);
     in->ReadInt32();                                 // [DEPRECATED]
     in->Seek(LEGACY_MAXSAVEGAMES * sizeof(int16_t)); // [DEPRECATED]
     uint32_t mouse_opts = in->ReadInt32();
-    mouse_cursor_shown = (mouse_opts & 0x01) == 0;  // previously this field had a reverse meaning
-    mouse_input_enabled = (mouse_opts & 0x02) != 0; // kGSSvgVersion_400_33
+    IsMouseCursorShown = (mouse_opts & 0x01) == 0;  // previously this field had a reverse meaning
+    IsMouseInputEnabled = (mouse_opts & 0x02) != 0; // kGSSvgVersion_400_33
     if (svg_ver < kGSSvgVersion_400_33)
     {
-        mouse_input_enabled = true;
+        IsMouseInputEnabled = true;
     }
     in->ReadInt32(); // [DEPRECATED]
     in->ReadInt32();
     in->ReadInt32();
-    shakesc_delay = in->ReadInt32();
-    shakesc_amount = in->ReadInt32();
-    shakesc_length = in->ReadInt32();
-    rtint_red = in->ReadInt32();
-    rtint_green = in->ReadInt32();
-    rtint_blue = in->ReadInt32();
-    rtint_level = in->ReadInt32();
-    rtint_light = in->ReadInt32();
-    rtint_enabled = in->ReadBool();
+    ShakeScreenDelay = in->ReadInt32();
+    ShakeScreenAmount = in->ReadInt32();
+    ShakeScreenLength = in->ReadInt32();
+    AmbientTintRed = in->ReadInt32();
+    AmbientTintGreen = in->ReadInt32();
+    AmbientTintBlue = in->ReadInt32();
+    AmbientTintLevel = in->ReadInt32();
+    AmbientTintLight = in->ReadInt32();
+    IsAmbientTintEnabled = in->ReadBool();
     if (svg_ver < kGSSvgVersion_400_34)
     {
         // Ambient tint saturation was 0-100 and luminance 0-250,
         // ambient light level was -100 to 100
-        if (rtint_level > 0)
+        if (AmbientTintLevel > 0)
         {
-            rtint_level = GfxDef::Value100ToValue255(rtint_level);
-            rtint_light = GfxDef::Value250ToValue255(rtint_light);
+            AmbientTintLevel = GfxDef::Value100ToValue255(AmbientTintLevel);
+            AmbientTintLight = GfxDef::Value250ToValue255(AmbientTintLight);
         }
         else
         {
-            rtint_light = GfxDef::Value100ToValue255(rtint_light);
+            AmbientTintLight = GfxDef::Value100ToValue255(AmbientTintLight);
         }
         // Screen tint rgb was 0-250
-        if (screen_tint > 0)
+        if (ScreenTint > 0)
         {
-            screen_tint = GfxDef::Value250ToValue255(screen_tint & 0xFF) |
-                          (GfxDef::Value250ToValue255((screen_tint >> 8) & 0xFF) << 8) |
-                          (GfxDef::Value250ToValue255((screen_tint >> 16) & 0xFF) << 16);
+            ScreenTint = GfxDef::Value250ToValue255(ScreenTint & 0xFF) |
+                         (GfxDef::Value250ToValue255((ScreenTint >> 8) & 0xFF) << 8) |
+                         (GfxDef::Value250ToValue255((ScreenTint >> 16) & 0xFF) << 16);
         }
     }
     in->ReadInt32(); // [DEPRECATED]
-    skip_until_char_stops = in->ReadInt32();
-    in->ReadInt32(); // was get_loc_name_last_time, should not serialize
-    in->ReadInt32(); // was get_loc_name_save_cursor, should not serialize
-    restore_cursor_mode_to = in->ReadInt32();
-    restore_cursor_image_to = in->ReadInt32();
+    SkipUntilCharacterStops = in->ReadInt32();
+    in->ReadInt32(); // was LastNamedLocation, should not serialize
+    in->ReadInt32(); // was LocationNameSaveCursor, should not serialize
+    RestoreCursorModeTo = in->ReadInt32();
+    RestoreCursorImageTo = in->ReadInt32();
     in->ReadInt16(); // legacy music queue
     for (int i = 0; i < MAX_QUEUED_MUSIC; ++i)
         in->ReadInt16();
-    new_music_queue_size = in->ReadInt16();
+    NewMusicQueueSize = in->ReadInt16();
     for (int i = 0; i < MAX_QUEUED_MUSIC; ++i)
     {
-        new_music_queue[i].ReadFromSavegame(in);
+        NewMusicQueue[i].ReadFromSavegame(in);
     }
 
-    crossfading_out_channel = in->ReadInt16();
-    crossfade_step = in->ReadInt16();
-    crossfade_out_volume_per_step = in->ReadInt16();
-    crossfade_initial_volume_out = in->ReadInt16();
-    crossfading_in_channel = in->ReadInt16();
-    crossfade_in_volume_per_step = in->ReadInt16();
-    crossfade_final_volume_in = in->ReadInt16();
+    CrossfadingOutChannel = in->ReadInt16();
+    CrossfadeStep = in->ReadInt16();
+    CrossfadeOutVolumePerStep = in->ReadInt16();
+    CrossfadeInitialVolumeOut = in->ReadInt16();
+    CrossfadingInChannel = in->ReadInt16();
+    CrossfadeInVolumePerStep = in->ReadInt16();
+    CrossfadeFinalVolumeIn = in->ReadInt16();
 
     in->Seek(50); // [DEPRECATED]
     in->Seek(50); // [DEPRECATED]
     in->Seek(LEGACY_MAXGLOBALSTRINGS * MAX_MAXSTRLEN);
-    in->Read(lastParserEntry, MAX_MAXSTRLEN);
+    in->Read(LastParserEntry, MAX_MAXSTRLEN);
     if (svg_ver < kGSSvgVersion_400_03)
     {
-        game_name.ReadCount(in, LEGACY_GAMENAMELENGTH);
+        GameName.ReadCount(in, LEGACY_GAMENAMELENGTH);
     }
     else
     {
-        game_name = StrUtil::ReadString(in);
+        GameName = StrUtil::ReadString(in);
     }
-    ground_level_areas_disabled = in->ReadInt32();
-    next_screen_transition = in->ReadInt32();
-    in->ReadInt32(); // gamma_adjustment -- do not apply gamma level from savegame
-    temporarily_turned_off_character = in->ReadInt16();
+    GroundLevelAreasDisabled = in->ReadInt32();
+    NextScreenTransition = in->ReadInt32();
+    in->ReadInt32(); // GammaAdjustment -- do not apply gamma level from savegame
+    TemporarilyTurnedOffCharacter = in->ReadInt16();
     in->ReadInt16(); // [DEPRECATED]
     uint32_t num_do_once_tokens = static_cast<uint32_t>(in->ReadInt32());
     for (size_t i = 0; i < num_do_once_tokens; ++i)
     {
-        do_once_tokens.insert(StrUtil::ReadString(in));
+        DoOnceTokens.insert(StrUtil::ReadString(in));
     }
-    text_min_display_time_ms = in->ReadInt32();
-    ignore_user_input_after_text_timeout_ms = in->ReadInt32();
+    MinimumTextDisplayTimeMs = in->ReadInt32();
+    IgnoreUserInputAfterTextTimeoutMs = in->ReadInt32();
     int voice_speech_flags = in->ReadInt32();
-    speech_has_voice = voice_speech_flags != 0;
-    speech_voice_blocking = (voice_speech_flags & 0x02) != 0;
+    HasSpeechVoice = voice_speech_flags != 0;
+    IsSpeechVoiceBlocking = (voice_speech_flags & 0x02) != 0;
 
     if (svg_ver >= kGSSvgVersion_400_17)
     {
-        dialog_options_gui_x = in->ReadInt32();
-        dialog_options_gui_y = in->ReadInt32();
-        dialog_options_textalign = (HorAlignment)in->ReadInt32();
-        dialog_options_font = in->ReadInt32();
+        DialogOptionsGuiX = in->ReadInt32();
+        DialogOptionsGuiY = in->ReadInt32();
+        DialogOptionsTextAlignment = (HorAlignment)in->ReadInt32();
+        DialogOptionsFont = in->ReadInt32();
     }
     else
     {
-        dialog_options_gui_x = -1;
-        dialog_options_gui_y = -1;
-        dialog_options_textalign = kHAlignLeft;
-        dialog_options_font = FONT_UNDEFINED;
+        DialogOptionsGuiX = -1;
+        DialogOptionsGuiY = -1;
+        DialogOptionsTextAlignment = kHAlignLeft;
+        DialogOptionsFont = FONT_UNDEFINED;
     }
 
     if (svg_ver >= kGSSvgVersion_400_24)
     {
-        dialog_options_zorder = in->ReadInt32();
-        speech_zorder = in->ReadInt32(); // since kGSSvgVersion_400_33
+        DialogOptionsZOrder = in->ReadInt32();
+        SpeechOverlayZOrder = in->ReadInt32(); // since kGSSvgVersion_400_33
         uint32_t speech_ex_flags = in->ReadInt32();
-        speech_always_wait_for_text = speech_ex_flags & 0x01;
+        AlwaysWaitForSpeechText = speech_ex_flags & 0x01;
         in->ReadInt32(); // reserved
     }
 
     if (svg_ver < kGSSvgVersion_400_33)
     {
-        speech_zorder = INT32_MAX;
-        speech_always_wait_for_text = false;
+        SpeechOverlayZOrder = INT32_MAX;
+        AlwaysWaitForSpeechText = false;
     }
 
     // New-style timers
@@ -463,7 +462,7 @@ void GameState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameState
 
     if (svg_ver >= kGSSvgVersion_400_03)
     {
-        face_dir_ratio = in->ReadFloat32();
+        FaceDirectionRatio = in->ReadFloat32();
         // used since kGSSvgVersion_400_18
         _screenShaderID = in->ReadInt32();
         _screenShaderHandle = in->ReadInt32();
@@ -474,7 +473,7 @@ void GameState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameState
     }
     else
     {
-        face_dir_ratio = 1.f;
+        FaceDirectionRatio = 1.f;
         _screenShaderID = 0;
         _screenShaderHandle = 0;
         _cursorShaderID = 0;
@@ -488,198 +487,198 @@ void GameState::WriteForSavegame(Stream *out) const
     // NOTE: the fields that are never saved here are listed above the GameState struct;
     // the order below is the save layout, ReadFromSavegame reads the same
     out->WriteInt32(0); // [DEPRECATED]
-    out->WriteInt32(usedmode);
-    out->WriteInt32(disabled_user_interface);
-    out->WriteInt32(gscript_timer);
-    out->WriteInt32(debug_mode);
+    out->WriteInt32(UsedMode);
+    out->WriteInt32(UserInterfaceDisabledCount);
+    out->WriteInt32(GlobalScriptTimer);
+    out->WriteInt32(DebugMode);
     out->WriteByteCount(0, sizeof(int32_t) * LEGACY_MAXGLOBALVARS);
-    out->WriteInt32(messagetime);
-    out->WriteInt32(usedinv);
+    out->WriteInt32(MessageTimeLeft);
+    out->WriteInt32(UsedInventory);
     out->WriteInt32(0); // [DEPRECATED]
     out->WriteInt32(0);
     out->WriteInt32(0);
     out->WriteInt32(0);
-    out->WriteInt32(text_speed);
+    out->WriteInt32(TextReadingSpeed);
     out->WriteInt32(0); // [DEPRECATED]
-    out->WriteInt32(talkanim_speed);
-    out->WriteInt32(inv_item_wid);
-    out->WriteInt32(inv_item_hit);
-    out->WriteInt32(speech_text_shadow);
-    out->WriteInt32(swap_portrait_side);
-    out->WriteInt32(speech_textwindow_gui);
-    out->WriteInt32(follow_change_room_timer);
+    out->WriteInt32(GlobalSpeechAnimationDelay);
+    out->WriteInt32(InventoryItemWidth);
+    out->WriteInt32(InventoryItemHeight);
+    out->WriteInt32(TextShadowColor);
+    out->WriteInt32(SwapPortraitSide);
+    out->WriteInt32(SpeechTextWindowGui);
+    out->WriteInt32(FollowingRoomDelay);
     out->WriteInt32(0); // [DEPRECATED]
-    out->WriteInt32(skip_display);
+    out->WriteInt32(SkipDisplay);
     out->WriteInt32(no_multiloop_repeat);
     out->WriteInt32(room.ScriptFinished);
-    out->WriteInt32(used_inv_on);
-    out->WriteInt32(no_textbg_when_voice);
-    out->WriteInt32(max_dialogoption_width);
-    out->WriteInt32(no_hicolor_fadein);
-    out->WriteInt32(bgspeech_game_speed);
-    out->WriteInt32(bgspeech_stay_on_display);
-    out->WriteInt32(unfactor_speech_from_textlength);
+    out->WriteInt32(InventoryActivated);
+    out->WriteInt32(NoTextBackgroundWhenVoice);
+    out->WriteInt32(MaxDialogOptionWidth);
+    out->WriteInt32(NoHighColorFadeIn);
+    out->WriteInt32(BackgroundSpeechGameSpeed);
+    out->WriteInt32(KeepBackgroundSpeechOnDisplay);
+    out->WriteInt32(UnfactorSpeechFromTextLength);
     out->WriteInt32(0); // [DEPRECATED]
-    out->WriteInt32(speech_music_drop);
-    out->WriteInt32(in_cutscene);
-    out->WriteInt32(fast_forward);
+    out->WriteInt32(SpeechMusicDrop);
+    out->WriteInt32(RunningCutsceneSkipStyle);
+    out->WriteInt32(FastForward);
     out->WriteInt32(room.LoadedWidth);
     out->WriteInt32(room.LoadedHeight);
-    out->WriteInt32(game_speed_modifier);
+    out->WriteInt32(GameSpeedModifier);
     out->WriteInt32(0); // [DEPRECATED]
-    out->WriteInt32(takeover_data);
-    out->WriteInt32(replay_hotkey_unused); // StartRecording: not supported
-    out->WriteInt32(dialog_options_pad_x);
-    out->WriteInt32(dialog_options_pad_y);
-    out->WriteInt32(narrator_speech);
+    out->WriteInt32(PreviousGameData);
+    out->WriteInt32(ReplayHotkeyUnused); // StartRecording: not supported
+    out->WriteInt32(DialogOptionsPaddingX);
+    out->WriteInt32(DialogOptionsPaddingY);
+    out->WriteInt32(NarratorSpeech);
     out->WriteInt32(0); // [DEPRECATED]
-    out->WriteInt32(lipsync_speed);
-    out->WriteInt32(close_mouth_speech_time);
+    out->WriteInt32(LipSyncSpeed);
+    out->WriteInt32(SpeechAnimationStopTimeMargin);
     out->WriteInt32(disable_antialiasing);
-    out->WriteInt32(text_speed_modifier);
-    out->WriteInt32(text_align);
-    out->WriteInt32(speech_bubble_width);
-    out->WriteInt32(min_dialogoption_width);
+    out->WriteInt32(TextReadingSpeedModifier);
+    out->WriteInt32(TextAlignment);
+    out->WriteInt32(SpeechBubbleWidth);
+    out->WriteInt32(MinDialogOptionWidth);
     out->WriteInt32(disable_dialog_parser);
     out->WriteInt32(room.AnimBackgroundDelay); // the setting for this room
-    out->WriteInt32(top_bar_backcolor);
-    out->WriteInt32(top_bar_textcolor);
-    out->WriteInt32(top_bar_bordercolor);
-    out->WriteInt32(top_bar_borderwidth);
-    out->WriteInt32(top_bar_ypos);
-    out->WriteInt32(screenshot_width);
-    out->WriteInt32(screenshot_height);
-    out->WriteInt32(top_bar_font);
-    out->WriteInt32(speech_text_align);
-    out->WriteInt32(auto_use_walkto_points);
-    out->WriteInt32(inventory_greys_out);
-    out->WriteInt32(skip_speech_specific_key);
-    out->WriteInt32(abort_key);
-    out->WriteInt32(fade_to_red);
-    out->WriteInt32(fade_to_green);
-    out->WriteInt32(fade_to_blue);
-    out->WriteInt32(show_single_dialog_option);
-    out->WriteInt32(keep_screen_during_instant_transition);
-    out->WriteInt32(read_dialog_option_colour);
+    out->WriteInt32(TopBarBackColor);
+    out->WriteInt32(TopBarTextColor);
+    out->WriteInt32(TopBarBorderColor);
+    out->WriteInt32(TopBarBorderWidth);
+    out->WriteInt32(TopBarY);
+    out->WriteInt32(ScreenshotWidth);
+    out->WriteInt32(ScreenshotHeight);
+    out->WriteInt32(TopBarFont);
+    out->WriteInt32(SpeechTextAlignment);
+    out->WriteInt32(AutoUseWalkToPoints);
+    out->WriteInt32(GreyOutInventory);
+    out->WriteInt32(SpeechSkipKey);
+    out->WriteInt32(AbortKey);
+    out->WriteInt32(FadeColorRed);
+    out->WriteInt32(FadeColorGreen);
+    out->WriteInt32(FadeColorBlue);
+    out->WriteInt32(ShowSingleDialogOption);
+    out->WriteInt32(KeepScreenDuringInstantTransition);
+    out->WriteInt32(ReadDialogOptionColor);
     out->WriteInt32(0); // [DEPRECATED]
-    out->WriteInt32(speech_portrait_placement);
-    out->WriteInt32(speech_portrait_x);
-    out->WriteInt32(speech_portrait_y);
-    out->WriteInt32(speech_display_post_time_ms);
-    out->WriteInt32(dialog_options_highlight_color);
+    out->WriteInt32(IsSpeechCustomPortraitPlacement);
+    out->WriteInt32(SpeechPortraitOffsetX);
+    out->WriteInt32(SpeechPortraitY);
+    out->WriteInt32(SpeechDisplayPostTimeMs);
+    out->WriteInt32(DialogOptionsHighlightColor);
     // ** up to here is referenced in the script "game." object
-    out->WriteInt32(randseed);         // random seed
-    out->WriteInt32(player_on_region); // player's current region
-    out->WriteInt32(check_interaction_only);
+    out->WriteInt32(RandomSeed);     // random seed
+    out->WriteInt32(PlayerRegionID); // player's current region
+    out->WriteInt32(CheckInteractionOnly);
     out->WriteInt32(room.BgFrame);
-    out->WriteInt32(bg_anim_delay); // for animating backgrounds
-    out->WriteInt32(0);             // [DEPRECATED]
-    out->WriteInt16(wait_counter);
-    out->WriteInt16(mbounds.Left);
-    out->WriteInt16(mbounds.Right);
-    out->WriteInt16(mbounds.Top);
-    out->WriteInt16(mbounds.Bottom);
-    out->WriteInt32(fade_effect);
+    out->WriteInt32(BgAnimWait); // for animating backgrounds
+    out->WriteInt32(0);          // [DEPRECATED]
+    out->WriteInt16(WaitCounter);
+    out->WriteInt16(MouseBounds.Left);
+    out->WriteInt16(MouseBounds.Right);
+    out->WriteInt16(MouseBounds.Top);
+    out->WriteInt16(MouseBounds.Bottom);
+    out->WriteInt32(FadeEffect);
     out->WriteInt32(room.BgFrameLocked);
     out->WriteByteCount(0, sizeof(int32_t) * LEGACY_MAXGSVALUES);
     out->WriteInt32(0); // [DEPRECATED]
     out->WriteInt32(0);
     out->WriteInt32(0);
-    out->WriteInt32(audio_master_volume);
+    out->WriteInt32(AudioMasterVolume);
     out->Write(room.WalkableAreasOn, MAX_WALK_AREAS);
-    out->WriteInt16(screen_flipped);
+    out->WriteInt16(ScreenFlip);
     out->WriteInt32(room.EnteredAtX);
     out->WriteInt32(room.EnteredAtY);
     out->WriteInt32(room.EnteredEdge);
-    out->WriteInt32(speech_mode);
-    out->WriteInt32(speech_skip_style);
+    out->WriteInt32(SpeechVoiceMode);
+    out->WriteInt32(SpeechSkipStyle);
     out->WriteInt32(0); // [DEPRECATED]
-    out->WriteInt32(speech_volume);
-    out->WriteInt32(normal_font);
-    out->WriteInt32(speech_font);
-    out->WriteInt8(key_skip_wait);
-    out->WriteInt32(swap_portrait_lastchar);
+    out->WriteInt32(SpeechVolume);
+    out->WriteInt32(NormalFont);
+    out->WriteInt32(SpeechFont);
+    out->WriteInt8(WaitSkipType);
+    out->WriteInt32(SwapPortraitLastCharacter);
     out->WriteInt32(EngineServices::Current().SeparateMusicLib ? 1 : 0);
-    out->WriteInt32(in_conversation);
-    out->WriteInt32(screen_tint);
+    out->WriteInt32(ConversationDepth);
+    out->WriteInt32(ScreenTint);
     // TODO: investigate if parsed words should be serialized at all
-    out->WriteInt32(parsed_words.size());
-    out->WriteArrayOfInt16(reinterpret_cast<const int16_t *>(parsed_words.data()),
-                           std::min<size_t>(parsed_words.size(), MAX_PARSED_WORDS));
-    if (parsed_words.size() < MAX_PARSED_WORDS)
-        out->WriteByteCount(0, (MAX_PARSED_WORDS - parsed_words.size()) * sizeof(int16_t));
-    bad_parsed_word.WriteCount(out, 100);
+    out->WriteInt32(ParsedWords.size());
+    out->WriteArrayOfInt16(reinterpret_cast<const int16_t *>(ParsedWords.data()),
+                           std::min<size_t>(ParsedWords.size(), MAX_PARSED_WORDS));
+    if (ParsedWords.size() < MAX_PARSED_WORDS)
+        out->WriteByteCount(0, (MAX_PARSED_WORDS - ParsedWords.size()) * sizeof(int16_t));
+    BadParsedWord.WriteCount(out, 100);
     out->WriteInt32(0);                                            // [DEPRECATED]
     out->WriteByteCount(0, LEGACY_MAXSAVEGAMES * sizeof(int16_t)); // [DEPRECATED]
-    uint32_t mouse_opts = 0x01 * (!mouse_cursor_shown)             // previously this field had a reverse meaning
-                          | 0x02 * mouse_input_enabled;            // kGSSvgVersion_400_33
+    uint32_t mouse_opts = 0x01 * (!IsMouseCursorShown)             // previously this field had a reverse meaning
+                          | 0x02 * IsMouseInputEnabled;            // kGSSvgVersion_400_33
     out->WriteInt32(mouse_opts);
     out->WriteInt32(0); // [DEPRECATED]
     out->WriteInt32(0);
     out->WriteInt32(0);
-    out->WriteInt32(shakesc_delay);
-    out->WriteInt32(shakesc_amount);
-    out->WriteInt32(shakesc_length);
-    out->WriteInt32(rtint_red);
-    out->WriteInt32(rtint_green);
-    out->WriteInt32(rtint_blue);
-    out->WriteInt32(rtint_level);
-    out->WriteInt32(rtint_light);
-    out->WriteBool(rtint_enabled);
+    out->WriteInt32(ShakeScreenDelay);
+    out->WriteInt32(ShakeScreenAmount);
+    out->WriteInt32(ShakeScreenLength);
+    out->WriteInt32(AmbientTintRed);
+    out->WriteInt32(AmbientTintGreen);
+    out->WriteInt32(AmbientTintBlue);
+    out->WriteInt32(AmbientTintLevel);
+    out->WriteInt32(AmbientTintLight);
+    out->WriteBool(IsAmbientTintEnabled);
     out->WriteInt32(0); // [DEPRECATED]
-    out->WriteInt32(skip_until_char_stops);
-    out->WriteInt32(0); // was get_loc_name_last_time, should not serialize
-    out->WriteInt32(0); // was get_loc_name_save_cursor, should not serialize
-    out->WriteInt32(restore_cursor_mode_to);
-    out->WriteInt32(restore_cursor_image_to);
+    out->WriteInt32(SkipUntilCharacterStops);
+    out->WriteInt32(0); // was LastNamedLocation, should not serialize
+    out->WriteInt32(0); // was LocationNameSaveCursor, should not serialize
+    out->WriteInt32(RestoreCursorModeTo);
+    out->WriteInt32(RestoreCursorImageTo);
     out->WriteInt16(0); // legacy music queue
     out->WriteByteCount(0, sizeof(int16_t) * MAX_QUEUED_MUSIC);
-    out->WriteInt16(new_music_queue_size);
+    out->WriteInt16(NewMusicQueueSize);
     for (int i = 0; i < MAX_QUEUED_MUSIC; ++i)
     {
-        new_music_queue[i].WriteToSavegame(out);
+        NewMusicQueue[i].WriteToSavegame(out);
     }
 
-    out->WriteInt16(crossfading_out_channel);
-    out->WriteInt16(crossfade_step);
-    out->WriteInt16(crossfade_out_volume_per_step);
-    out->WriteInt16(crossfade_initial_volume_out);
-    out->WriteInt16(crossfading_in_channel);
-    out->WriteInt16(crossfade_in_volume_per_step);
-    out->WriteInt16(crossfade_final_volume_in);
+    out->WriteInt16(CrossfadingOutChannel);
+    out->WriteInt16(CrossfadeStep);
+    out->WriteInt16(CrossfadeOutVolumePerStep);
+    out->WriteInt16(CrossfadeInitialVolumeOut);
+    out->WriteInt16(CrossfadingInChannel);
+    out->WriteInt16(CrossfadeInVolumePerStep);
+    out->WriteInt16(CrossfadeFinalVolumeIn);
 
     out->WriteByteCount(0, 50); // [DEPRECATED]
     out->WriteByteCount(0, 50); // [DEPRECATED]
     out->WriteByteCount(0, LEGACY_MAXGLOBALSTRINGS * MAX_MAXSTRLEN);
-    out->Write(lastParserEntry, MAX_MAXSTRLEN);
-    StrUtil::WriteString(game_name, out);
-    out->WriteInt32(ground_level_areas_disabled);
-    out->WriteInt32(next_screen_transition);
-    out->WriteInt32(gamma_adjustment);
-    out->WriteInt16(temporarily_turned_off_character);
+    out->Write(LastParserEntry, MAX_MAXSTRLEN);
+    StrUtil::WriteString(GameName, out);
+    out->WriteInt32(GroundLevelAreasDisabled);
+    out->WriteInt32(NextScreenTransition);
+    out->WriteInt32(GammaAdjustment);
+    out->WriteInt16(TemporarilyTurnedOffCharacter);
     out->WriteInt16(0); // [DEPRECATED]
-    out->WriteInt32(static_cast<uint32_t>(do_once_tokens.size()));
-    for (const auto &token : do_once_tokens)
+    out->WriteInt32(static_cast<uint32_t>(DoOnceTokens.size()));
+    for (const auto &token : DoOnceTokens)
     {
         StrUtil::WriteString(token, out);
     }
-    out->WriteInt32(text_min_display_time_ms);
-    out->WriteInt32(ignore_user_input_after_text_timeout_ms);
+    out->WriteInt32(MinimumTextDisplayTimeMs);
+    out->WriteInt32(IgnoreUserInputAfterTextTimeoutMs);
 
-    int voice_speech_flags = speech_has_voice ? 0x01 : 0;
-    if (speech_voice_blocking)
+    int voice_speech_flags = HasSpeechVoice ? 0x01 : 0;
+    if (IsSpeechVoiceBlocking)
         voice_speech_flags |= 0x02;
     out->WriteInt32(voice_speech_flags);
 
     // kGSSvgVersion_400_17
-    out->WriteInt32(dialog_options_gui_x);
-    out->WriteInt32(dialog_options_gui_y);
-    out->WriteInt32(dialog_options_textalign);
-    out->WriteInt32(dialog_options_font);
+    out->WriteInt32(DialogOptionsGuiX);
+    out->WriteInt32(DialogOptionsGuiY);
+    out->WriteInt32(DialogOptionsTextAlignment);
+    out->WriteInt32(DialogOptionsFont);
     // kGSSvgVersion_400_24
-    out->WriteInt32(dialog_options_zorder);
-    out->WriteInt32(speech_zorder); // since kGSSvgVersion_400_33
-    uint32_t speech_ex_flags = (0x01 * speech_always_wait_for_text);
+    out->WriteInt32(DialogOptionsZOrder);
+    out->WriteInt32(SpeechOverlayZOrder); // since kGSSvgVersion_400_33
+    uint32_t speech_ex_flags = (0x01 * AlwaysWaitForSpeechText);
     out->WriteInt32(speech_ex_flags);
     out->WriteInt32(0); // reserved
 
@@ -692,7 +691,7 @@ void GameState::WriteForSavegame(Stream *out) const
     }
 
     // kGSSvgVersion_400_03
-    out->WriteFloat32(face_dir_ratio);
+    out->WriteFloat32(FaceDirectionRatio);
     out->WriteInt32(_screenShaderID); // used since kGSSvgVersion_400_18
     out->WriteInt32(_screenShaderHandle);
     out->WriteInt32(_cursorShaderID);
@@ -703,9 +702,9 @@ void GameState::WriteForSavegame(Stream *out) const
 
 void GameState::FreeProperties()
 {
-    for (auto &p : guiProps)
+    for (auto &p : GuiProperties)
         p.clear();
-    for (auto &list : guicontrolProps)
+    for (auto &list : GuiControlProperties)
     {
         for (auto &p : list)
             p.clear();

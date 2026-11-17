@@ -423,8 +423,8 @@ void DoBeforeRestore(PreservedParams &pp, SaveCmpSelection select_cmp)
 
     unload_old_room();
     remove_all_overlays();
-    game.Play.complete_overlay_on = 0;
-    game.Play.text_overlay_on = 0;
+    game.Play.CompleteOverlayID = 0;
+    game.Play.TextOverlayID = 0;
 
     // cleanup dynamic sprites
     // NOTE: sprite 0 is reserved for the "empty sprite" and is never allocated as a dynamic one
@@ -498,24 +498,24 @@ static HSaveError RestoreAudio(const RestoredData &r_data)
     // Drop the preloaded clips of the music queue (they are unique_ptr, so this frees them);
     // the queue itself comes from the save, without the loaded clips
     // TODO: perhaps this should be done in DoBeforeRestore instead, with the rest of the cleanup
-    for (int i = 0; i < game.Play.new_music_queue_size; ++i)
+    for (int i = 0; i < game.Play.NewMusicQueueSize; ++i)
     {
-        game.Play.new_music_queue[i].cachedClip = nullptr;
+        game.Play.NewMusicQueue[i].cachedClip = nullptr;
     }
 
-    if (game.Play.audio_master_volume >= 0)
+    if (game.Play.AudioMasterVolume >= 0)
     {
-        int temp_vol = game.Play.audio_master_volume;
-        game.Play.audio_master_volume = -1; // reset to invalid state before re-applying
+        int temp_vol = game.Play.AudioMasterVolume;
+        game.Play.AudioMasterVolume = -1; // reset to invalid state before re-applying
         System_SetVolume(temp_vol);
     }
 
     // Run audio clips on channels
     // these two crossfading parameters have to be temporarily reset
-    const int cf_in_chan = game.Play.crossfading_in_channel;
-    const int cf_out_chan = game.Play.crossfading_out_channel;
-    game.Play.crossfading_in_channel = 0;
-    game.Play.crossfading_out_channel = 0;
+    const int cf_in_chan = game.Play.CrossfadingInChannel;
+    const int cf_out_chan = game.Play.CrossfadingOutChannel;
+    game.Play.CrossfadingInChannel = 0;
+    game.Play.CrossfadingOutChannel = 0;
 
     for (int i = 0; i < TOTAL_AUDIO_CHANNELS; ++i)
     {
@@ -561,9 +561,9 @@ static HSaveError RestoreAudio(const RestoredData &r_data)
         }
     }
     if ((cf_in_chan > 0) && (AudioChans::GetChannel(cf_in_chan) != nullptr))
-        game.Play.crossfading_in_channel = cf_in_chan;
+        game.Play.CrossfadingInChannel = cf_in_chan;
     if ((cf_out_chan > 0) && (AudioChans::GetChannel(cf_out_chan) != nullptr))
-        game.Play.crossfading_out_channel = cf_out_chan;
+        game.Play.CrossfadingOutChannel = cf_out_chan;
 
     // If there were synced audio tracks, the time taken to load in the
     // different channels will have thrown them out of sync, so re-time it
@@ -690,7 +690,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
 
     // Keep the debug mode on if the engine was started in it, whatever the save had
     if (services.Debug.Flags & DBG_DEBUGMODE)
-        game.Play.debug_mode = 1;
+        game.Play.DebugMode = 1;
 
     // Move the restored dynamic surfaces to where the engine keeps them
     const size_t dynamic_surface_count = std::min((size_t)MAX_DYNAMIC_SURFACES, r_data.DynamicSurfaces.size());
@@ -740,8 +740,8 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
     setup_player_character(game.PlayerCharacterID);
 
     // Save some parameters to restore them after room load
-    const int gscript_timer = game.Play.gscript_timer;
-    const Rect mouse_bounds = game.Play.mbounds;
+    const int gscript_timer = game.Play.GlobalScriptTimer;
+    const Rect mouse_bounds = game.Play.MouseBounds;
     // load the room the game was saved in
     game.DisplayedRoom = r_data.Room;
     if (game.DisplayedRoom >= 0)
@@ -760,8 +760,8 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
     pool.RemapTypeids(type_l2g);
 
     // Reapply few parameters after room load
-    game.Play.gscript_timer = gscript_timer;
-    game.Play.mbounds = mouse_bounds;
+    game.Play.GlobalScriptTimer = gscript_timer;
+    game.Play.MouseBounds = mouse_bounds;
 
 
     set_cursor_mode(r_data.CursorMode);
@@ -771,7 +771,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
     // precache current cursor
     services.Sprites.PrecacheSprite(game.MouseCursors[r_data.CursorID].Sprite);
 
-    services.Platform->SetWindowTitle(game.Play.game_name);
+    services.Platform->SetWindowTitle(game.Play.GameName);
 
     if (game.DisplayedRoom >= 0)
     {
@@ -865,7 +865,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
         first_room_initialization();
     }
 
-    Mouse::SetMoveLimit(game.Play.mbounds); // apply mouse bounds
+    Mouse::SetMoveLimit(game.Play.MouseBounds); // apply mouse bounds
 
     // Apply accessibility options, must be done last, because some
     // may override restored game settings

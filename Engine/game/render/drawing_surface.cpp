@@ -438,7 +438,7 @@ void DrawingSurface_DrawStringWrapped(ScriptDrawingSurface *surface, int x, int 
     }
 
     color_t text_color = surface->GetRealDrawingColor();
-    color_t outline_color = ds->GetCompatibleColor(Game::Current().Play.speech_text_shadow);
+    color_t outline_color = ds->GetCompatibleColor(Game::Current().Play.TextShadowColor);
     for (size_t i = 0; i < Lines.Count(); i++)
     {
         GUI::DrawTextAlignedHor(ds, Lines[i], font, text_color, outline_color, surface->GetBlendMode(), x,

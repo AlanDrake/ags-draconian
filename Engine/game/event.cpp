@@ -132,7 +132,7 @@ void process_event(const AGSEvent *evp)
 {
     Game &game = Game::Current();
     Room &room = Room::Current();
-    const int room_was = game.Play.room_changes;
+    const int room_was = game.Play.RoomChanges;
 
     RuntimeScriptValue rval_null;
     if (evp->Type == kAGSEvent_Script)
@@ -208,7 +208,7 @@ void process_event(const AGSEvent *evp)
 
         // If the room was changed inside a on_event call above,
         // then skip running further interaction scripts
-        if (room_was != game.Play.room_changes)
+        if (room_was != game.Play.RoomChanges)
         {
             if ((obj.ObjEvType == kObjEventType_Room) && (obj.ObjEvent == kRoomEvent_BeforeFadein))
                 game.Events.InEntersScreen = false;
@@ -255,7 +255,7 @@ void processallevents()
     // TODO: need to redesign engine events system?
     std::vector<AGSEvent> evtcopy = game.Events.Queue;
 
-    const int room_was = game.Play.room_changes;
+    const int room_was = game.Play.RoomChanges;
 
     inside_processevent++;
 
@@ -263,7 +263,7 @@ void processallevents()
     {
         process_event(&evtcopy[i]);
 
-        if (room_was != game.Play.room_changes)
+        if (room_was != game.Play.RoomChanges)
             break; // changed room, so discard other events
     }
 

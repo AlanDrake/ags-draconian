@@ -295,15 +295,15 @@ HGameFileError GameDef::read_customprops(Common::Stream *in, GameDataVersion /*d
 
     int errors = 0;
 
-    charProps.resize(CharacterCount);
+    CharacterProperties.resize(CharacterCount);
     for (int i = 0; i < CharacterCount; ++i)
     {
-        errors += Properties::ReadValues(charProps[i], in);
+        errors += Properties::ReadValues(CharacterProperties[i], in);
     }
-    invProps.resize(InventoryItemCount);
+    InventoryItemProperties.resize(InventoryItemCount);
     for (int i = 0; i < InventoryItemCount; ++i)
     {
-        errors += Properties::ReadValues(invProps[i], in);
+        errors += Properties::ReadValues(InventoryItemProperties[i], in);
     }
 
     if (errors > 0)
