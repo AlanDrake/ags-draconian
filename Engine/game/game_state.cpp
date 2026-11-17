@@ -705,4 +705,9 @@ void GamePlayState::FreeProperties()
 {
     for (auto &p : guiProps)
         p.clear();
+    for (auto &list : guicontrolProps)
+    {
+        for (auto &p : list)
+            p.clear();
+    }
 }

@@ -421,7 +421,7 @@ struct GamePlayState
     // fields that are not written are listed above the struct.
     void WriteForSavegame(AGS::Common::Stream *out) const;
     // Required for freeing only particular parts when restoring the game: clears the custom property values of the
-    // GUIs;
+    // GUIs and of the GUI controls;
     // TODO: restoring a game resets the state part by part (see DoBeforeRestore in savegame.cpp), reset the whole
     // object instead
     void FreeProperties();

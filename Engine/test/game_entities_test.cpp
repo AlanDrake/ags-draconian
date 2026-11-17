@@ -981,8 +981,7 @@ protected:
     }
 
     // The round trip of the live elements of one kind (elements(game) lists them, by address), by the rows of their
-    // definition's table (Def, the element's type unless given) and of their play state's (State, if the element has
-    // one): in each element the saved fields are altered (AlterFields: what the game changed during play;
+    // definition's table (Def) and of their play state's (State; void if the element has none): in each element the saved fields are altered (AlterFields: what the game changed during play;
     // keep, if given, then restores what the engine keeps true between two fields), which gives the expected element,
     // and then the fields from the definition. The component cmp is saved, the game started again from its definition
     // (RestartGame) and the save restored. Returns the fields of the restored elements that differ from the expected
@@ -990,8 +989,8 @@ protected:
     // start gives the definition's values back (StartFromDefinitions, from InitGameState), not the restore, which
     // reads only the saved fields into the live elements; nothing writes the other fields during play, so a restore
     // into a running game finds the definition's values there too.
-    template <typename T, typename Def = T, typename State = void, typename Elements>
-    std::string RoundTripLosses(SaveCmpSelection cmp, Elements elements, void (*keep)(T &) = nullptr)
+    template <typename T, typename Def, typename State, typename Elements>
+    std::string RoundTripPartsLosses(SaveCmpSelection cmp, Elements elements, void (*keep)(T &) = nullptr)
     {
         Game &game = Game::Current();
         std::vector<T> expected;
@@ -1002,7 +1001,8 @@ protected:
             if (keep)
                 keep(*element);
             expected.push_back(*element);
-            EXPECT_FALSE((DiffParts<Def, State>(started, *element).empty())) << "the element has no saved field to alter";
+            EXPECT_FALSE((DiffParts<Def, State>(started, *element).empty()))
+                << "the element has no saved field to alter";
             AlterParts<Def, State>(*element, FieldRole::FromDefinition);
             EXPECT_FALSE((DiffParts<Def, State>(expected.back(), *element).empty()))
                 << "the element has no field from the definition";
@@ -1027,6 +1027,13 @@ protected:
                 lost += "element " + std::to_string(i) + ": " + line.GetCStr() + "\n";
         }
         return lost;
+    }
+
+    // The same for elements whose type is their definition's, with no play state
+    template <typename T, typename Elements>
+    std::string RoundTripLosses(SaveCmpSelection cmp, Elements elements, void (*keep)(T &) = nullptr)
+    {
+        return RoundTripPartsLosses<T, T, void>(cmp, elements, keep);
     }
 
     // Item i, as its getters give it, against its definition
@@ -1660,12 +1667,12 @@ TEST_F(GameEntities, AudioTypesComeBackFromASave)
 }
 
 // Every saved field of every inventory item comes back from a save into a game started again, and every field from the
-// definition is the definition's again (RoundTripLosses); the rows of InventoryItemDef and InventoryItemState (the
+// definition is the definition's again (RoundTripPartsLosses); the rows of InventoryItemDef and InventoryItemState (the
 // custom property values set during play) say which field is which, so a field added to either struct is checked here
 // without a line of this test changing
 TEST_F(GameEntities, EveryInventoryItemFieldIsRestored)
 {
-    EXPECT_EQ("", (RoundTripLosses<InventoryItem, InventoryItemDef, InventoryItemState>(
+    EXPECT_EQ("", (RoundTripPartsLosses<InventoryItem, InventoryItemDef, InventoryItemState>(
                       kSaveCmp_InvItems,
                       [](Game &running)
                       {
@@ -1731,7 +1738,7 @@ TEST_F(GameEntities, EveryDialogOptionFieldIsRestored)
 }
 
 // Every saved field of the play state of every dialog (DialogState's rows: the custom property values set during play)
-// comes back from a save into a game started again. Not through RoundTripLosses: DialogDef has no saved field of its
+// comes back from a save into a game started again. Not through RoundTripPartsLosses: DialogDef has no saved field of its
 // own (its options' are the test above), and altering its fields from the definition would add an option, whose count
 // the save compares with the game's.
 TEST_F(GameEntities, EveryDialogStateFieldIsRestored)
@@ -2091,9 +2098,9 @@ TEST_F(GameEntities, PropertiesSetDuringPlayComeBackFromASave)
 }
 
 // A restore into the running game takes away a value set after the save where the save held none for that property:
-// the element has the definition's value or the schema's default again (DoBeforeRestore clears the lists, then the
-// components read the saved values into them). For every kind but the GUI controls (see the disabled test below);
-// the audio clips' values, which no save holds, are cleared too.
+// the element has the definition's value or the schema's default again (DoBeforeRestore clears the values, then the
+// components read the saved values into the maps). For every kind but the GUI controls (the test below); the audio
+// clips' values, which no save holds, are cleared too.
 TEST_F(GameEntities, RestoreTakesAwayPropertiesSetAfterTheSave)
 {
     std::vector<uint8_t> saved;
@@ -2119,11 +2126,11 @@ TEST_F(GameEntities, RestoreTakesAwayPropertiesSetAfterTheSave)
     }
 }
 
-// The same for the six types of GUI control. Disabled: today a value set after the save stays after the restore, as
-// GamePlayState::FreeProperties (called by DoBeforeRestore) clears the lists of the characters, inventory items,
-// dialogs, audio clips and GUIs but not the GUI controls' (guicontrolProps), and the "GUI" component only adds the
-// saved values to a list (Properties::ReadValues does not clear the map). Upstream's FreeProperties is the same.
-TEST_F(GameEntities, DISABLED_RestoreTakesAwayGuiControlPropertiesSetAfterTheSave)
+// The same for the six types of GUI control. A value set after the save stayed after the restore until
+// GamePlayState::FreeProperties (called by DoBeforeRestore) cleared the GUI controls' lists (guicontrolProps) too: the
+// "GUI" component only adds the saved values to a map (Properties::ReadValues does not clear it). Upstream's
+// FreeProperties still leaves them.
+TEST_F(GameEntities, RestoreTakesAwayGuiControlPropertiesSetAfterTheSave)
 {
     std::vector<uint8_t> saved;
     std::string error;

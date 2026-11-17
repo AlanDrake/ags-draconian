@@ -323,7 +323,8 @@ void InventoryItem_GetPropertyText(ScriptInvItem *item, const char *property, ch
 const char *InventoryItem_GetTextProperty(ScriptInvItem *item, const char *property)
 {
     Game &game = Game::Current();
-    return get_text_property_dynamic_string(game.invProps[item->id], game.InventoryItems[item->id].PropertyOverrides, property);
+    return get_text_property_dynamic_string(game.invProps[item->id], game.InventoryItems[item->id].PropertyOverrides,
+                                            property);
 }
 
 bool InventoryItem_SetProperty(ScriptInvItem *item, const char *property, int value)

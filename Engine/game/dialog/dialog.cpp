@@ -464,7 +464,8 @@ void DialogOptions_SetMinGUIWidth(int width)
 int Dialog_GetProperty(ScriptDialog *script_dialog, const char *property)
 {
     Game &game = Game::Current();
-    return get_int_property(game.dialogProps[script_dialog->id], game.Dialogs[script_dialog->id].PropertyOverrides, property);
+    return get_int_property(game.dialogProps[script_dialog->id], game.Dialogs[script_dialog->id].PropertyOverrides,
+                            property);
 }
 
 const char *Dialog_GetTextProperty(ScriptDialog *script_dialog, const char *property)
