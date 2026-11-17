@@ -35,10 +35,10 @@ using namespace AGS::Common;
 namespace
 {
 
-// FromDefinition: a save does not hold the values set during play, and the clip has the definition's values again
-// whenever a game is started or restored (a restore clears them, DoBeforeRestore)
+// Transient: a save does not hold the values set during play; a new game starts without any, and a restore clears them
+// (DoBeforeRestore), so the clip reads the definition's values again
 constexpr FieldRow<AudioClipState> kAudioClipStateFields[] = {
-    Field<&AudioClipState::PropertyOverrides>("PropertyOverrides", FieldRole::FromDefinition),
+    Field<&AudioClipState::PropertyOverrides>("PropertyOverrides", FieldRole::Transient),
 };
 static_assert(FieldsCoverStruct(kAudioClipStateFields), "AudioClipState: a field has no row in kAudioClipStateFields");
 

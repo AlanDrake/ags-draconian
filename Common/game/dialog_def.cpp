@@ -40,12 +40,12 @@ static_assert(FieldsCoverStruct(kDialogOptionDefFields),
               "DialogOptionDef: a field has no row in kDialogOptionDefFields");
 
 // The options' count is the definition's: a save holds it only to compare it with the game's (ReadDialogs,
-// HandleGameContentMismatch), and the saved fields of each option, which the option's rows say. AlterFields does not
-// reach the elements of a list (util/field_table.h): a test alters the options themselves.
+// HandleGameContentMismatch), and the saved fields of each option, which the option's rows say (a list's row is Saved:
+// its elements' rows give the roles, util/field_table.h)
 constexpr FieldRow<DialogDef> kDialogDefFields[] = {
     Field<&DialogDef::ScriptName>("ScriptName", FieldRole::FromDefinition),
     Field<&DialogDef::Flags>("Flags", FieldRole::FromDefinition),
-    Field<&DialogDef::Options>("Options", FieldRole::FromDefinition),
+    Field<&DialogDef::Options>("Options"),
     Field<&DialogDef::StartEntryPoint>("StartEntryPoint", FieldRole::FromDefinition),
     Field<&DialogDef::CodeSize>("CodeSize", FieldRole::FromDefinition),
 };

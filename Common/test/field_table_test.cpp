@@ -113,6 +113,38 @@ struct Session
     static FieldTable<Session> Fields();
 };
 
+// Lists of structs with tables, as a view's loops and their frames: a frame with a saved field and one from the
+// definition, a strip whose count is the definition's and whose frames are a list
+struct Cel
+{
+    int Delay = 0;
+    int Reserved = 0;
+
+    static FieldTable<Cel> Fields();
+};
+
+struct Strip
+{
+    int CelCount = 0;
+    std::vector<Cel> Cels;
+
+    static FieldTable<Strip> Fields();
+};
+
+// The lists of every kind, a list of plain values, and a member and a list whose rows say FromDefinition, which covers
+// the whole of each: every field in it, whatever its own row says
+struct Reel
+{
+    std::vector<Strip> Strips;
+    Cel Pair[2];
+    std::array<Cel, 2> Ends;
+    std::vector<int> Numbers;
+    Part Template;
+    std::vector<Look> Skies;
+
+    static FieldTable<Reel> Fields();
+};
+
 constexpr FieldRow<Part> kPartFields[] = {
     Field<&Part::Count>("Count"),
     Field<&Part::Ratio>("Ratio"),
@@ -168,6 +200,28 @@ constexpr FieldRow<Session> kSessionFields[] = {
 // A std::array is one initializer, as a struct
 static_assert(FieldsCoverStruct(kSessionFields), "Session: a field has no row");
 
+constexpr FieldRow<Cel> kCelFields[] = {
+    Field<&Cel::Delay>("Delay"),
+    Field<&Cel::Reserved>("Reserved", FieldRole::FromDefinition),
+};
+static_assert(FieldsCoverStruct(kCelFields), "Cel: a field has no row");
+
+constexpr FieldRow<Strip> kStripFields[] = {
+    Field<&Strip::CelCount>("CelCount", FieldRole::FromDefinition),
+    Field<&Strip::Cels>("Cels"),
+};
+static_assert(FieldsCoverStruct(kStripFields), "Strip: a field has no row");
+
+constexpr FieldRow<Reel> kReelFields[] = {
+    Field<&Reel::Strips>("Strips"),
+    Field<&Reel::Pair>("Pair"),
+    Field<&Reel::Ends>("Ends"),
+    Field<&Reel::Numbers>("Numbers"),
+    Field<&Reel::Template>("Template", FieldRole::FromDefinition),
+    Field<&Reel::Skies>("Skies", FieldRole::FromDefinition),
+};
+static_assert(FieldsCoverStruct(kReelFields), "Reel: a field has no row");
+
 // The same rows without the last one leave a member out
 constexpr FieldRow<Part> kPartFieldsShort[] = {
     Field<&Part::Count>("Count"),
@@ -204,6 +258,35 @@ FieldTable<Session> Session::Fields()
     return kSessionFields;
 }
 
+FieldTable<Cel> Cel::Fields()
+{
+    return kCelFields;
+}
+
+FieldTable<Strip> Strip::Fields()
+{
+    return kStripFields;
+}
+
+FieldTable<Reel> Reel::Fields()
+{
+    return kReelFields;
+}
+
+// A reel with two strips of two frames each, and two skies
+Reel MakeReel()
+{
+    Reel reel;
+    reel.Strips.resize(2);
+    for (Strip &strip : reel.Strips)
+    {
+        strip.CelCount = 2;
+        strip.Cels.resize(2);
+    }
+    reel.Skies.resize(2);
+    return reel;
+}
+
 std::string Lines(const std::vector<String> &lines)
 {
     std::string text;
@@ -222,9 +305,20 @@ size_t RowsOfRole(FieldRole role)
     return count;
 }
 
+// The rows of a table that have a role and whose member is one value: not a struct with a table nor a list of such
+template <typename T>
+size_t ValueRowsOfRole(FieldRole role)
+{
+    size_t count = 0;
+    for (const FieldRow<T> &row : T::Fields())
+        count += (row.Role == role && row.Ops && !row.Ops->Diff) ? 1 : 0;
+    return count;
+}
+
 // A definition's table is whole: it has the rows of each role that the test expects, its rows are distinct, two new
-// objects do not differ, and AlterFields with a role changes a field per row of that role and no other (no row of these
-// tables is a struct with a table of its own, so a row gives one line; a list's row gets an element more)
+// objects do not differ, and AlterFields with a role changes a field per value row of that role and no other (a list's
+// row of plain values gets an element more; a list of structs with tables is empty in a new object, so its row gives
+// no line, and no row of these tables is a struct with a table of its own)
 template <typename T>
 void ExpectWholeTable(size_t saved, size_t from_definition, size_t opaque)
 {
@@ -241,7 +335,7 @@ void ExpectWholeTable(size_t saved, size_t from_definition, size_t opaque)
         SCOPED_TRACE(testing::Message() << "role " << static_cast<int>(role));
         T altered{};
         AlterFields(altered, role);
-        EXPECT_EQ(RowsOfRole<T>(role), DiffFields(a, altered).size()) << Lines(DiffFields(a, altered));
+        EXPECT_EQ(ValueRowsOfRole<T>(role), DiffFields(a, altered).size()) << Lines(DiffFields(a, altered));
     }
 }
 
@@ -437,6 +531,122 @@ TEST(FieldTable, TransientFieldsAreComparedAndAlteredOnRequest)
     EXPECT_EQ("SkippedBy: 0 != 1\n", Lines(DiffFields(a, transient)));
 }
 
+// A list of structs with a table (a vector, a plain array, a std::array, a list in an element of a list) is compared
+// element by element: a line per field, named with the element's index
+TEST(FieldTable, DiffNamesTheElementsOfAListOfStructs)
+{
+    const Reel a = MakeReel();
+    Reel b = a;
+    EXPECT_EQ("", Lines(DiffFields(a, b)));
+    b.Strips[1].Cels[0].Delay = 4;
+    b.Strips[0].CelCount = 3;
+    b.Pair[1].Delay = 5;
+    b.Ends[0].Reserved = 6;
+    b.Template.Ratio = 0.5f;
+    b.Skies[1].Width = 7;
+    EXPECT_EQ("Strips[0].CelCount: 2 != 3\n"
+              "Strips[1].Cels[0].Delay: 0 != 4\n"
+              "Pair[1].Delay: 0 != 5\n"
+              "Ends[0].Reserved: 0 != 6\n"
+              "Template.Ratio: 2 != 0.5\n"
+              "Skies[1].Width: 0 != 7\n",
+              Lines(DiffFields(a, b)));
+    // a derived field of an element is left out with the struct's own
+    EXPECT_EQ(5u, DiffFields(a, b, false).size()) << Lines(DiffFields(a, b, false));
+}
+
+// Two lists of different lengths differ in one line, without their elements' lines; a list of plain values is one value
+TEST(FieldTable, DiffOfListsOfDifferentLengthsIsOneLine)
+{
+    const Reel a = MakeReel();
+    Reel b = a;
+    b.Strips[0].Cels.resize(3);
+    b.Strips[0].Cels[0].Delay = 1;
+    b.Strips[1].Cels[1].Delay = 2;
+    b.Numbers = {4, 5};
+    EXPECT_EQ("Strips[0].Cels: 2 items != 3 items\n"
+              "Strips[1].Cels[1].Delay: 0 != 2\n"
+              "Numbers: [] != [4, 5]\n",
+              Lines(DiffFields(a, b)));
+
+    Reel c = a;
+    c.Strips.resize(3);
+    c.Strips[0].CelCount = 4;
+    EXPECT_EQ("Strips: 2 items != 3 items\n", Lines(DiffFields(a, c)));
+}
+
+// AlterFields descends into every element of a list of structs with the same role and never resizes the list; a list
+// of plain values gets an element more as before. A member and a list whose rows say FromDefinition are untouched with
+// Saved, though their own rows are Saved.
+TEST(FieldTable, AlterReachesEveryElementAndKeepsTheLength)
+{
+    const Reel a = MakeReel();
+    Reel saved = a;
+    AlterFields(saved);
+    EXPECT_EQ("Strips[0].Cels[0].Delay: 0 != 1\n"
+              "Strips[0].Cels[1].Delay: 0 != 1\n"
+              "Strips[1].Cels[0].Delay: 0 != 1\n"
+              "Strips[1].Cels[1].Delay: 0 != 1\n"
+              "Pair[0].Delay: 0 != 1\n"
+              "Pair[1].Delay: 0 != 1\n"
+              "Ends[0].Delay: 0 != 1\n"
+              "Ends[1].Delay: 0 != 1\n"
+              "Numbers: [] != [1]\n",
+              Lines(DiffFields(a, saved)));
+    EXPECT_EQ(2u, saved.Strips.size());
+    EXPECT_EQ(2u, saved.Strips[1].Cels.size());
+    EXPECT_EQ(2u, saved.Skies.size());
+
+    Reel from_definition = a;
+    AlterFields(from_definition, FieldRole::FromDefinition);
+    EXPECT_EQ(2u, from_definition.Strips.size());
+    EXPECT_EQ(2u, from_definition.Strips[0].Cels.size());
+    EXPECT_EQ(2u, from_definition.Skies.size());
+}
+
+// A role other than Saved on a member with rows of its own covers the whole member: with FromDefinition every field of
+// Template and of each element of Skies is altered, the saved, the derived and the ones from the definition alike
+TEST(FieldTable, ARoleCoversTheWholeMember)
+{
+    const Reel a = MakeReel();
+    Reel from_definition = a;
+    AlterFields(from_definition, FieldRole::FromDefinition);
+    EXPECT_EQ("Strips[0].CelCount: 2 != 3\n"
+              "Strips[0].Cels[0].Reserved: 0 != 1\n"
+              "Strips[0].Cels[1].Reserved: 0 != 1\n"
+              "Strips[1].CelCount: 2 != 3\n"
+              "Strips[1].Cels[0].Reserved: 0 != 1\n"
+              "Strips[1].Cels[1].Reserved: 0 != 1\n"
+              "Pair[0].Reserved: 0 != 1\n"
+              "Pair[1].Reserved: 0 != 1\n"
+              "Ends[0].Reserved: 0 != 1\n"
+              "Ends[1].Reserved: 0 != 1\n"
+              "Template.Count: 1 != 2\n"
+              "Template.Ratio: 2 != 3\n"
+              "Skies[0].Tint: 0 != 1\n"
+              "Skies[0].Width: 0 != 1\n"
+              "Skies[0].Room: 0 != 1\n"
+              "Skies[1].Tint: 0 != 1\n"
+              "Skies[1].Width: 0 != 1\n"
+              "Skies[1].Room: 0 != 1\n",
+              Lines(DiffFields(a, from_definition)));
+
+    // Saved leaves them as they are (AlterReachesEveryElementAndKeepsTheLength); Transient, no row's, alters nothing
+    Reel transient = a;
+    AlterFields(transient, FieldRole::Transient);
+    EXPECT_EQ("", Lines(DiffFields(a, transient)));
+}
+
+// A struct with a table that is a map's value has no role but the map's row's: its saved fields are altered
+TEST(FieldTable, AMapsValueWithATableAltersItsSavedFields)
+{
+    std::unordered_map<int, Cel> cels;
+    FieldValue<std::unordered_map<int, Cel>>::Alter(cels);
+    ASSERT_EQ(1u, cels.size());
+    EXPECT_EQ(1, cels.begin()->second.Delay);
+    EXPECT_EQ(0, cels.begin()->second.Reserved);
+}
+
 // The character's definition: each row names its own member, and the operations reach every one but the two
 // event tables
 TEST(FieldTable, CharacterDefHasARowPerField)
@@ -467,21 +677,40 @@ TEST(FieldTable, MouseCursorDefHasARowPerField)
 TEST(FieldTable, ViewDefsHaveARowPerField)
 {
     ExpectWholeTable<ViewFrameDef>(7, 1, 0);
-    ExpectWholeTable<ViewLoopDef>(0, 3, 0);
-    ExpectWholeTable<ViewDef>(0, 2, 0);
+    ExpectWholeTable<ViewLoopDef>(1, 2, 0);
+    ExpectWholeTable<ViewDef>(1, 1, 0);
 }
 
-// A list of structs with a table is compared element by element, with every field of the element
+// A view's loops and their frames are compared and altered frame by frame: the saved fields are the frames', the
+// counts and the loops' flags are the definition's, and the lists keep their lengths
 TEST(FieldTable, ViewLoopsCompareTheirFrames)
 {
     ViewDef a;
-    a.Initialize(1);
-    a.Loops[0].Initialize(2);
+    a.Initialize(2);
+    a.Loops[1].Initialize(2);
     ViewDef b = a;
     EXPECT_EQ("", Lines(DiffFields(a, b)));
-    b.Loops[0].Frames[1].ReservedForFuture[1] = 3;
-    EXPECT_EQ(1u, DiffFields(a, b).size()) << Lines(DiffFields(a, b));
-    EXPECT_EQ(0u, Lines(DiffFields(a, b)).find("Loops: "));
+    b.Loops[1].Frames[1].ReservedForFuture[1] = 3;
+    EXPECT_EQ("Loops[1].Frames[1].ReservedForFuture: [0, 0] != [0, 3]\n", Lines(DiffFields(a, b)));
+
+    ViewDef saved = a;
+    AlterFields(saved);
+    // 7 saved fields in each of the two frames
+    EXPECT_EQ(14u, DiffFields(a, saved).size()) << Lines(DiffFields(a, saved));
+    EXPECT_EQ(0u, Lines(DiffFields(a, saved)).find("Loops[1].Frames[0].Sprite: 0 != 1\n"));
+
+    ViewDef from_definition = a;
+    AlterFields(from_definition, FieldRole::FromDefinition);
+    EXPECT_EQ("LoopCount: 2 != 3\n"
+              "Loops[0].FrameCount: 0 != 1\n"
+              "Loops[0].Flags: 0 != 1\n"
+              "Loops[1].FrameCount: 2 != 3\n"
+              "Loops[1].Flags: 0 != 1\n"
+              "Loops[1].Frames[0].ReservedForFuture: [0, 0] != [1, 1]\n"
+              "Loops[1].Frames[1].ReservedForFuture: [0, 0] != [1, 1]\n",
+              Lines(DiffFields(a, from_definition)));
+    EXPECT_EQ(2u, from_definition.Loops.size());
+    EXPECT_EQ(2u, from_definition.Loops[1].Frames.size());
 }
 
 TEST(FieldTable, AudioDefsHaveARowPerField)
@@ -493,7 +722,25 @@ TEST(FieldTable, AudioDefsHaveARowPerField)
 TEST(FieldTable, DialogDefsHaveARowPerField)
 {
     ExpectWholeTable<DialogOptionDef>(2, 2, 0);
-    ExpectWholeTable<DialogDef>(0, 5, 0);
+    ExpectWholeTable<DialogDef>(1, 4, 0);
+}
+
+// A dialog's options are altered option by option, and the list keeps its length
+TEST(FieldTable, DialogsAlterTheirOptions)
+{
+    DialogDef a;
+    a.Options.resize(2);
+    DialogDef saved = a;
+    AlterFields(saved);
+    EXPECT_EQ("Options[0].Text: \"\" != \"~\"\n"
+              "Options[0].Flags: 0 != 1\n"
+              "Options[1].Text: \"\" != \"~\"\n"
+              "Options[1].Flags: 0 != 1\n",
+              Lines(DiffFields(a, saved)));
+    DialogDef from_definition = a;
+    AlterFields(from_definition, FieldRole::FromDefinition);
+    EXPECT_EQ(2u, from_definition.Options.size());
+    EXPECT_EQ(4u + 2u * 2u, DiffFields(a, from_definition).size()) << Lines(DiffFields(a, from_definition));
 }
 
 TEST(FieldTable, FontDefHasARowPerField)

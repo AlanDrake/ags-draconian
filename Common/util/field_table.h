@@ -35,7 +35,8 @@
 //
 // A member's type needs its operations (FieldValue below): numbers, enums, String, points, rectangles, time points,
 // vectors, maps, sets and arrays (plain and std::array) of those have them, and so has every struct with a table of
-// its own.
+// its own. A struct with a table, and a vector or an array of such structs, is compared and altered field by field
+// (DiffFields, AlterFields); a list of plain values is one value.
 //
 //=============================================================================
 #pragma once
@@ -61,17 +62,21 @@ namespace AGS
 namespace Common
 {
 
-// What a field is to the state of the game
+// What a field is to the state of the game, said by what a restore gives it. A row's role is about the member's own
+// value. For a member that has rows of its own (a struct with a table, or a vector, a plain array or a std::array of
+// such structs), Saved means "see its own rows", and any other role covers the whole member: every field in it, at any
+// depth, whatever its own row says.
 enum class FieldRole : uint8_t
 {
     Saved,          // a part of the state: a restored game has the value the saved one had
-    FromDefinition, // the definition gives it again whenever the object is loaded (a room's entity: at every load of
-                    // the room); play may change it meanwhile, a save does not hold it
+    FromDefinition, // the definition gives it: the object has the definition's value whenever it is built or loaded
+                    // from its definition (a room's entity: at every load of the room; a game's entity: at the start
+                    // of the game), and a save does not hold it
     Derived,        // computed from other fields; a restore computes it again
     Opaque,         // not a value to compare or store (a cache, a pointer); listed so that the table is whole
-    Transient       // what the running game is doing now (a blocking wait, an overlay on screen, a fade): a save
-                    // does not hold it, a restore leaves the running game's value or sets one of its own; compared
-                    // as a saved one
+    Transient       // what the running game is doing now; a save does not hold it and a new game has the member's
+                    // initializer. A restored game is meant to have the initializer too (PLAN.md 5.11); a row whose
+                    // field keeps the running game's value across a restore today says so in its comment.
 };
 
 // The operations on a value of one type; every row whose member has the type shares them
@@ -79,11 +84,13 @@ struct FieldOps
 {
     bool (*Equal)(const void *a, const void *b);
     String (*Print)(const void *value);
-    // Changes the value to a different valid one: the tests that check a round trip set every field with it. A struct
-    // with a table of its own changes its fields of the role (AlterFields); another type ignores the role.
-    void (*Alter)(void *value, FieldRole role);
-    // For a struct with a table of its own, null for any other type: adds a line per field in which the two
-    // values differ (DiffFields), named "<prefix><Member>.<field>", or "<prefix><field>" for a base class
+    // Changes the value to a different valid one: the tests that check a round trip set every field with it. A value
+    // with rows of its own changes its fields of the role (AlterFields), or every field when whole is true; a list of
+    // structs keeps its length and changes each element. Another type ignores the role and whole.
+    void (*Alter)(void *value, FieldRole role, bool whole);
+    // For a value with rows of its own, null for any other type: adds a line per field in which the two values differ
+    // (DiffFields), named "<prefix><Member>.<field>" ("<prefix><Member>[<index>].<field>" for an element of a list), or
+    // "<prefix><field>" for a base class
     void (*Diff)(const void *a, const void *b, bool with_derived, const String &prefix, const char *member,
                  std::vector<String> &lines);
 };
@@ -165,32 +172,94 @@ struct HasFields<V, std::void_t<decltype(V::Fields())>> : std::true_type
 {
 };
 
+// A value with rows of its own: a struct with a table, or a list of such values (a vector, a plain array, a
+// std::array), whose length the rows do not hold
+template <typename V>
+struct HasRows : HasFields<V>
+{
+};
+template <typename V>
+struct HasRows<std::vector<V>> : HasRows<V>
+{
+};
+template <typename V, size_t N>
+struct HasRows<V[N]> : HasRows<V>
+{
+};
+template <typename V, size_t N>
+struct HasRows<std::array<V, N>> : HasRows<V>
+{
+};
+
 template <typename T>
 void DiffInto(const T &a, const T &b, bool with_derived, const String &prefix, std::vector<String> &lines);
 template <typename T>
-void AlterInto(T &object, FieldRole role);
+void AlterInto(T &object, FieldRole role, bool whole);
 
+// Changes a value: a struct with a table by its rows, a list of such structs element by element (never resized),
+// another value by its operations
 template <typename V>
-void Alter(void *value, FieldRole role)
+void AlterValue(V &value, FieldRole role, bool whole)
 {
     if constexpr (HasFields<V>::value)
-        AlterInto(*static_cast<V *>(value), role);
+    {
+        AlterInto(value, role, whole);
+    }
+    else if constexpr (HasRows<V>::value)
+    {
+        for (auto &item : value)
+            AlterValue(item, role, whole);
+    }
     else
-        FieldValue<V>::Alter(*static_cast<V *>(value));
+    {
+        FieldValue<V>::Alter(value);
+    }
+}
+
+template <typename V>
+void Alter(void *value, FieldRole role, bool whole)
+{
+    AlterValue(*static_cast<V *>(value), role, whole);
+}
+
+// Adds a line per field in which two values with rows of their own differ; path names the value
+// ("Loops[2].Frames"). Two lists of different lengths give one line, without their elements'.
+template <typename V>
+void DiffValue(const V &a, const V &b, bool with_derived, const String &path, std::vector<String> &lines)
+{
+    if constexpr (HasFields<V>::value)
+    {
+        DiffInto(a, b, with_derived, String::FromFormat("%s.", path.GetCStr()), lines);
+    }
+    else
+    {
+        const size_t count = std::size(a);
+        if (count != std::size(b))
+        {
+            lines.push_back(String::FromFormat("%s: %zu items != %zu items", path.GetCStr(), count, std::size(b)));
+            return;
+        }
+        for (size_t i = 0; i < count; ++i)
+            DiffValue(a[i], b[i], with_derived, String::FromFormat("%s[%zu]", path.GetCStr(), i), lines);
+    }
 }
 
 template <typename V, bool IsBase>
 void Diff(const void *a, const void *b, bool with_derived, const String &prefix, const char *member,
           std::vector<String> &lines)
 {
-    DiffInto(*static_cast<const V *>(a), *static_cast<const V *>(b), with_derived,
-             IsBase ? prefix : String::FromFormat("%s%s.", prefix.GetCStr(), member), lines);
+    const V &value_a = *static_cast<const V *>(a);
+    const V &value_b = *static_cast<const V *>(b);
+    if constexpr (IsBase)
+        DiffInto(value_a, value_b, with_derived, prefix, lines);
+    else
+        DiffValue(value_a, value_b, with_derived, String::FromFormat("%s%s", prefix.GetCStr(), member), lines);
 }
 
 template <typename V, bool IsBase>
 constexpr decltype(FieldOps::Diff) DiffOp()
 {
-    if constexpr (HasFields<V>::value)
+    if constexpr (HasRows<V>::value)
         return &Diff<V, IsBase>;
     else
         return nullptr;
@@ -324,9 +393,10 @@ void FieldDetail::DiffInto(const T &a, const T &b, bool with_derived, const Stri
 }
 
 // Lists the fields in which two objects differ, one line each: "Baseline: -1 != 120". Opaque fields are not
-// compared; the derived ones are unless with_derived is false; the others always. A base or a member whose type has a table is
-// compared field by field with the same rule: "TintRed: 0 != 1" for a field of a base, "Anim.Delay: 0 != 1"
-// for a field of a member.
+// compared; the derived ones are unless with_derived is false; the others always. A base or a member whose type has a
+// table is compared field by field with the same rule: "TintRed: 0 != 1" for a field of a base, "Anim.Delay: 0 != 1"
+// for a field of a member; a list of such structs element by element, "Loops[2].Frames[0].Delay: 3 != 4", or, when
+// the lengths differ, in one line: "Loops: 2 items != 3 items".
 template <typename T>
 std::vector<String> DiffFields(const T &a, const T &b, bool with_derived = true)
 {
@@ -353,23 +423,34 @@ String PrintFields(const T &object)
 }
 
 template <typename T>
-void FieldDetail::AlterInto(T &object, FieldRole role)
+void FieldDetail::AlterInto(T &object, FieldRole role, bool whole)
 {
     for (const FieldRow<T> &row : T::Fields())
     {
-        // a base or a member with a table, as a saved row, has the roles of its own rows
-        if (row.Ops && (row.Role == role || (row.Role == FieldRole::Saved && row.Ops->Diff)))
-            row.Ops->Alter(const_cast<void *>(row.Address(object)), role);
+        if (!row.Ops || row.Role == FieldRole::Opaque)
+            continue;
+        void *value = const_cast<void *>(row.Address(object));
+        const bool has_rows = row.Ops->Diff != nullptr;
+        if (whole)
+            row.Ops->Alter(value, role, true);
+        // a value with rows of its own, as a saved row, has the roles of its own rows
+        else if (has_rows && row.Role == FieldRole::Saved)
+            row.Ops->Alter(value, role, false);
+        // any other role covers the whole value
+        else if (row.Role == role)
+            row.Ops->Alter(value, role, true);
     }
 }
 
 // Changes every field of a role in an object to another value, for a test that checks a round trip: the saved fields,
 // or with FieldRole::FromDefinition the fields that a load must give back from the definition. A base or a member
-// whose type has a table is changed field by field with the same role.
+// whose type has a table is changed field by field with the same role, a list of such structs element by element; the
+// list keeps its length, which the definition or the code that owns the list fixes. A member with rows of its own
+// whose row has the role, not Saved, is changed whole: every field in it but the opaque ones.
 template <typename T>
 void AlterFields(T &object, FieldRole role = FieldRole::Saved)
 {
-    FieldDetail::AlterInto(object, role);
+    FieldDetail::AlterInto(object, role, false);
 }
 
 // The operations on a value of type V. The primary template is for a struct that has a table (V::Fields());
@@ -381,8 +462,8 @@ struct FieldValue
                   "a field of this type needs a FieldValue specialization, or the type a table (Fields())");
     static bool Equal(const V &a, const V &b) { return DiffFields(a, b).empty(); }
     static String Print(const V &value) { return PrintFields(value); }
-    // Changes the saved fields: an element of a vector, an array or a map has no role but the container's row's (a
-    // member or a base with a table gets the role of AlterFields through FieldOps::Alter instead)
+    // Changes the saved fields: for a map's value, which has no role but the map's row's (a member, a base or an element
+    // of a list gets the role of AlterFields through FieldOps::Alter instead)
     static void Alter(V &value) { AlterFields(value); }
 };
 

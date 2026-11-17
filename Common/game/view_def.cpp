@@ -47,17 +47,18 @@ constexpr FieldRow<ViewFrameDef> kViewFrameDefFields[] = {
 static_assert(FieldsCoverStruct(kViewFrameDefFields), "ViewFrameDef: a field has no row in kViewFrameDefFields");
 
 // The counts and the lists' lengths are the definition's: a save holds the counts only to compare them with the
-// game's (ReadViews, HandleGameContentMismatch), and the saved fields of each frame, which the frame's rows say. AlterFields does not reach the elements of a list (util/field_table.h): a test alters the frames themselves.
+// game's (ReadViews, HandleGameContentMismatch), and the saved fields of each frame, which the frame's rows say (a
+// list's row is Saved: its elements' rows give the roles, util/field_table.h)
 constexpr FieldRow<ViewLoopDef> kViewLoopDefFields[] = {
     Field<&ViewLoopDef::FrameCount>("FrameCount", FieldRole::FromDefinition),
     Field<&ViewLoopDef::Flags>("Flags", FieldRole::FromDefinition),
-    Field<&ViewLoopDef::Frames>("Frames", FieldRole::FromDefinition),
+    Field<&ViewLoopDef::Frames>("Frames"),
 };
 static_assert(FieldsCoverStruct(kViewLoopDefFields), "ViewLoopDef: a field has no row in kViewLoopDefFields");
 
 constexpr FieldRow<ViewDef> kViewDefFields[] = {
     Field<&ViewDef::LoopCount>("LoopCount", FieldRole::FromDefinition),
-    Field<&ViewDef::Loops>("Loops", FieldRole::FromDefinition),
+    Field<&ViewDef::Loops>("Loops"),
 };
 static_assert(FieldsCoverStruct(kViewDefFields), "ViewDef: a field has no row in kViewDefFields");
 

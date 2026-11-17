@@ -18,7 +18,7 @@
 // that writes one of them during play, read back through its getter; the audio
 // clip's script handle; the save round trip of every saved field of the view
 // frames and of the inventory items, and of every field of the items, cursors,
-// view frames, dialog options and audio types by their definitions' field
+// views, dialogs and audio types by their definitions' field
 // tables (the saved ones restored, the others the definition's), and of the items' and the dialogs' play state by
 // theirs; the fix-up that engine_init_game_settings
 // makes at start (the loader's are Common's GameLoader tests); the values a
@@ -1111,9 +1111,10 @@ protected:
     }
 
     // The round trip of the live elements of one kind (elements(game) lists them, by address), by the rows of their
-    // definition's table (Def) and of their play state's (State; void if the element has none): in each element the saved fields are altered (AlterFields: what the game changed during play;
-    // keep, if given, then restores what the engine keeps true between two fields), which gives the expected element,
-    // and then the fields from the definition. The component cmp is saved, the game started again from its definition
+    // definition's table (Def) and of their play state's (State; void if the element has none): in each element the
+    // saved fields are altered (AlterFields: what the game changed during play), which gives the expected element, and
+    // then the fields from the definition; keep, if given, restores after each what the engine keeps true between two
+    // fields. The component cmp is saved, the game started again from its definition
     // (RestartGame) and the save restored. Returns the fields of the restored elements that differ from the expected
     // ones: a saved field that the save lost, or a field from the definition that the start did not give again. The
     // start gives the definition's values back (StartFromDefinitions, from InitGameState), not the restore, which
@@ -1134,6 +1135,8 @@ protected:
             EXPECT_FALSE((DiffParts<Def, State>(started, *element).empty()))
                 << "the element has no saved field to alter";
             AlterParts<Def, State>(*element, FieldRole::FromDefinition);
+            if (keep)
+                keep(*element);
             EXPECT_FALSE((DiffParts<Def, State>(expected.back(), *element).empty()))
                 << "the element has no field from the definition";
         }
@@ -1850,49 +1853,46 @@ TEST_F(GameEntities, EveryMouseCursorFieldIsRestored)
     ExpectDefinitionAsMade();
 }
 
-// The same for every frame of every loop of the framed view (ViewFrameDef's rows); the loops' and the views' own fields
-// are the definition's (the save holds their counts only to compare them with the game's)
+// The same for the framed view, by ViewDef's rows: the saved fields are its frames' (ViewFrameDef's rows); the counts,
+// the loops' flags and the rest are the definition's (the save holds the counts only to compare them with the game's).
+// The counts stay the lists' lengths, which AlterFields does not change and which the save's writer follows.
 TEST_F(GameEntities, EveryViewFrameFieldIsRestored)
 {
-    EXPECT_EQ("", RoundTripLosses<ViewFrame>(kSaveCmp_Views,
-                                             [](Game &running)
-                                             {
-                                                 std::vector<ViewFrame *> frames;
-                                                 for (ViewLoop &loop : running.Views[kFramedView].Loops)
-                                                 {
-                                                     for (int frame = 0; frame < loop.FrameCount; ++frame)
-                                                         frames.push_back(&loop.Frames[frame]);
-                                                 }
-                                                 return frames;
-                                             }));
+    EXPECT_EQ("", RoundTripLosses<View>(
+                      kSaveCmp_Views, [](Game &running) { return std::vector<View *>{&running.Views[kFramedView]}; },
+                      [](View &view)
+                      {
+                          view.LoopCount = static_cast<int>(view.Loops.size());
+                          for (ViewLoop &loop : view.Loops)
+                              loop.FrameCount = static_cast<int>(loop.Frames.size());
+                      }));
     ExpectDefinitionAsMade();
 }
 
-// The same for every option of every dialog (DialogOptionDef's rows). The save holds an option's text only while its
-// flags have DFLG_TEXTSET, which the engine sets whenever the text differs from the original (Dialog.SetOptionText):
-// the altered option gets the flag, as the engine would give it.
+// The same for every dialog, by DialogDef's rows: the saved fields are its options' (DialogOptionDef's rows). The save
+// holds an option's text only while its flags have DFLG_TEXTSET, which the engine sets whenever the text differs from
+// the original (Dialog.SetOptionText): the altered option gets the flag, as the engine would give it.
 TEST_F(GameEntities, EveryDialogOptionFieldIsRestored)
 {
-    EXPECT_EQ("", RoundTripLosses<DialogOption>(
+    EXPECT_EQ("", (RoundTripPartsLosses<Dialog, DialogDef, void>(
                       kSaveCmp_Dialogs,
                       [](Game &running)
                       {
-                          std::vector<DialogOption *> options;
+                          std::vector<Dialog *> dialogs;
                           for (Dialog &dialog : running.Dialogs)
-                          {
-                              for (DialogOption &option : dialog.Options)
-                                  options.push_back(&option);
-                          }
-                          return options;
+                              dialogs.push_back(&dialog);
+                          return dialogs;
                       },
-                      [](DialogOption &option) { option.Flags |= DFLG_TEXTSET; }));
+                      [](Dialog &dialog)
+                      {
+                          for (DialogOption &option : dialog.Options)
+                              option.Flags |= DFLG_TEXTSET;
+                      })));
     ExpectDefinitionAsMade();
 }
 
 // Every saved field of the play state of every dialog (DialogState's rows: the custom property values set during play)
-// comes back from a save into a game started again. Not through RoundTripPartsLosses: DialogDef has no saved field of its
-// own (its options' are the test above), and altering its fields from the definition would add an option, whose count
-// the save compares with the game's.
+// comes back from a save into a game started again; DialogDef's rows are the test above.
 TEST_F(GameEntities, EveryDialogStateFieldIsRestored)
 {
     Game &game = Game::Current();

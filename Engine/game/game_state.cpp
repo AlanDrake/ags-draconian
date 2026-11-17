@@ -91,7 +91,8 @@ namespace
 {
 
 // Saved: by the "Game State" component (ReadFromSavegame, WriteForSavegame) unless the row names another one.
-// Transient: set and cleared as the game runs; the row says what a restore leaves in it.
+// Transient: set and cleared as the game runs; the row says what a restore gives it today, the running game's value
+// (kept) or one of its own.
 constexpr FieldRow<GameState> kGameStateFields[] = {
     Field<&GameState::UsedMode>("UsedMode"),
     Field<&GameState::UserInterfaceDisabledCount>("UserInterfaceDisabledCount"),
@@ -152,7 +153,7 @@ constexpr FieldRow<GameState> kGameStateFields[] = {
     Field<&GameState::ShowSingleDialogOption>("ShowSingleDialogOption"),
     Field<&GameState::KeepScreenDuringInstantTransition>("KeepScreenDuringInstantTransition"),
     Field<&GameState::ReadDialogOptionColor>("ReadDialogOptionColor"),
-    // during a "dialog_request" callback only; a restore leaves it
+    // during a "dialog_request" callback only; a restore keeps the running game's value
     Field<&GameState::DialogRequestResult>("DialogRequestResult", FieldRole::Transient),
     Field<&GameState::IsSpeechCustomPortraitPlacement>("IsSpeechCustomPortraitPlacement"),
     Field<&GameState::SpeechPortraitOffsetX>("SpeechPortraitOffsetX"),
@@ -161,12 +162,12 @@ constexpr FieldRow<GameState> kGameStateFields[] = {
     Field<&GameState::DialogOptionsHighlightColor>("DialogOptionsHighlightColor"),
     Field<&GameState::RandomSeed>("RandomSeed"),
     Field<&GameState::PlayerRegionID>("PlayerRegionID"),
-    // the fades and the transitions; a restore leaves it
+    // the fades and the transitions; a restore keeps the running game's value
     Field<&GameState::IsScreenFadedOut>("IsScreenFadedOut", FieldRole::Transient),
     Field<&GameState::CheckInteractionOnly>("CheckInteractionOnly"),
     Field<&GameState::BgAnimWait>("BgAnimWait"),
     Field<&GameState::WaitCounter>("WaitCounter"),
-    // how the last blocking wait ended (SetWaitSkipResult); a restore leaves them
+    // how the last blocking wait ended (SetWaitSkipResult); a restore keeps the running game's values
     Field<&GameState::WaitSkippedBy>("WaitSkippedBy", FieldRole::Transient),
     Field<&GameState::WaitSkippedByData>("WaitSkippedByData", FieldRole::Transient),
     Field<&GameState::MouseBounds>("MouseBounds"),
@@ -184,13 +185,13 @@ constexpr FieldRow<GameState> kGameStateFields[] = {
     Field<&GameState::StandardGuiTextHeight>("StandardGuiTextHeight", FieldRole::Derived),
     Field<&GameState::WaitSkipType>("WaitSkipType"),
     Field<&GameState::SwapPortraitLastCharacter>("SwapPortraitLastCharacter"),
-    // the speech portrait's side; a restore sets it to -1 (unload_old_room)
+    // the speech portrait's side; a restore sets it to -1 (unload_old_room), not the initializer (0)
     Field<&GameState::SwapPortraitLastLastCharacter>("SwapPortraitLastLastCharacter", FieldRole::Transient),
     Field<&GameState::ConversationDepth>("ConversationDepth"),
     Field<&GameState::ScreenTint>("ScreenTint"),
     Field<&GameState::ParsedWords>("ParsedWords"),
     Field<&GameState::BadParsedWord>("BadParsedWord"),
-    // counts the rooms loaded; a restore adds one (load_new_room)
+    // counts the rooms loaded; a restore keeps the running game's value and adds one (load_new_room)
     Field<&GameState::RoomChanges>("RoomChanges", FieldRole::Transient),
     Field<&GameState::IsMouseInputEnabled>("IsMouseInputEnabled"),
     Field<&GameState::IsMouseCursorShown>("IsMouseCursorShown"),
@@ -204,7 +205,7 @@ constexpr FieldRow<GameState> kGameStateFields[] = {
     Field<&GameState::AmbientTintLight>("AmbientTintLight"),
     Field<&GameState::IsAmbientTintEnabled>("IsAmbientTintEnabled"),
     Field<&GameState::SkipUntilCharacterStops>("SkipUntilCharacterStops"),
-    // the location under the mouse (GetLocationName, the cursor's update); a restore leaves them
+    // the location under the mouse (GetLocationName, the cursor's update); a restore keeps the running game's values
     Field<&GameState::LastNamedLocation>("LastNamedLocation", FieldRole::Transient),
     Field<&GameState::LocationNameSaveCursor>("LocationNameSaveCursor", FieldRole::Transient),
     Field<&GameState::RestoreCursorModeTo>("RestoreCursorModeTo"),
@@ -243,12 +244,13 @@ constexpr FieldRow<GameState> kGameStateFields[] = {
     Field<&GameState::GuiControlProperties>("GuiControlProperties"),
     Field<&GameState::HasSpeechVoice>("HasSpeechVoice"),
     Field<&GameState::IsSpeechVoiceBlocking>("IsSpeechVoiceBlocking"),
-    // the speech's time on screen after its text or voice (update.cpp); a restore leaves it
+    // the speech's time on screen after its text or voice (update.cpp); a restore keeps the running game's value
     Field<&GameState::IsSpeechInPostState>("IsSpeechInPostState", FieldRole::Transient),
-    // counted as overlays are added and removed; a restore removes them all (to 0) and does not count the restored ones
+    // counted as overlays are added and removed; a restore removes them all, which gives the initializer (0), and does
+    // not count the restored ones
     Field<&GameState::OverlayCount>("OverlayCount", FieldRole::Transient),
     // the overlays on screen and the speech's script handles (add_screen_overlay, remove_screen_overlay); a restore
-    // removes all overlays, which sets them to 0, and the restored overlays do not set them
+    // removes all overlays, which gives them the initializer (0), and the restored overlays do not set them
     Field<&GameState::CompleteOverlayID>("CompleteOverlayID", FieldRole::Transient),
     Field<&GameState::TextOverlayID>("TextOverlayID", FieldRole::Transient),
     Field<&GameState::SpeechTextScriptHandle>("SpeechTextScriptHandle", FieldRole::Transient),
@@ -263,7 +265,8 @@ constexpr FieldRow<GameState> kGameStateFields[] = {
     Field<&GameState::ScreenShaderHandle>("ScreenShaderHandle"),
     Field<&GameState::CursorShaderID>("CursorShaderID"),
     Field<&GameState::CursorShaderHandle>("CursorShaderHandle"),
-    // a point in real time (SetIgnoreInput); a restore sets it to now (ClearIgnoreInput)
+    // a point in real time (SetIgnoreInput); a restore sets it to now (ClearIgnoreInput), not the initializer (the
+    // clock's epoch): either ends the wait
     Field<&GameState::IgnoreUserInputUntilTime>("IgnoreUserInputUntilTime", FieldRole::Transient),
     Field<&GameState::ScriptTimers>("ScriptTimers"),
 };
