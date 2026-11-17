@@ -26,6 +26,7 @@
 #include "game/inventory_item_def.h"
 #include "game/mouse_cursor_def.h"
 #include "game/view_def.h"
+#include "game/words_dictionary.h"
 #include "gtest/gtest.h"
 #include "gui/guibutton.h"
 #include "gui/guiinv.h"

@@ -20,6 +20,7 @@
 #include "game/game_context.h"
 #include "game/game_def.h"
 #include "game/game_state.h"
+#include "game/inventory_item_def.h"
 #include "game/lib/string.h"
 #include "game/render/draw.h"
 #include "game/runtime_defines.h"

@@ -35,6 +35,7 @@
 #include "game/game_state.h"
 #include "game/input/joystick.h"
 #include "game/input/touch.h"
+#include "game/inventory_item_def.h"
 #include "game/render/draw.h"
 #include "game/render/overlay.h"
 #include "game/script.h"

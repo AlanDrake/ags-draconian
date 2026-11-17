@@ -23,6 +23,7 @@
 #include "game/game_context.h"
 #include "game/game_def.h"
 #include "game/game_state.h"
+#include "game/inventory_item_def.h"
 #include "game/render/draw.h"
 #include "game/script.h"
 #include "game/system.h"

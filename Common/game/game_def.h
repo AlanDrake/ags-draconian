@@ -25,24 +25,30 @@
 #include <allegro.h> // RGB
 
 #include "game/audio_clip_def.h"
-#include "game/audio_clip_type_def.h"
 #include "game/customproperties.h"
 #include "game/game_struct_defines.h"
 #include "game/game_version.h"
-#include "game/inventory_item_def.h"
 #include "game/main_game_file.h" // TODO: constants to separate header or split out reading functions
 #include "game/mouse_cursor_def.h"
 #include "game/scripteventtable.h"
-#include "game/words_dictionary.h"
 #include "gui/guidefines.h"
 #include "gui/guimain.h"
 #include "script/cc_script.h"
 #include "util/string.h"
 
 // Complete in game_def.cpp, where GameDef's special member functions are defined
+struct AudioClipTypeDef;
 struct CharacterDef;
 struct DialogDef;
+struct InventoryItemDef;
 struct ViewDef;
+namespace AGS
+{
+namespace Common
+{
+class WordsDictionary;
+} // namespace Common
+} // namespace AGS
 
 using AGS::Common::HGameFileError;
 using AGS::Common::HError;

@@ -26,6 +26,7 @@
 #include "game/character_def.h"
 #include "game/dialog_def.h"
 #include "game/game_def.h"
+#include "game/inventory_item_def.h"
 #include "game/view_def.h"
 #include "gfx/gfx_def.h"
 #include "gfx/sprite_cache.h"

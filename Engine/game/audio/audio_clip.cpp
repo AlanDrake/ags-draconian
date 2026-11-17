@@ -16,6 +16,7 @@
 #include "data/assetmanager.h"
 #include "game/audio/audio.h"
 #include "game/audio/audio_channel.h"
+#include "game/audio_clip_type_def.h"
 #include "game/dynobj/cc_audio_clip.h"
 #include "game/game.h"
 #include "game/game_context.h"

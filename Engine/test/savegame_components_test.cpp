@@ -33,6 +33,7 @@
 #include <string>
 #include <vector>
 
+#include "game/audio_clip_type_def.h"
 #include "game/customproperties.h"
 #include "game/dialog/dialog.h"
 #include "game/dialog_def.h"
@@ -40,6 +41,7 @@
 #include "game/game_context.h"
 #include "game/game_def.h"
 #include "game/game_state.h"
+#include "game/inventory_item_def.h"
 #include "game/render/screen_overlay.h"
 #include "game/save/savegame.h"
 #include "game/save/savegame_components.h"
