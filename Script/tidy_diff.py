@@ -273,10 +273,13 @@ def plan(changed, build):
 
 def run_one(tidy, build, path, line_filter):
     # -Wno-error: a build with warnings as errors (AGS_WARNINGS_AS_ERRORS) must not turn clang's own
-    # warnings, such as an MSVC or GCC flag it does not use, into errors that stop the analysis
+    # warnings, such as an MSVC or GCC flag it does not use, into errors that stop the analysis.
+    # -fno-delayed-template-parsing: with an MSVC compile database clang parses a template's body only when it is
+    # instantiated, so a header handed over on its own had its templates skipped, and CI's GCC database found what
+    # the local run did not (a branch clone in field_table.h, 2026-11-17). A GCC database has it off already.
     cmd = [tidy, '-p', build, '--quiet', line_filter, '--checks=' + DECLARED_CHECK,
            '--extra-arg=-Wno-unknown-warning-option', '--extra-arg=-Wno-error', '--extra-arg=-fno-color-diagnostics',
-           path]
+           '--extra-arg=-fno-delayed-template-parsing', path]
     r = subprocess.run(cmd, cwd=REPO, capture_output=True, text=True, encoding='utf-8', errors='replace')
     return path, r.stdout, r.stderr, r.returncode
 

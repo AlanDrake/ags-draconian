@@ -431,13 +431,12 @@ void FieldDetail::AlterInto(T &object, FieldRole role, bool whole)
             continue;
         void *value = const_cast<void *>(row.Address(object));
         const bool has_rows = row.Ops->Diff != nullptr;
-        if (whole)
-            row.Ops->Alter(value, role, true);
-        // a value with rows of its own, as a saved row, has the roles of its own rows
-        else if (has_rows && row.Role == FieldRole::Saved)
+        // a value with rows of its own, as a saved row, has the roles of its own rows, unless the member that holds it
+        // is changed whole
+        if (!whole && has_rows && row.Role == FieldRole::Saved)
             row.Ops->Alter(value, role, false);
         // any other role covers the whole value
-        else if (row.Role == role)
+        else if (whole || row.Role == role)
             row.Ops->Alter(value, role, true);
     }
 }
