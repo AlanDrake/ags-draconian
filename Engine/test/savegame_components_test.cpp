@@ -1046,7 +1046,7 @@ TEST_F(SavegameContent, EveryGameStateFieldIsRestored)
             std::find_if(std::begin(not_restored_here), std::end(not_restored_here),
                          [&text](const auto &field) { return text.rfind(std::string(field.Name) + ":", 0) == 0; });
         if (exclusion != std::end(not_restored_here))
-            excluded.push_back(exclusion->Name);
+            excluded.emplace_back(exclusion->Name);
         else
             lost += text + "\n";
     }

@@ -343,6 +343,8 @@ struct PropertyKind
     const char *ComponentName = nullptr;
 };
 
+void AddGuiPropertyKinds(std::vector<PropertyKind> &kinds);
+
 // The kinds of game entities that have custom properties: characters, inventory items, dialogs, audio clips, GUIs and
 // the six types of GUI control
 std::vector<PropertyKind> PropertyKinds()
@@ -439,6 +441,13 @@ std::vector<PropertyKind> PropertyKinds()
         kind.Definition = [](const GameDef &def, int i) -> const StringIMap & { return def.AudioClipProperties[i]; };
         kinds.push_back(kind);
     }
+    AddGuiPropertyKinds(kinds);
+    return kinds;
+}
+
+// The GUIs and the six types of GUI control, for PropertyKinds
+void AddGuiPropertyKinds(std::vector<PropertyKind> &kinds)
+{
     {
         PropertyKind kind;
         kind.Name = "GUI";
@@ -487,7 +496,6 @@ std::vector<PropertyKind> PropertyKinds()
         kind.ComponentName = "GUI";
         kinds.push_back(kind);
     }
-    return kinds;
 }
 
 // The kinds whose values set during play a save holds: all but the audio clips

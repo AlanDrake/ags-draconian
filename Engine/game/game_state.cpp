@@ -399,8 +399,8 @@ void GameState::UpdateScriptTimers()
     }
 }
 
-void GameState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameStateSvgVersion svg_ver,
-                                 RestoredData &r_data)
+void GameState::ReadFromSavegame(Stream *in, GameDataVersion /*data_ver*/, GameStateSvgVersion svg_ver,
+                                 RestoredData & /*r_data*/)
 {
     Room &room = Room::Current();
     in->ReadInt32(); // [DEPRECATED]
