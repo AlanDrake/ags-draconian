@@ -62,7 +62,7 @@ int32_t CCScriptGame::ReadInt32(const void *address, intptr_t offset)
     case 69: return game.Play.FollowingRoomDelay;
     case 70: return 0; // [DEPRECATED]
     case 71: return game.Play.SkipDisplay;
-    case 72: return game.Play.no_multiloop_repeat;
+    case 72: return game.Play.NoMultiLoopRepeat;
     case 73: return room.ScriptFinished;
     case 74: return game.Play.InventoryActivated;
     case 75: return game.Play.NoTextBackgroundWhenVoice;
@@ -87,12 +87,12 @@ int32_t CCScriptGame::ReadInt32(const void *address, intptr_t offset)
     case 94: return 0; // [DEPRECATED]
     case 95: return game.Play.LipSyncSpeed;
     case 96: return game.Play.SpeechAnimationStopTimeMargin;
-    case 97: return game.Play.disable_antialiasing;
+    case 97: return game.Play.DisableAntialiasing;
     case 98: return game.Play.TextReadingSpeedModifier;
     case 99: return game.Play.TextAlignment;
     case 100: return game.Play.SpeechBubbleWidth;
     case 101: return game.Play.MinDialogOptionWidth;
-    case 102: return game.Play.disable_dialog_parser;
+    case 102: return game.Play.DisableDialogParser;
     case 103: return room.AnimBackgroundDelay;
     case 104: return game.Play.TopBarBackColor;
     case 105: return game.Play.TopBarTextColor;
@@ -165,7 +165,7 @@ void CCScriptGame::WriteInt32(void *address, intptr_t offset, int32_t val)
         if (services.Config.Access.TextSkipStyle == kSkipSpeechNone)
             game.Play.SkipDisplay = static_cast<SkipSpeechStyle>(val);
         break;
-    case 72: game.Play.no_multiloop_repeat = val; break;
+    case 72: game.Play.NoMultiLoopRepeat = val; break;
     case 73: room.ScriptFinished = val; break;
     case 74: game.Play.InventoryActivated = val; break;
     case 75: game.Play.NoTextBackgroundWhenVoice = val; break;
@@ -193,12 +193,12 @@ void CCScriptGame::WriteInt32(void *address, intptr_t offset, int32_t val)
     case 94: break; // [DEPRECATED]
     case 95: game.Play.LipSyncSpeed = val; break;
     case 96: game.Play.SpeechAnimationStopTimeMargin = val; break;
-    case 97: game.Play.disable_antialiasing = val; break;
+    case 97: game.Play.DisableAntialiasing = val; break;
     case 98: game.Play.TextReadingSpeedModifier = val; break;
     case 99: game.Play.TextAlignment = (HorAlignment)val; break;
     case 100: game.Play.SpeechBubbleWidth = val; break;
     case 101: game.Play.MinDialogOptionWidth = val; break;
-    case 102: game.Play.disable_dialog_parser = val; break;
+    case 102: game.Play.DisableDialogParser = val; break;
     case 103: room.AnimBackgroundDelay = val; break;
     case 104: game.Play.TopBarBackColor = val; break;
     case 105: game.Play.TopBarTextColor = val; break;

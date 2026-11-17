@@ -132,7 +132,7 @@ bool GameState::ShouldPlayVoiceSpeechNonBlocking() const
 
 bool GameState::ShouldAASprites() const
 {
-    return EngineServices::Current().Config.AntialiasSprites && (disable_antialiasing == 0);
+    return EngineServices::Current().Config.AntialiasSprites && (DisableAntialiasing == 0);
 }
 
 void GameState::StartScriptTimer(int timer_id, int timeout)
@@ -215,7 +215,7 @@ void GameState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameState
     FollowingRoomDelay = in->ReadInt32();
     in->ReadInt32(); // [DEPRECATED]
     SkipDisplay = static_cast<SkipSpeechStyle>(in->ReadInt32());
-    no_multiloop_repeat = in->ReadInt32();
+    NoMultiLoopRepeat = in->ReadInt32();
     room.ScriptFinished = in->ReadInt32();
     InventoryActivated = in->ReadInt32();
     NoTextBackgroundWhenVoice = in->ReadInt32();
@@ -240,12 +240,12 @@ void GameState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameState
     in->ReadInt32(); // [DEPRECATED]
     LipSyncSpeed = in->ReadInt32();
     SpeechAnimationStopTimeMargin = in->ReadInt32();
-    disable_antialiasing = in->ReadInt32();
+    DisableAntialiasing = in->ReadInt32();
     TextReadingSpeedModifier = in->ReadInt32();
     TextAlignment = (HorAlignment)in->ReadInt32();
     SpeechBubbleWidth = in->ReadInt32();
     MinDialogOptionWidth = in->ReadInt32();
-    disable_dialog_parser = in->ReadInt32();
+    DisableDialogParser = in->ReadInt32();
     room.AnimBackgroundDelay = in->ReadInt32(); // the setting for this room
     TopBarBackColor = in->ReadInt32();
     TopBarTextColor = in->ReadInt32();
@@ -509,7 +509,7 @@ void GameState::WriteForSavegame(Stream *out) const
     out->WriteInt32(FollowingRoomDelay);
     out->WriteInt32(0); // [DEPRECATED]
     out->WriteInt32(SkipDisplay);
-    out->WriteInt32(no_multiloop_repeat);
+    out->WriteInt32(NoMultiLoopRepeat);
     out->WriteInt32(room.ScriptFinished);
     out->WriteInt32(InventoryActivated);
     out->WriteInt32(NoTextBackgroundWhenVoice);
@@ -534,12 +534,12 @@ void GameState::WriteForSavegame(Stream *out) const
     out->WriteInt32(0); // [DEPRECATED]
     out->WriteInt32(LipSyncSpeed);
     out->WriteInt32(SpeechAnimationStopTimeMargin);
-    out->WriteInt32(disable_antialiasing);
+    out->WriteInt32(DisableAntialiasing);
     out->WriteInt32(TextReadingSpeedModifier);
     out->WriteInt32(TextAlignment);
     out->WriteInt32(SpeechBubbleWidth);
     out->WriteInt32(MinDialogOptionWidth);
-    out->WriteInt32(disable_dialog_parser);
+    out->WriteInt32(DisableDialogParser);
     out->WriteInt32(room.AnimBackgroundDelay); // the setting for this room
     out->WriteInt32(TopBarBackColor);
     out->WriteInt32(TopBarTextColor);

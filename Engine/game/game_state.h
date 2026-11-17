@@ -122,8 +122,11 @@ struct GameState
     // script: game.following_room_timer
     int FollowingRoomDelay = 0;                        // delay before moving following characters into new room
     SkipSpeechStyle SkipDisplay = kSkipSpeechKeyMouse; // how the user can skip normal Display windows
-    int no_multiloop_repeat = 0;                       // for backwards compatibility
-    int InventoryActivated = 0;                        // inv item they clicked on; script: game.inv_activated
+    // CHECKME: still needed, or backward compatibility only? Only a script can set it (no game option, no
+    // Editor setting); upstream ags4 has it too. Retiring it would make the script variable an unused slot.
+    // for backwards compatibility; script: game.no_multiloop_repeat; the engine asks ShouldRepeatMultiLoop()
+    int NoMultiLoopRepeat = 0;
+    int InventoryActivated = 0; // inv item they clicked on; script: game.inv_activated
     // script: game.no_textbg_when_voice
     int NoTextBackgroundWhenVoice = 0; // no textwindow bgrnd when voice speech is used
     int MaxDialogOptionWidth = 0;      // max width of dialog options text window; script: game.max_dialogoption_width
@@ -147,17 +150,17 @@ struct GameState
     // The speech animation closes the mouth once MessageTimeLeft falls below this
     // (this is designed to work in text-only mode); 0 animates until the end; script: Speech.AnimationStopTimeMargin
     int SpeechAnimationStopTimeMargin = 0;
-    int disable_antialiasing = 0;
+    int DisableAntialiasing = 0;              // script: game.disable_antialiasing; the engine asks ShouldAASprites()
     int TextReadingSpeedModifier = 0;         // script: game.text_speed_modifier
     HorAlignment TextAlignment = kHAlignNone; // script: game.text_align
     int SpeechBubbleWidth = 0;
     int MinDialogOptionWidth = 0; // script: game.min_dialogoption_width
-    int disable_dialog_parser = 0;
-    int TopBarBackColor = 0;   // script: game.top_bar_backcolor
-    int TopBarTextColor = 0;   // script: game.top_bar_textcolor
-    int TopBarBorderColor = 0; // script: game.top_bar_bordercolor
-    int TopBarBorderWidth = 0; // script: game.top_bar_borderwidth
-    int TopBarY = 0;           // script: game.top_bar_ypos
+    int DisableDialogParser = 0;  // script: game.disable_dialog_parser; the engine asks IsDialogParserEnabled()
+    int TopBarBackColor = 0;      // script: game.top_bar_backcolor
+    int TopBarTextColor = 0;      // script: game.top_bar_textcolor
+    int TopBarBorderColor = 0;    // script: game.top_bar_bordercolor
+    int TopBarBorderWidth = 0;    // script: game.top_bar_borderwidth
+    int TopBarY = 0;              // script: game.top_bar_ypos
     int ScreenshotWidth = 0;
     int ScreenshotHeight = 0;
     int TopBarFont = 0;
@@ -326,6 +329,11 @@ struct GameState
     // Tells if engine should apply AA (linear) scaling to the game sprites: the config allows it and the game
     // has not disabled it
     bool ShouldAASprites() const;
+    // Tells if the parser of a dialog that shows one is on: the script has not switched it off
+    bool IsDialogParserEnabled() const { return DisableDialogParser == 0; }
+    // Tells if a repeated animation continues from the first loop of a multi-loop sequence: the script has not
+    // switched it off
+    bool ShouldRepeatMultiLoop() const { return NoMultiLoopRepeat == 0; }
 
     // Tells if the mouse cursor should be drawn on screen
     bool ShouldDrawMouseCursor() const { return IsMouseInputEnabled && IsMouseCursorShown; }

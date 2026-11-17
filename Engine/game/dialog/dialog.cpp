@@ -1003,7 +1003,7 @@ void DialogOptionsState::Begin()
     set_cursor_look(game.GetModePointer());
 
     parserActivated = 0;
-    if ((_dtop->Flags & DTFLG_SHOWPARSER) && (game.Play.disable_dialog_parser == 0))
+    if ((_dtop->Flags & DTFLG_SHOWPARSER) && game.Play.IsDialogParserEnabled())
     {
         parserInput.reset(new GUITextBox());
         parserInput->SetHeight(lineheight + 4);
@@ -1734,7 +1734,7 @@ int show_dialog_options(int dialog_id, bool run_game_loops_in_background)
         return -1;
     }
     // Don't display the options if there is only one and the parser is not enabled.
-    const bool has_parser = (topic->Flags & DTFLG_SHOWPARSER) && (game.Play.disable_dialog_parser == 0);
+    const bool has_parser = (topic->Flags & DTFLG_SHOWPARSER) && game.Play.IsDialogParserEnabled();
     if (!has_parser && (opt_count == 1) && !game.Play.ShowSingleDialogOption)
     {
         return last_opt; // only one choice, so select it

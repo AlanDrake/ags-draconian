@@ -760,7 +760,7 @@ void engine_init_game_settings()
     game.Play.ClearIgnoreInput();
     game.Play.LipSyncSpeed = 15;
     game.Play.SpeechAnimationStopTimeMargin = 10;
-    game.Play.disable_antialiasing = 0;
+    game.Play.DisableAntialiasing = 0;
     game.Play.IsAmbientTintEnabled = false;
     game.Play.AmbientTintLevel = 0;
     game.Play.AmbientTintLight = 0;
@@ -812,7 +812,7 @@ void engine_init_game_settings()
     game.Play.SwapPortraitLastLastCharacter = -1;
     game.Play.ConversationDepth = 0;
     game.Play.SkipDisplay = kSkipSpeechKeyMouse;
-    game.Play.no_multiloop_repeat = 0;
+    game.Play.NoMultiLoopRepeat = 0;
     game.Play.RunningCutsceneSkipStyle = 0;
     game.Play.FastForward = 0;
     room.ScriptFinished = 0;
@@ -830,7 +830,7 @@ void engine_init_game_settings()
     game.Play.DialogOptionsPaddingY = 0; // no Y padding by default
     game.Play.DialogOptionsFont = FONT_UNDEFINED;
     game.Play.MinDialogOptionWidth = 0;
-    game.Play.disable_dialog_parser = 0;
+    game.Play.DisableDialogParser = 0;
     game.Play.IsScreenFadedOut = false;
     game.Play.PlayerRegionID = 0;
     game.Play.TopBarBackColor = GUI::GetStandardColor(8);

@@ -209,9 +209,9 @@ protected:
         {
             const GameState &play = Game::Current().Play;
             PlayFlags flags;
-            flags.NoMultiLoopRepeat = play.no_multiloop_repeat;
-            flags.DisableAntialiasing = play.disable_antialiasing;
-            flags.DisableDialogParser = play.disable_dialog_parser;
+            flags.NoMultiLoopRepeat = play.NoMultiLoopRepeat;
+            flags.DisableAntialiasing = play.DisableAntialiasing;
+            flags.DisableDialogParser = play.DisableDialogParser;
             flags.MouseInputEnabled = play.IsMouseInputEnabled;
             flags.MouseCursorShown = play.IsMouseCursorShown;
             flags.SpeechHasVoice = play.HasSpeechVoice;
@@ -223,9 +223,9 @@ protected:
         void Set() const
         {
             GameState &play = Game::Current().Play;
-            play.no_multiloop_repeat = NoMultiLoopRepeat;
-            play.disable_antialiasing = DisableAntialiasing;
-            play.disable_dialog_parser = DisableDialogParser;
+            play.NoMultiLoopRepeat = NoMultiLoopRepeat;
+            play.DisableAntialiasing = DisableAntialiasing;
+            play.DisableDialogParser = DisableDialogParser;
             play.IsMouseInputEnabled = MouseInputEnabled;
             play.IsMouseCursorShown = MouseCursorShown;
             play.HasSpeechVoice = SpeechHasVoice;

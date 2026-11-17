@@ -130,9 +130,9 @@ const int kTimerTicks = 40;
 void SetPlayState()
 {
     Game &game = Game::Current();
-    game.Play.no_multiloop_repeat = 1;
-    game.Play.disable_antialiasing = 1;
-    game.Play.disable_dialog_parser = 1;
+    game.Play.NoMultiLoopRepeat = 1;
+    game.Play.DisableAntialiasing = 1;
+    game.Play.DisableDialogParser = 1;
     game.Play.IsMouseInputEnabled = false;
     game.Play.IsMouseCursorShown = false;
     game.Play.AlwaysWaitForSpeechText = true;
@@ -161,9 +161,9 @@ void SetPlayState()
 void ClearPlayState()
 {
     Game &game = Game::Current();
-    game.Play.no_multiloop_repeat = 0;
-    game.Play.disable_antialiasing = 0;
-    game.Play.disable_dialog_parser = 0;
+    game.Play.NoMultiLoopRepeat = 0;
+    game.Play.DisableAntialiasing = 0;
+    game.Play.DisableDialogParser = 0;
     game.Play.IsMouseInputEnabled = true;
     game.Play.IsMouseCursorShown = true;
     game.Play.AlwaysWaitForSpeechText = false;
@@ -191,9 +191,9 @@ void ClearPlayState()
 void ExpectPlayState()
 {
     Game &game = Game::Current();
-    EXPECT_EQ(1, game.Play.no_multiloop_repeat);
-    EXPECT_EQ(1, game.Play.disable_antialiasing);
-    EXPECT_EQ(1, game.Play.disable_dialog_parser);
+    EXPECT_EQ(1, game.Play.NoMultiLoopRepeat);
+    EXPECT_EQ(1, game.Play.DisableAntialiasing);
+    EXPECT_EQ(1, game.Play.DisableDialogParser);
     EXPECT_FALSE(game.Play.IsMouseInputEnabled);
     EXPECT_FALSE(game.Play.IsMouseCursorShown);
     EXPECT_TRUE(game.Play.AlwaysWaitForSpeechText);

@@ -2352,6 +2352,7 @@ TEST_F(GameEntities, DisableDialogParserLetsASingleOptionBeChosenAtOnce)
     for (const int value : {1, 5, -1})
     {
         GameStaticManager.WriteInt32(&game.Play, kDisableDialogParserOffset, value);
+        EXPECT_EQ(value == 0, game.Play.IsDialogParserEnabled()) << "value " << value;
         EXPECT_EQ(0, show_dialog_options(0, false)) << "value " << value;
     }
     for (const int value : {0, 1})
@@ -2372,6 +2373,7 @@ TEST_F(GameEntities, NoMultiLoopRepeatKeepsTheRepeatInItsLoop)
     {
         SCOPED_TRACE(testing::Message() << "value " << value);
         GameStaticManager.WriteInt32(&game.Play, kNoMultiLoopRepeatOffset, value);
+        EXPECT_EQ(value == 0, game.Play.ShouldRepeatMultiLoop());
         uint16_t loop = 1;
         uint16_t frame = kFrameCount - 1;
         AnimFlowParams anim(kAnimFlow_Repeat, kAnimDirForward);

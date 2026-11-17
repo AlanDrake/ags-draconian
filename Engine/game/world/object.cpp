@@ -1931,7 +1931,7 @@ bool CycleViewAnim(Game &game, int view, uint16_t &o_loop, uint16_t &o_frame, An
     const bool forward = anim_params.IsForward();
     const AnimFlowStyle flow = anim_params.Flow;
     // Allow multi-loop repeat depending on a game option
-    const bool multi_loop_repeat = (game.Play.no_multiloop_repeat == 0);
+    const bool multi_loop_repeat = game.Play.ShouldRepeatMultiLoop();
 
     bool is_done = false;
     // Test next frame (fw or bw), if we see that it is past the frame range,
