@@ -14,18 +14,16 @@
 #pragma once
 
 #include <array>
+#include <cstdint>
 #include <memory>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
-#include "game/dialog/speech.h"
-#include "game/game_struct_defines.h"
 #include "game/runtime_defines.h"
-#include "game/world/move_list.h"
-#include "gfx/graphicsdriver.h"
 #include "gui/guidefines.h"
 #include "media/audio/queuedaudioitem.h"
+#include "platform/base/engine_defines.h"
 #include "util/geometry.h"
 #include "util/keycode.h"
 #include "util/string.h"
@@ -84,32 +82,6 @@ struct SceneLocationRef
     {
         return LocationType != ref.LocationType || ObjectIndex != ref.ObjectIndex;
     }
-};
-
-
-// A GameLoopState is a parent class for the game states.
-class GameLoopState
-{
-public:
-    using String = AGS::Common::String;
-
-    virtual ~GameLoopState() = default;
-
-    // Begin the state, initialize and prepare any resources
-    virtual void Begin() = 0;
-    // End the state, does final actions, releases all resources
-    virtual void End() = 0;
-    // Draw the state
-    virtual void Draw() = 0;
-    // Update the state during a game tick;
-    // returns whether should continue to run state loop, or stop
-    virtual bool Run() = 0;
-
-    // Pause the state, makes sure that all related timers, threads etc
-    // are also paused, avoiding any unexpected updates
-    virtual void Pause() { /* do nothing */ };
-    // Resume the state after pausing
-    virtual void Resume() { /* do nothing */ };
 };
 
 

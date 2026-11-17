@@ -1004,6 +1004,9 @@
     <ClInclude Include="..\..\Engine\game\input\joystick.h">
       <Filter>Header Files\game\input</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Engine\game\game_loop_state.h">
+      <Filter>Header Files\game</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\Engine\game\game_state.h">
       <Filter>Header Files\game</Filter>
     </ClInclude>

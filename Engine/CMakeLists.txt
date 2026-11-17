@@ -136,6 +136,7 @@ target_sources(engine
     game/game_context.h
     game/game_init.cpp
     game/game_init.h
+    game/game_loop_state.h
     game/game_state.cpp
     game/game_state.h
     game/input/joystick.cpp

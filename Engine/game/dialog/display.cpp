@@ -26,6 +26,7 @@
 #include "game/game.h"
 #include "game/game_context.h"
 #include "game/game_def.h"
+#include "game/game_loop_state.h"
 #include "game/game_state.h"
 #include "game/input/joystick.h"
 #include "game/input/touch.h"

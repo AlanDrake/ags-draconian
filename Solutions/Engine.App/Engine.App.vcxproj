@@ -682,6 +682,7 @@
     <ClInclude Include="..\..\Engine\game\game.h" />
     <ClInclude Include="..\..\Engine\game\game_context.h" />
     <ClInclude Include="..\..\Engine\game\game_init.h" />
+    <ClInclude Include="..\..\Engine\game\game_loop_state.h" />
     <ClInclude Include="..\..\Engine\game\game_state.h" />
     <ClInclude Include="..\..\Engine\game\input\joystick.h" />
     <ClInclude Include="..\..\Engine\game\input\keyboard.h" />

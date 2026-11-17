@@ -20,6 +20,7 @@
 #include <memory>
 
 #include "game/game_state.h"
+#include "game/game_struct_defines.h"
 
 namespace AGS
 {
