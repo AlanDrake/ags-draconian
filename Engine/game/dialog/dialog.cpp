@@ -84,7 +84,7 @@ std::unique_ptr<DialogOptionsState> dialogOpts; // current running dialog option
 
 void RunDialogOption(int dialog_id, int option)
 {
-    if ((dialog_id < 0) || (dialog_id >= Game::Current().DialogCount))
+    if ((dialog_id < 0) || (dialog_id >= Game::Current().Def().DialogCount))
         quit("!Dialog.Start: invalid topic number specified");
 
     can_run_delayed_command();
@@ -124,7 +124,7 @@ void StopDialog()
 void SetDialogOption(int dialog_id, int option, int state, bool dlg_script = false)
 {
     Game &game = Game::Current();
-    if ((dialog_id < 0) || (dialog_id >= game.DialogCount))
+    if ((dialog_id < 0) || (dialog_id >= game.Def().DialogCount))
         quit("!SetDialogOption: Invalid topic number specified");
     if ((option < 1) || (option > game.Dialogs[dialog_id].GetOptionCount()))
     {
@@ -151,7 +151,7 @@ void SetDialogOption(int dialog_id, int option, int state, bool dlg_script = fal
 int GetDialogOption(int dialog_id, int option)
 {
     Game &game = Game::Current();
-    if ((dialog_id < 0) || (dialog_id >= game.DialogCount))
+    if ((dialog_id < 0) || (dialog_id >= game.Def().DialogCount))
         quit("!GetDialogOption: Invalid topic number specified");
     if ((option < 1) || (option > game.Dialogs[dialog_id].GetOptionCount()))
         quit("!GetDialogOption: Invalid option number specified");
@@ -386,7 +386,7 @@ ScriptGUI *DialogOptions_GetTemplateGUI()
 {
     Game &game = Game::Current();
     // NOTE: historically 0 meant "no gui", so gui id 0 cannot be used here
-    if (game.Options[OPT_DIALOGIFACE] <= 0 || game.Options[OPT_DIALOGIFACE] >= game.GuiCount)
+    if (game.Options[OPT_DIALOGIFACE] <= 0 || game.Options[OPT_DIALOGIFACE] >= game.Def().GuiCount)
         return nullptr;
     return &game.ScGuis[game.Options[OPT_DIALOGIFACE]];
 }
@@ -465,14 +465,14 @@ void DialogOptions_SetMinGUIWidth(int width)
 int Dialog_GetProperty(ScriptDialog *script_dialog, const char *property)
 {
     Game &game = Game::Current();
-    return get_int_property(game.DialogProperties[script_dialog->id], game.Dialogs[script_dialog->id].PropertyOverrides,
-                            property);
+    return get_int_property(game.Def().DialogProperties[script_dialog->id],
+                            game.Dialogs[script_dialog->id].PropertyOverrides, property);
 }
 
 const char *Dialog_GetTextProperty(ScriptDialog *script_dialog, const char *property)
 {
     Game &game = Game::Current();
-    return get_text_property_dynamic_string(game.DialogProperties[script_dialog->id],
+    return get_text_property_dynamic_string(game.Def().DialogProperties[script_dialog->id],
                                             game.Dialogs[script_dialog->id].PropertyOverrides, property);
 }
 
@@ -563,7 +563,7 @@ int run_dialog_script(int dialog_id, int /*entry_point*/, int option_index)
         EnableInterface();
         // if we're not about to abort the dialog, switch back to arrow
         if (result != RUN_DIALOG_STOP_DIALOG)
-            set_cursor_look(game.GetModePointer());
+            set_cursor_look(game.Def().GetModePointer());
     }
 
     return result;
@@ -912,7 +912,7 @@ void DialogOptionsState::CreateOverlay()
 {
     Game &game = Game::Current();
     std::unique_ptr<Bitmap> opt_bitmap(
-        new Bitmap(std::max(1, position.GetWidth()), std::max(1, position.GetHeight()), game.GetColorDepth()));
+        new Bitmap(std::max(1, position.GetWidth()), std::max(1, position.GetHeight()), game.Def().GetColorDepth()));
     options_overlay_id =
         add_screen_overlay(false /* screen */, position.Left, position.Top, OVER_CUSTOM, std::move(opt_bitmap));
     auto *overlay = get_overlay(options_overlay_id);
@@ -1000,7 +1000,7 @@ void DialogOptionsState::Begin()
     }
 
     game.Play.ConversationDepth++;
-    set_cursor_look(game.GetModePointer());
+    set_cursor_look(game.Def().GetModePointer());
 
     parserActivated = 0;
     if ((_dtop->Flags & DTFLG_SHOWPARSER) && game.Play.IsDialogParserEnabled())
@@ -1707,7 +1707,7 @@ int run_dialog_option(int dialog_id, int dialog_choice, int say_chosen_option, b
 int show_dialog_options(int dialog_id, bool run_game_loops_in_background)
 {
     Game &game = Game::Current();
-    if ((dialog_id < 0) || (dialog_id >= game.DialogCount))
+    if ((dialog_id < 0) || (dialog_id >= game.Def().DialogCount))
     {
         quit("!RunDialog: invalid dialog number specified");
     }
@@ -1843,6 +1843,7 @@ int DialogExec::HandleDialogResult(int result)
 void DialogExec::Run()
 {
     Game &game = Game::Current();
+    const GameDef &game_def = game.Def();
     _doStop = false;
 
     // Run option index counts index 0 as a starting entry, actual options begin with index 1
@@ -1852,7 +1853,7 @@ void DialogExec::Run()
 
     while (_dlgNum >= 0)
     {
-        if (_dlgNum < 0 || _dlgNum >= game.DialogCount)
+        if (_dlgNum < 0 || _dlgNum >= game_def.DialogCount)
             quitprintf("!RunDialog: invalid dialog number specified: %d", _dlgNum);
 
         // current dialog object
@@ -1894,7 +1895,7 @@ void DialogExec::Run()
                 DisableInterface();
                 UpdateGameOnce(); // redraw the screen to make sure it looks right
                 EnableInterface();
-                set_cursor_look(game.GetModePointer());
+                set_cursor_look(game_def.GetModePointer());
             }
         }
         else if (run_option >= 0)

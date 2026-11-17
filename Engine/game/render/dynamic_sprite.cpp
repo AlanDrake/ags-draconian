@@ -43,14 +43,15 @@ using namespace AGS::Engine;
 int ValidateColorFormat(const char *api_name, ScriptColorFormat color_format)
 {
     Game &game = Game::Current();
+    const GameDef &game_def = game.Def();
     switch (color_format)
     {
     case kScColorFmt_8bit: return color_format;
-    case kScColorFmt_Default: return game.GetColorDepth();
+    case kScColorFmt_Default: return game_def.GetColorDepth();
     default:
         debug_script_log("%s: unsupported color depth %d, will fallback to game default %d", api_name, color_format,
-                         game.GetColorDepth());
-        return game.GetColorDepth();
+                         game_def.GetColorDepth());
+        return game_def.GetColorDepth();
     }
 }
 

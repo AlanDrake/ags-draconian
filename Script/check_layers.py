@@ -32,7 +32,11 @@ EngineServices (platform/base/engine_services.h), one of a play-through a member
 one of the loaded room a member of Room (game/world/room_context.h); a cache private to a module is a `static`
 of its .cpp, reached through the module's functions. The check also fails on an entry of EXTERN_ALLOWED that no
 header declares any more, so the table only gets shorter. Function declarations and `extern "C"` do not count.
-`--self-test` runs the declaration parser and both failures on made-up headers.
+
+A few calls are kept to the files that own them (CALL_RULES, with the reason and the files that may): the game's
+definition is written through Game::DefForLoader() by the loader and unload_game only, the rest of the engine reads
+it through Game::Def(). A call outside its files fails the check.
+`--self-test` runs the declaration parser, both extern failures on made-up headers and the call rule on made-up lines.
 
 The tree does not satisfy the rules yet. The includes that break them today are listed in
 Script/check_layers_baseline.txt, one "includer<TAB>included" per line. The check fails on a violation that is
@@ -147,6 +151,15 @@ EXTERN_ALLOWED = {
                       'which EngineServices (host ring) cannot hold since its .cpp cannot see the complete type'),
 }
 
+# A call that only some files of the engine may make: the text of the call -> (why, the files or directories that
+# may). A line comment does not count.
+CALL_RULES = {
+    'DefForLoader(': ('the game\'s definition is written by the code that loads and unloads the game file only; the '
+                      'rest of the engine reads it through Game::Def(), which is const',
+                      ('Engine/main/game_file.cpp', 'Engine/game/game.cpp', 'Engine/game/game_context.h',
+                       'Engine/test/')),
+}
+
 
 def ring_of(path):
     best = None
@@ -212,6 +225,18 @@ def check_header_externs(declared, allowed):
     return unlisted, stale
 
 
+def forbidden_calls(path, lines, rules):
+    """The calls of CALL_RULES that the file at path may not make, as (path, line number, call)."""
+    found = []
+    for call, (_, allowed) in rules.items():
+        if path.startswith(allowed):
+            continue
+        for number, line in enumerate(lines, 1):
+            if call in line.split('//')[0]:
+                found.append((path, number, call))
+    return found
+
+
 def self_test():
     header = ['#pragma once\n',
               'extern "C" void c_function();\n',
@@ -238,6 +263,13 @@ def self_test():
     # an entry that nothing declares any more fails
     allowed['gone'] = 'reason'
     assert check_header_externs(declared[:-1], allowed) == ([], ['gone'])
+    # a call of a restricted function: allowed in its files, a failure elsewhere, not counted in a line comment
+    source = ['GameDef &def = game.DefForLoader();\n', '// DefForLoader() is for the loader\n',
+              'x = 1; // not DefForLoader(\n']
+    assert forbidden_calls('Engine/main/game_file.cpp', source, CALL_RULES) == []
+    assert forbidden_calls('Engine/test/game_test.cpp', source, CALL_RULES) == []
+    assert forbidden_calls('Engine/game/world/room.cpp', source, CALL_RULES) == [
+        ('Engine/game/world/room.cpp', 1, 'DefForLoader(')]
     print('check_layers: self-test passed')
     return 0
 
@@ -245,13 +277,15 @@ def self_test():
 def violations(repo):
     """Returns ({(includer, included): reason}, number of includes looked at, the extern declarations in the
     engine's source files as (path, line number, text), the variables declared extern in the engine's headers
-    as (path, line number, name))."""
+    as (path, line number, name), the calls of CALL_RULES made where they may not be as (path, line number,
+    call))."""
     files = tracked_sources(repo)
     known = set(files)
     roots = {'Engine': ('Engine/', 'Common/'), 'Common': ('Common/',)}
     found = {}
     externs = []
     header_externs = []
+    calls = []
     count = 0
     for path in files:
         ring = ring_of(path)
@@ -262,6 +296,8 @@ def violations(repo):
             lines = fh.readlines()
             if path.startswith('Engine/') and path.endswith(('.h', '.inl')):
                 header_externs += [(path, n, name) for n, name in extern_variables(lines)]
+            if path.startswith('Engine/'):
+                calls += forbidden_calls(path, lines, CALL_RULES)
             for number, line in enumerate(lines, 1):
                 if is_engine_source and EXTERN.match(line):
                     externs.append((path, number, line.strip()))
@@ -281,7 +317,7 @@ def violations(repo):
                 rule = HEADER_RULES.get(target)
                 if rule and ring != 'test' and not path.startswith(rule):
                     found[(path, target)] = 'only %s may include it' % ' and '.join(rule)
-    return found, count, externs, header_externs
+    return found, count, externs, header_externs, calls
 
 
 def read_baseline():
@@ -320,7 +356,7 @@ def main():
     if args.self_test:
         return self_test()
 
-    found, count, externs, header_externs = violations(os.path.abspath(args.repo))
+    found, count, externs, header_externs, calls = violations(os.path.abspath(args.repo))
     unlisted, stale = check_header_externs(header_externs, EXTERN_ALLOWED)
     if args.list:
         print_grouped(found)
@@ -351,12 +387,15 @@ def main():
               'static of its module (see the top of Script/check_layers.py).')
     for name in stale:
         print('no header declares %s any more: remove it from EXTERN_ALLOWED in Script/check_layers.py' % name)
+    for path, number, call in calls:
+        print('%s:%d: %s is called outside %s: %s' % (path, number, call, ', '.join(CALL_RULES[call][1]),
+                                                      CALL_RULES[call][0]))
     print('check_layers: %d includes, %d known violations in the baseline, %d new, %d fixed and still listed, '
           '%d extern declarations in source files, %d extern variables in headers (%d not allowed, %d allowed '
-          'and gone)'
+          'and gone), %d restricted calls out of place'
           % (count, len(baseline & set(found)), len(new), len(fixed), len(externs), len(header_externs),
-             len(unlisted), len(stale)))
-    return 1 if new or fixed or externs or unlisted or stale else 0
+             len(unlisted), len(stale), len(calls)))
+    return 1 if new or fixed or externs or unlisted or stale or calls else 0
 
 
 if __name__ == '__main__':

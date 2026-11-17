@@ -32,8 +32,9 @@ using namespace AGS::Common;
 bool get_property_desc(PropertyDesc &desc, const char *property, PropertyType want_type)
 {
     Game &game = Game::Current();
-    PropertySchema::const_iterator sch_it = game.CustomPropertySchema.find(property);
-    if (sch_it == game.CustomPropertySchema.end())
+    const GameDef &game_def = game.Def();
+    PropertySchema::const_iterator sch_it = game_def.CustomPropertySchema.find(property);
+    if (sch_it == game_def.CustomPropertySchema.end())
         quitprintf("!Did not find property '%s' in the schema. Make sure you are using the property's name, and not "
                    "its description, when calling this command.",
                    property);

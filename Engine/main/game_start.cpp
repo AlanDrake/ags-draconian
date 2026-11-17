@@ -67,7 +67,7 @@ void start_game()
     Game &game = Game::Current();
     set_room_placeholder();
     set_cursor_mode_with_role(kCursorRole_Walk);
-    const auto &screen_sz = game.GetGameRes();
+    const auto &screen_sz = game.Def().GetGameRes();
     Mouse::SetPosition(Point(screen_sz.Width / 2, screen_sz.Height / 2));
 
     set_our_eip(-42);

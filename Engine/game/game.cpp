@@ -104,15 +104,17 @@ using namespace AGS::Engine;
 //=============================================================================
 namespace
 {
-// The engine's own instance
-Game engineGame;
+// The engine's own definition, which the loader fills (load_game_file), and the instance played from it: defined
+// in this order, the definition is constructed first and destroyed last
+GameDef engineGameDef;
+Game engineGame(engineGameDef);
 } // namespace
 
 // The address of a static object is a constant initializer: Current() is valid before any dynamic
 // initialization, as the globals game and play that the instance replaces were
 Game *Game::_current = &engineGame;
 
-Game::Game() : _scripts(std::make_unique<ScriptState>()), Scripts(*_scripts) {}
+Game::Game(GameDef &def) : _def(&def), _scripts(std::make_unique<ScriptState>()), Scripts(*_scripts) {}
 
 Game::~Game() = default;
 
@@ -318,7 +320,7 @@ void Game_SetAudioTypeVolume(int audio_type, int volume, int change_type)
 
 int Game_GetDialogCount()
 {
-    return Game::Current().DialogCount;
+    return Game::Current().Def().DialogCount;
 }
 
 void set_debug_mode(bool on)
@@ -345,7 +347,7 @@ void setup_for_dialog(int use_font)
     game.BuiltinDialogs.ButtonFont = use_font;
     game.BuiltinDialogs.Font = use_font;
     oldmouse = game.Cursor.Look;
-    set_cursor_look(game.GetModePointer());
+    set_cursor_look(game.Def().GetModePointer());
 }
 void restore_after_dialog()
 {
@@ -606,7 +608,7 @@ void unload_game()
 
     game.Dialogs.clear();
     game.ScDialogs.clear();
-    // the live options and values as a game without a definition has them, as the base's reset below gives them
+    // the live options and values as a game without a definition has them, as the definition's reset below gives them
     std::fill(std::begin(game.Options), std::end(game.Options), 0);
     game.PlayerCharacterID = -1;
     game.DialogBulletSprite = 0;
@@ -631,20 +633,19 @@ void unload_game()
     dispose_room_pathfinder();
 
     // Free game state and game struct.
-    // Only the definition part (the GameDef base) is reset by assignment here: the members that Game will gain
-    // in place of the other globals are cleared one by one above, as the globals were, and the whole object
-    // cannot be assigned (Game is not copyable).
+    // The definition is reset by assignment here; the Game's own members are cleared one by one above and below,
+    // since the whole object cannot be assigned (Game is not copyable).
     game.Play = GameState();
     // the viewports and cameras were members of the game state and were reset with it; their script objects were
     // unregistered above (ccUnregisterAllObjects)
     game.Viewports = GameViewports();
     // the room's members that were fields of the game state were reset with it
     Room::Current().ResetPlayState();
-    // the live sprite table is cleared with the base's here, not with the other live lists above: the overlays and
-    // the drawing data freed above free their dynamic sprites, which reads it. The sprite cache stays attached to it
-    // (the vector object lives as long as the Game); the cache's own data is reset below.
+    // the live sprite table is cleared with the definition's here, not with the other live lists above: the overlays
+    // and the drawing data freed above free their dynamic sprites, which reads it. The sprite cache stays attached to
+    // it (the vector object lives as long as the Game); the cache's own data is reset below.
     game.SpriteInfos.clear();
-    static_cast<GameDef &>(game) = GameDef();
+    game.DefForLoader() = GameDef();
 
     // Reset all resource caches
     // IMPORTANT: this is hard reset, including locked items
@@ -703,7 +704,7 @@ void Game_SetInventoryCursorHotspotCrossColor(int color)
 
 int Game_GetInventoryItemCount()
 {
-    return Game::Current().InventoryItemCount;
+    return Game::Current().Def().InventoryItemCount;
 }
 
 bool Game_GetIsPaused()
@@ -713,27 +714,27 @@ bool Game_GetIsPaused()
 
 int Game_GetFontCount()
 {
-    return Game::Current().FontCount;
+    return Game::Current().Def().FontCount;
 }
 
 int Game_GetMouseCursorCount()
 {
-    return Game::Current().MouseCursorCount;
+    return Game::Current().Def().MouseCursorCount;
 }
 
 int Game_GetCharacterCount()
 {
-    return Game::Current().CharacterCount;
+    return Game::Current().Def().CharacterCount;
 }
 
 int Game_GetGUICount()
 {
-    return Game::Current().GuiCount;
+    return Game::Current().Def().GuiCount;
 }
 
 int Game_GetViewCount()
 {
-    return Game::Current().ViewCount;
+    return Game::Current().Def().ViewCount;
 }
 
 bool Game_GetUseActiveInventoryGraphicForCursor()
@@ -781,7 +782,8 @@ int Game_GetSpriteDepth(int sprite_num)
         return 0;
 
     // If a sprite's color depth information is missing, then assume it is eq to a game's color depth
-    return game.SpriteInfos[sprite_num].ColorDepth > 0 ? game.SpriteInfos[sprite_num].ColorDepth : game.GetColorDepth();
+    return game.SpriteInfos[sprite_num].ColorDepth > 0 ? game.SpriteInfos[sprite_num].ColorDepth
+                                                       : game.Def().GetColorDepth();
 }
 
 bool Game_GetIsSpriteDynamic(int sprite_num)
@@ -873,10 +875,11 @@ GraphicFlip ValidateFlip(const char *api_name, int flip)
 void AssertView(const char *api_name, const char *obj_name, int view)
 {
     Game &game = Game::Current();
+    const GameDef &game_def = game.Def();
     // NOTE: we assume (here and below) that the view is already in an internal 0-based range.
     // but when printing an error we will use (view + 1) for compliance with the script API.
-    if ((view < 0) || (view >= game.ViewCount))
-        quitprintf("!%s (%s): invalid view %d (range is 1..%d)", api_name, obj_name, view + 1, game.ViewCount);
+    if ((view < 0) || (view >= game_def.ViewCount))
+        quitprintf("!%s (%s): invalid view %d (range is 1..%d)", api_name, obj_name, view + 1, game_def.ViewCount);
 }
 
 void AssertViewHasLoops(const char *api_name, const char *obj_name, int view)
@@ -1042,7 +1045,7 @@ int Game_GetColorFromRGBA(int red, int green, int blue, int alpha)
         alpha = Math::Clamp(alpha, 0, 255);
     }
 
-    if (Game::Current().BytesPerPixel == 1)
+    if (Game::Current().Def().BytesPerPixel == 1)
     {
         return makecol8(red, green, blue);
     }
@@ -1112,6 +1115,7 @@ int Game_ChangeTranslation(const char *new_filename)
 {
     EngineServices &services = EngineServices::Current();
     Game &game = Game::Current();
+    const GameDef &game_def = game.Def();
     if ((new_filename == nullptr) || (new_filename[0] == 0))
     { // switch back to default translation
         close_translation();
@@ -1124,8 +1128,8 @@ int Game_ChangeTranslation(const char *new_filename)
     if (!init_translation(new_filename, old_translation_name))
         return 0; // failed, kept previous translation
 
-    if (game.GameInfo.count("dev_error_text") > 0)
-        game.Play.SetGameErrorText(get_translation(game.GameInfo.at("dev_error_text").GetCStr()));
+    if (game_def.GameInfo.count("dev_error_text") > 0)
+        game.Play.SetGameErrorText(get_translation(game_def.GameInfo.at("dev_error_text").GetCStr()));
     services.Config.Translation = new_filename;
     GUIE::MarkForTranslationUpdate();
     return 1;
@@ -1309,22 +1313,24 @@ void Game_SetFaceDirectionRatio(float ratio)
 
 int Game_GetRoomCount()
 {
-    return Game::Current().RoomNumbers.size();
+    return Game::Current().Def().RoomNumbers.size();
 }
 
 int Game_GetRoomNumber(int index)
 {
     Game &game = Game::Current();
-    if (index < 0 || static_cast<uint32_t>(index) >= game.RoomNumbers.size())
+    const GameDef &game_def = game.Def();
+    if (index < 0 || static_cast<uint32_t>(index) >= game_def.RoomNumbers.size())
         return -1;
-    return game.RoomNumbers[index];
+    return game_def.RoomNumbers[index];
 }
 
 const char *Game_GetRoomName(int room_number)
 {
     Game &game = Game::Current();
-    auto it_room = game.RoomNames.find(room_number);
-    if (it_room == game.RoomNames.end())
+    const GameDef &game_def = game.Def();
+    auto it_room = game_def.RoomNames.find(room_number);
+    if (it_room == game_def.RoomNames.end())
         return nullptr;
 
     return CreateNewScriptString(it_room->second);
@@ -1522,6 +1528,7 @@ HSaveError load_game(const String &path, int slot, bool startup, bool &data_over
 {
     EngineServices &services = EngineServices::Current();
     Game &game = Game::Current();
+    const GameDef &game_def = game.Def();
     data_overwritten = false;
     services.GameRestoredCount++;
 
@@ -1537,14 +1544,14 @@ HSaveError load_game(const String &path, int slot, bool startup, bool &data_over
     // The bitmaps in a save (dynamic sprites, room backgrounds, drawing surfaces) are read at the color depth they were
     // saved with, so a save made at another depth is refused.
     // TODO: convert the bitmaps while restoring, if saves must survive a change of the game's color depth
-    else if (desc.ColorDepth != game.GetColorDepth())
+    else if (desc.ColorDepth != game_def.GetColorDepth())
         return new SavegameError(kSvgErr_DifferentColorDepth, "Running: %d-bit, saved in: %d-bit.",
-                                 game.GetColorDepth(), desc.ColorDepth);
+                                 game_def.GetColorDepth(), desc.ColorDepth);
 
     // Match game GUIDs and test whether save was made for the different game
     if (!desc.GameGuid.IsEmpty() || desc.LegacyID != 0)
     {
-        if (desc.GameGuid.Compare(game.Guid) != 0 && desc.LegacyID != game.UniqueID)
+        if (desc.GameGuid.Compare(game_def.Guid) != 0 && desc.LegacyID != game_def.UniqueID)
         {
             // Try to find wanted game's data using game id
             String game_file = FindGameData(services.ResPaths.DataDir, [&desc](const String &filepath)
@@ -1659,6 +1666,7 @@ void prescan_save_slots(int dest_arr_handle, int min_slot, int max_slot, int sav
 void prescan_saves(int *dest_arr, size_t dest_count, int min_slot, int max_slot, int save_sort, int sort_dir)
 {
     Game &game = Game::Current();
+    const GameDef &game_def = game.Def();
     // Gather existing list of saves in the requested range
     // ...and sort this list according to the parameters
     std::vector<SaveListItem> saves;
@@ -1684,10 +1692,10 @@ void prescan_saves(int *dest_arr, size_t dest_count, int min_slot, int max_slot,
             continue;
         }
         // Same test as in load_game: a save made at another color depth cannot be restored
-        else if (desc.ColorDepth != game.GetColorDepth())
+        else if (desc.ColorDepth != game_def.GetColorDepth())
         {
             debug_script_log("Prescan save slot %d: mismatching game color depth (game: %d-bit, save: %d-bit)",
-                             save.Slot, game.GetColorDepth(), desc.ColorDepth);
+                             save.Slot, game_def.GetColorDepth(), desc.ColorDepth);
             continue;
         }
 
@@ -1947,6 +1955,7 @@ void display_switch_in_resume()
 {
     EngineServices &services = EngineServices::Current();
     Game &game = Game::Current();
+    const GameDef &game_def = game.Def();
     Debug::Printf("Resuming the game on switch in");
     display_switch_in();
 
@@ -1967,7 +1976,8 @@ void display_switch_in_resume()
         release_drawobj_rendertargets();
     // clear the screen if necessary
     if (services.GfxDriver && services.GfxDriver->UsesMemoryBackBuffer())
-        services.GfxDriver->ClearRectangle(0, 0, game.GetGameRes().Width - 1, game.GetGameRes().Height - 1, nullptr);
+        services.GfxDriver->ClearRectangle(0, 0, game_def.GetGameRes().Width - 1, game_def.GetGameRes().Height - 1,
+                                           nullptr);
 
     services.Platform->ResumeApplication();
     services.GameUpdateSuspend = false;
@@ -2067,9 +2077,10 @@ bool load_game_font(int at_index, const FontDef &font_info, GameDataVersion /*da
 void fixup_game_fonts()
 {
     Game &game = Game::Current();
+    const GameDef &game_def = game.Def();
     // TODO: this workaround may not be needed any more with the FreeType the engine is built with; test with the
     // LucasFan font before removing it
-    for (int i = 0; i < game.FontCount; ++i)
+    for (int i = 0; i < game_def.FontCount; ++i)
     {
         if (!is_bitmap_font(i))
         {
@@ -2285,12 +2296,13 @@ void script_debug(int cmdd, int dataa)
 {
     EngineServices &services = EngineServices::Current();
     Game &game = Game::Current();
+    const GameDef &game_def = game.Def();
     if (game.Play.DebugMode == 0)
         return;
 
     if (cmdd == 0)
     {
-        for (int i = 0; i < game.InventoryItemCount; ++i)
+        for (int i = 0; i < game_def.InventoryItemCount; ++i)
             game.PlayerChar->set_item_quantity(i, std::max<int16_t>(1, game.PlayerChar->get_item_quantity(i)));
         UpdateInventory();
     }
@@ -2313,7 +2325,7 @@ void script_debug(int cmdd, int dataa)
     else if (cmdd == 3)
     {
         int goToRoom = -1;
-        if (game.RoomNames.empty())
+        if (game_def.RoomNames.empty())
         {
             String inroomtex = String::FromFormat("!Enter new room: (in room %d)", game.DisplayedRoom);
             setup_for_dialog(game.Play.NormalFont);
@@ -2323,7 +2335,7 @@ void script_debug(int cmdd, int dataa)
         else
         {
             setup_for_dialog(game.Play.NormalFont);
-            goToRoom = roomSelectorWindow(game.DisplayedRoom, game.RoomNames);
+            goToRoom = roomSelectorWindow(game.DisplayedRoom, game_def.RoomNames);
             restore_after_dialog();
         }
         if (goToRoom >= 0)
@@ -2637,7 +2649,7 @@ int RunAGSGame(const String &new_game, unsigned int mode, int data)
     if (!err)
         quitprintf("!RunAGSGame: error loading new game file:\n%s", err->FullMessage().GetCStr());
     // Assign the default bitmap color depth, equals this game's color depth
-    Bitmap::SetColorDepth(game.GetColorDepth());
+    Bitmap::SetColorDepth(game.Def().GetColorDepth());
 
     err = engine_init_sprites();
     if (!err)
@@ -2694,6 +2706,7 @@ int GetGameSpeed()
 int SetGameOption(int opt, int new_value)
 {
     Game &game = Game::Current();
+    const GameDef &game_def = game.Def();
     if (((opt < OPT_DEBUGMODE) || (opt > OPT_HIGHESTOPTION)) && (opt != OPT_LIPSYNCTEXT))
     {
         debug_script_error("SetGameOption: invalid option specified: %d", opt);
@@ -2722,7 +2735,7 @@ int SetGameOption(int opt, int new_value)
     switch (opt)
     {
     case OPT_ANTIGLIDE:
-        for (int i = 0; i < game.CharacterCount; i++)
+        for (int i = 0; i < game_def.CharacterCount; i++)
         {
             if (new_value)
                 game.Characters[i].Flags |= CHF_ANTIGLIDE;

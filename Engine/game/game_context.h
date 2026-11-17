@@ -198,19 +198,24 @@ struct EventState
     bool InRoomTransition = false;
 };
 
-// One play-through: what the game file says (the base, GameDef) and everything that changes while the game
-// runs, which is what a save holds. What the game changes has a live copy here that hides its definition
-// (Characters, InventoryItems, Guis, Options...; PLAN.md 5.1a): the engine writes nothing of the base after load.
-// The game logic reaches it through
-// Game::Current(); a function that uses it more than once takes a reference at its top:
+// One play-through of a game: everything that changes while the game runs, which is what a save holds, played from
+// a definition (GameDef, what the game file says) that the Game reads through Def() and does not own. What the game
+// changes has a live copy here, with the name the definition gives the list or the value (Characters,
+// InventoryItems, Guis, Options...; PLAN.md 5.1a); the definition's is Def().Characters... The game logic reaches the
+// Game through Game::Current(); a function that uses it more than once takes a reference at its top, and one that
+// reads the definition more than once, or inside a loop, a second one after it:
 //     Game &game = Game::Current();
-class Game : public GameDef
+//     const GameDef &game_def = game.Def();
+class Game
 {
-    // Owns Scripts; declared first, so that it exists when Scripts is bound to it
+    // The definition the game is played from; outlives the Game
+    GameDef *_def;
+    // Owns Scripts; declared before it, so that it exists when Scripts is bound to it
     std::unique_ptr<ScriptState> _scripts;
 
 public:
-    Game();
+    // A game played from the definition; the definition outlives it and is not owned
+    explicit Game(GameDef &def);
     ~Game(); // out of line: later members are vectors of types that are incomplete here
     Game(const Game &) = delete;
     Game &operator=(const Game &) = delete;
@@ -221,24 +226,26 @@ public:
     // nullptr brings the engine's own instance back
     static Game *SetCurrent(Game *game);
 
+    // What the game file says, as loaded; never written while the game runs
+    const GameDef &Def() const { return *_def; }
+    // The definition as the code that loads and unloads the game file writes it (load_game_file,
+    // preload_game_data, unload_game); nothing else calls it (Script/check_layers.py)
+    GameDef &DefForLoader() { return *_def; }
+
     // The game's own state: settings the script changes, play progress, blocking and transient state
     GameState Play;
     // The viewports and cameras of the game screen and the room
     GameViewports Viewports;
 
-    // What the game file says, as loaded; never written after load
-    const GameDef &Def() const { return *this; }
-
     // The characters of the running game, by character id, each started from its definition (InitGameState).
-    // Hides GameDef::Characters on purpose: through a Game the name is the live list, the definitions are
-    // Def().Characters. The managed pool, scripts and plugins hold the elements' addresses: built once per game.
+    // The managed pool, scripts and plugins hold the elements' addresses: built once per game.
     std::vector<Character> Characters;
     // The live copies of the other entities that the game changes, started from their definitions with the
-    // characters (StartFromDefinitions) and cleared with them (unload_game). Each hides the GameDef member of the
-    // same name, as Characters does: the definitions are Def().InventoryItems...
+    // characters (StartFromDefinitions) and cleared with them (unload_game); the definitions are
+    // Def().InventoryItems...
     // The inventory items, by item index (item 0 is not used)
     std::vector<InventoryItem> InventoryItems;
-    // The mouse cursors, by cursor mode. GameDef::HasCursorRole and the GetMode* functions read the definitions'
+    // The mouse cursors, by cursor mode. Def().HasCursorRole and the Def().GetMode* functions read the definitions'
     // roles, which the game does not change.
     std::vector<MouseCursor> MouseCursors;
     // The audio clips, by clip index. A clip is its own script object: the managed pool, the script exports and the
@@ -265,17 +272,17 @@ public:
     // The sprites' sizes and flags (SPF_*), by sprite number: the table the sprite cache writes (init_sprite_cache
     // attaches it), with the sizes of the sprite file's sprites, the dynamic sprites and the flags the engine sets
     // during play. It starts as the definition's, which has the game file's flags (StartFromDefinitions, before the
-    // cache first writes it), and is cleared by unload_game with the base's reset.
+    // cache first writes it), and is cleared by unload_game with the definition's reset.
     std::vector<SpriteInfo> SpriteInfos;
-    // Tells if the given sprite exists, by the live table; hides GameDef::IsSpriteValid, which reads the definition's
-    // table (the game file's flags, no sizes)
+    // Tells if the given sprite exists, by the live table (Def().IsSpriteValid reads the definition's table: the game
+    // file's flags, no sizes)
     bool IsSpriteValid(int sprnum) const
     {
         return (sprnum >= 0) && (static_cast<size_t>(sprnum) < SpriteInfos.size()) && SpriteInfos[sprnum].IsValid();
     }
     // The game options (OPT_*), as the script and the engine change them; a save holds them. The definition's
     // values are Def().Options (what the engine reads before StartFromDefinitions, at startup, is there).
-    int Options[MAX_OPTIONS] = {0};
+    int Options[GameDef::MAX_OPTIONS] = {0};
     // The values of the game that the script changes, which a save holds: the player character's id, the sprite
     // of the dialog options' bullet (0 for none), the inventory cursor's hotspot marker (its sprite, dot colour
     // and cross colour), and the lip-sync frame of the letters that no frame lists

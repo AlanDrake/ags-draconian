@@ -434,7 +434,7 @@ int GUIControl_GetProperty(GUIControl *control, const char *property)
     Game &game = Game::Current();
     int ctrl_type = game.Guis[control->GetParentID()].GetControlType(control->GetID());
     int ctrl_id = game.Guis[control->GetParentID()].GetControlID(control->GetID());
-    return get_int_property(game.GuiControlProperties[ctrl_type][ctrl_id],
+    return get_int_property(game.Def().GuiControlProperties[ctrl_type][ctrl_id],
                             game.Play.GuiControlProperties[ctrl_type][ctrl_id], property);
 }
 
@@ -443,7 +443,7 @@ const char *GUIControl_GetTextProperty(GUIControl *control, const char *property
     Game &game = Game::Current();
     int ctrl_type = game.Guis[control->GetParentID()].GetControlType(control->GetID());
     int ctrl_id = game.Guis[control->GetParentID()].GetControlID(control->GetID());
-    return get_text_property_dynamic_string(game.GuiControlProperties[ctrl_type][ctrl_id],
+    return get_text_property_dynamic_string(game.Def().GuiControlProperties[ctrl_type][ctrl_id],
                                             game.Play.GuiControlProperties[ctrl_type][ctrl_id], property);
 }
 

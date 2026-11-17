@@ -136,7 +136,7 @@ void engine_setup_window()
     Debug::Printf(kDbgMsg_Info, "Setting up window");
 
     set_our_eip(-198);
-    services.Platform->SetWindowTitle(Game::Current().Name);
+    services.Platform->SetWindowTitle(Game::Current().Def().Name);
     sys_window_set_icon();
 
     SystemConfig sys_cfg;
@@ -153,13 +153,14 @@ void engine_setup_window()
 static void fill_game_properties(StringOrderMap &map)
 {
     Game &game = Game::Current();
-    map["title"] = game.Name;
-    map["guid"] = game.Guid;
-    map["legacy_uniqueid"] = StrUtil::IntToString(game.UniqueID);
-    map["resolution_width"] = StrUtil::IntToString(game.GetGameRes().Width);
-    map["resolution_height"] = StrUtil::IntToString(game.GetGameRes().Height);
-    map["resolution_bpp"] = StrUtil::IntToString(game.GetColorDepth());
-    const int render_at_screenres = game.Def().Options[OPT_RENDERATSCREENRES];
+    const GameDef &game_def = game.Def();
+    map["title"] = game_def.Name;
+    map["guid"] = game_def.Guid;
+    map["legacy_uniqueid"] = StrUtil::IntToString(game_def.UniqueID);
+    map["resolution_width"] = StrUtil::IntToString(game_def.GetGameRes().Width);
+    map["resolution_height"] = StrUtil::IntToString(game_def.GetGameRes().Height);
+    map["resolution_bpp"] = StrUtil::IntToString(game_def.GetColorDepth());
+    const int render_at_screenres = game_def.Options[OPT_RENDERATSCREENRES];
     map["render_at_screenres"] =
         StrUtil::IntToString(render_at_screenres == kRenderAtScreenRes_UserDefined
                                  ? -1
@@ -318,7 +319,7 @@ void engine_locate_speech_pak()
 void engine_locate_audio_pak()
 {
     EngineServices &services = EngineServices::Current();
-    String music_file = Game::Current().GetAudioVOXName();
+    String music_file = Game::Current().Def().GetAudioVOXName();
     String music_filepath = find_assetlib(music_file);
     if (!music_filepath.IsEmpty())
     {
@@ -475,7 +476,7 @@ int engine_load_game_data()
         return EXIT_ERROR;
     }
     // Assign the default bitmap color depth, equals this game's color depth
-    Bitmap::SetColorDepth(Game::Current().GetColorDepth());
+    Bitmap::SetColorDepth(Game::Current().Def().GetColorDepth());
 
     // Checks and warnings
     if (!is_any_font_loaded())
@@ -489,7 +490,7 @@ int engine_load_game_data()
 // Replace special tokens inside a user path option
 static void resolve_configured_path(String &option)
 {
-    option.Replace("$GAMENAME$", Game::Current().Name);
+    option.Replace("$GAMENAME$", Game::Current().Def().Name);
 }
 
 // Setup paths and directories that may be affected by user configuration
@@ -584,7 +585,7 @@ void show_preload()
             services.GfxDriver->GetMemoryBackBuffer()->Clear();
 
         const Rect &view = game.Viewports.GetMainViewport();
-        Bitmap *preload_bmp = BitmapHelper::CreateBitmapCopy(splash_bmp, game.GetColorDepth());
+        Bitmap *preload_bmp = BitmapHelper::CreateBitmapCopy(splash_bmp, game.Def().GetColorDepth());
         if (!services.GfxDriver->HasAcceleratedTransform() && view.GetSize() != preload_bmp->GetSize())
         {
             Bitmap *stretched = new Bitmap(view.GetWidth(), view.GetHeight(), preload_bmp->GetColorDepth());
@@ -642,6 +643,7 @@ void engine_init_game_settings()
 {
     EngineServices &services = EngineServices::Current();
     Game &game = Game::Current();
+    const GameDef &game_def = game.Def();
     Room &room = Room::Current();
     set_our_eip(-7);
     Debug::Printf("Initialize game settings");
@@ -669,7 +671,7 @@ void engine_init_game_settings()
     else
         game_encoding = "ASCII";
     Debug::Printf("Game text encoding: %s, text language: %s", game_encoding.GetCStr(),
-                  game.GameTextLanguage.IsEmpty() ? "not set" : game.GameTextLanguage.GetCStr());
+                  game_def.GameTextLanguage.IsEmpty() ? "not set" : game_def.GameTextLanguage.GetCStr());
     if (game.Options[OPT_GAMETEXTENCODING] != 65001)
         Debug::Printf(kDbgMsg_Warn, "WARNING: game's text encoding is not UTF-8, and may be displayed incorrectly");
 
@@ -677,13 +679,13 @@ void engine_init_game_settings()
 
     for (i = 0; i < 256; i++)
     {
-        if (game.PaletteUses[i] != PAL_BACKGROUND)
-            game.Palette[i] = game.DefaultPalette[i];
+        if (game_def.PaletteUses[i] != PAL_BACKGROUND)
+            game.Palette[i] = game_def.DefaultPalette[i];
     }
     // Allegro's palette starts all black; colours are matched against it (makecol8)
     setpal();
 
-    for (i = 0; i < game.MouseCursorCount; i++)
+    for (i = 0; i < game_def.MouseCursorCount; i++)
     {
         // The cursor graphics are assigned to mousecurs[] and so cannot
         // be removed from memory
@@ -705,7 +707,7 @@ void engine_init_game_settings()
         game.ScObjects[i].id = i;
     }
 
-    for (i = 0; i < game.CharacterCount; i++)
+    for (i = 0; i < game_def.CharacterCount; i++)
     {
         game.Characters[i].ActiveInventory = -1;
         game.Characters[i].IdleTimeLeft = game.Characters[i].IdleDelay;
@@ -728,7 +730,7 @@ void engine_init_game_settings()
 
     set_our_eip(-5);
     // Add all inventory items with "starts with" flag to the player character
-    for (i = 0; i < game.InventoryItemCount; i++)
+    for (i = 0; i < game_def.InventoryItemCount; i++)
     {
         if (game.InventoryItems[i].Flags & IFLG_STARTWITH)
             game.PlayerChar->set_item_quantity(i, 1);
@@ -867,14 +869,14 @@ void engine_init_game_settings()
     game.Play.SpeechTextWindowGui = game.Options[OPT_TWCUSTOM];
     if (game.Play.SpeechTextWindowGui == 0)
         game.Play.SpeechTextWindowGui = -1;
-    game.Play.GameName = game.Name;
+    game.Play.GameName = game_def.Name;
     game.Play.LastParserEntry[0] = 0;
     game.Play.FollowingRoomDelay = 150;
     game.Play.GameSpeedModifier = 0;
     if (services.Debug.Flags & DBG_DEBUGMODE)
         game.Play.DebugMode = 1;
     game.Play.ShakeScreenOffsetY = 0;
-    game.Play.FaceDirectionRatio = game.FaceDirectionRatio;
+    game.Play.FaceDirectionRatio = game_def.FaceDirectionRatio;
 
     GUI::DataVersion = game.LoadedDataVersion;
     GUI::Options.DisabledStyle = static_cast<GuiDisableStyle>(game.Options[OPT_DISABLEOFF]);
@@ -907,8 +909,8 @@ void engine_init_game_settings()
     // functions, and this repeated call stays until they are gathered in one place.
     ApplyAccessibilityOptions(game.Play, services.Config);
     // Applies behavior options, also hacks and backwards compatibility fixes
-    ApplyBehaviorOptions(game, game.Play, services.Config);
-    PrintBehaviorOptions(game, game.Play);
+    ApplyBehaviorOptions(game.Play, services.Config);
+    PrintBehaviorOptions(game.Play);
 }
 
 void engine_setup_scsystem_auxiliary()
@@ -1155,6 +1157,7 @@ static void engine_print_info(const std::set<String> &keys, ConfigTree *user_cfg
 {
     EngineServices &services = EngineServices::Current();
     Game &game = Game::Current();
+    const GameDef &game_def = game.Def();
     const bool all = keys.count("all") > 0;
     ConfigTree data;
     if (all || keys.count("engine") > 0)
@@ -1191,9 +1194,9 @@ static void engine_print_info(const std::set<String> &keys, ConfigTree *user_cfg
     }
     if (all || keys.count("data") > 0)
     {
-        data["data"]["gamename"] = game.Name;
+        data["data"]["gamename"] = game_def.Name;
         data["data"]["version"] = StrUtil::IntToString(game.LoadedDataVersion);
-        data["data"]["compiledwith"] = game.CompiledWith;
+        data["data"]["compiledwith"] = game_def.CompiledWith;
         data["data"]["basepack"] = services.ResPaths.GamePak.Path;
     }
     if (all || keys.count("gameproperties") > 0)
@@ -1394,6 +1397,7 @@ bool engine_try_set_gfxmode_any(const DisplayModeSetup &setup)
 {
     EngineServices &services = EngineServices::Current();
     Game &game = Game::Current();
+    const GameDef &game_def = game.Def();
     const DisplayMode old_dm = services.GfxDriver ? services.GfxDriver->GetDisplayMode() : DisplayMode();
 
     engine_shutdown_gfxmode();
@@ -1401,8 +1405,8 @@ bool engine_try_set_gfxmode_any(const DisplayModeSetup &setup)
     sys_renderer_set_output(services.Config.SoftwareRenderDriver);
 
     Size init_desktop;
-    bool res = graphics_mode_init_any(GraphicResolution(game.GetGameRes(), game.BytesPerPixel * 8), setup,
-                                      ColorDepthOption(game.GetColorDepth()), &init_desktop);
+    bool res = graphics_mode_init_any(GraphicResolution(game_def.GetGameRes(), game_def.BytesPerPixel * 8), setup,
+                                      ColorDepthOption(game_def.GetColorDepth()), &init_desktop);
 
     if (res)
         engine_post_gfxmode_setup(init_desktop, old_dm);
@@ -1447,7 +1451,7 @@ bool engine_try_switch_windowed_gfxmode()
         WindowSetup window_setup = windowed ? services.Config.Display.WinSetup : services.Config.Display.FsSetup;
         frame = windowed ? services.Config.Display.WinGameFrame : services.Config.Display.FsGameFrame;
         res = graphics_mode_set_dm_any(
-            Game::Current().GetGameRes(), window_setup, old_dm.ColorDepth, frame,
+            Game::Current().Def().GetGameRes(), window_setup, old_dm.ColorDepth, frame,
             DisplayParamsEx(use_display_index, services.Config.Display.RefreshRate, services.Config.Display.VSync));
     }
 

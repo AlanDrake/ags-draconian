@@ -345,6 +345,7 @@ String GetRuntimeInfo()
 {
     EngineServices &services = EngineServices::Current();
     Game &game = Game::Current();
+    const GameDef &game_def = game.Def();
     DisplayMode mode = services.GfxDriver->GetDisplayMode();
     Rect render_frame = services.GfxDriver->GetRenderDestination();
     PGfxFilter filter = services.GfxDriver->GetGraphicsFilter();
@@ -362,8 +363,8 @@ String GetRuntimeInfo()
         "Running %d x %d at %d-bit%s\nGFX: %s; %s\nDraw frame %d x %d\n"
         "Sprite cache KB: %zu / %zu (%u%%), locked: %zu, ext: %zu\n"
         "Texture cache KB: %zu / %zu (%u%%)",
-        get_engine_name(), get_engine_version_and_build().GetCStr(), game.GetGameRes().Width, game.GetGameRes().Height,
-        game.GetColorDepth(), mode.Width, mode.Height, mode.ColorDepth,
+        get_engine_name(), get_engine_version_and_build().GetCStr(), game_def.GetGameRes().Width,
+        game_def.GetGameRes().Height, game_def.GetColorDepth(), mode.Width, mode.Height, mode.ColorDepth,
         (mode.IsWindowed() ? " W" : (mode.IsRealFullscreen() ? " F" : " FD")), services.GfxDriver->GetDriverName(),
         filter->GetInfo().Name.GetCStr(), render_frame.GetWidth(), render_frame.GetHeight(), total_normspr / 1024,
         max_normspr / 1024, norm_spr_filled, total_lockspr / 1024, total_extspr / 1024, total_txcached / 1024,

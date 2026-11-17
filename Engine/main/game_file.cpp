@@ -106,14 +106,14 @@ HGameFileError game_file_first_open(MainGameSource &src)
 
 HError preload_game_data()
 {
-    Game &game = Game::Current();
+    GameDef &game_def = Game::Current().DefForLoader();
     MainGameSource src;
     HGameFileError err = game_file_first_open(src);
     if (!err)
         return (HError)err;
     // Read only the particular data we need for preliminary game analysis
-    PreReadGameData(game, std::move(src.InputStream), src.DataVersion, src.CompiledWith);
-    FixupSaveDirectory(game);
+    PreReadGameData(game_def, std::move(src.InputStream), src.DataVersion, src.CompiledWith);
+    FixupSaveDirectory(game_def);
     return HError::None();
 }
 
@@ -145,12 +145,12 @@ UScript TryLoadScriptAsset(UScript &&existing_script, const String &script_obj_n
 // These are optional, so no error is raised if some of these are not found.
 // For those that do exist, reads them and replaces any scripts of same kind
 // in the already loaded game data.
-void TryLoadGameScripts(GameDef &game)
+void TryLoadGameScripts(GameDef &game_def)
 {
     // Global script
-    game.GlobalScript = TryLoadScriptAsset(std::move(game.GlobalScript), GlobalScriptObj, false);
+    game_def.GlobalScript = TryLoadScriptAsset(std::move(game_def.GlobalScript), GlobalScriptObj, false);
     // Dialog script
-    game.DialogScript = TryLoadScriptAsset(std::move(game.DialogScript), DialogScriptObj, false);
+    game_def.DialogScript = TryLoadScriptAsset(std::move(game_def.DialogScript), DialogScriptObj, false);
     // Script modules
     // First load a modules list
     std::vector<String> modules;
@@ -162,17 +162,17 @@ void TryLoadGameScripts(GameDef &game)
             modules.push_back(reader.ReadLine());
         Debug::Printf(kDbgMsg_Info, "Script modules list '%s' is found and loaded", ScriptModulesList.GetCStr());
     }
-    if (modules.size() > game.ScriptModules.size())
+    if (modules.size() > game_def.ScriptModules.size())
     {
-        game.ScriptModules.resize(modules.size());
-        game.ScriptModuleNames.resize(modules.size());
+        game_def.ScriptModules.resize(modules.size());
+        game_def.ScriptModuleNames.resize(modules.size());
     }
     // Now run by the list and try loading everything
     for (size_t i = 0; i < modules.size(); ++i)
     {
-        game.ScriptModules[i] = TryLoadScriptAsset(std::move(game.ScriptModules[i]), modules[i], true);
-        game.ScriptModuleNames[i] =
-            game.ScriptModules[i] ? game.ScriptModules[i]->GetScriptName() : Path::ReplaceExtension(modules[i], "asc");
+        game_def.ScriptModules[i] = TryLoadScriptAsset(std::move(game_def.ScriptModules[i]), modules[i], true);
+        game_def.ScriptModuleNames[i] = game_def.ScriptModules[i] ? game_def.ScriptModules[i]->GetScriptName()
+                                                                  : Path::ReplaceExtension(modules[i], "asc");
     }
 }
 
@@ -180,7 +180,7 @@ HError load_game_file()
 {
     Game &game = Game::Current();
     MainGameSource src;
-    LoadedGameEntities ents(game);
+    LoadedGameEntities ents(game.DefForLoader());
     HError err = (HError)OpenMainGameFileFromDefaultAsset(src, EngineServices::Current().Assets.get());
     if (!err)
         return err;
@@ -203,7 +203,7 @@ HError load_game_file()
     err = (HError)UpdateGameData(ents, src.DataVersion);
     if (!err)
         return err;
-    TryLoadGameScripts(game);
+    TryLoadGameScripts(game.DefForLoader());
     err = (HError)InitGameState(ents, src.DataVersion);
     if (!err)
         return err;

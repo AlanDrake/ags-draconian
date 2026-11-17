@@ -203,6 +203,7 @@ void quit(const char *quitmsg)
 {
     EngineServices &services = EngineServices::Current();
     Game &game = Game::Current();
+    const GameDef &game_def = game.Def();
     Debug::Printf(kDbgMsg_Info, "Quitting the game...");
 
     // Generate two error message: simple and full.
@@ -210,7 +211,7 @@ void quit(const char *quitmsg)
     // popup and printed to the log.
     String errmsg, fullmsg;
     // the game's version, if its file gives one (read without adding the key to the definition's map)
-    const String game_version = game.GameInfo.count("version") > 0 ? game.GameInfo.at("version") : String();
+    const String game_version = game_def.GameInfo.count("version") > 0 ? game_def.GameInfo.at("version") : String();
     QuitReason qreason =
         quit_check_for_error_state(quitmsg, game.Play.GetGameErrorText(), game_version, errmsg, fullmsg);
 

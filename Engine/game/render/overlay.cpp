@@ -351,7 +351,7 @@ ScreenOverlay *Overlay_CreateGraphicCore(bool room_layer, int x, int y, int slot
     if (clone && ((game.SpriteInfos[slot].Flags & SPF_DYNAMICALLOC) != 0))
     {
         std::unique_ptr<Bitmap> image(
-            new Bitmap(game.SpriteInfos[slot].Width, game.SpriteInfos[slot].Height, game.GetColorDepth()));
+            new Bitmap(game.SpriteInfos[slot].Width, game.SpriteInfos[slot].Height, game.Def().GetColorDepth()));
         image->Blit(services.Sprites[slot]);
         over_id = add_screen_overlay(room_layer, x, y, OVER_CUSTOM, std::move(image));
     }

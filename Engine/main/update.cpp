@@ -128,9 +128,10 @@ void update_player_view()
 void update_character_move_and_anim(std::vector<int> &following_as_sheep)
 {
     Game &game = Game::Current();
+    const GameDef &game_def = game.Def();
     Room &room = Room::Current();
     // move & animate characters
-    for (int aa = 0; aa < game.CharacterCount; aa++)
+    for (int aa = 0; aa < game_def.CharacterCount; aa++)
     {
         if (!game.Characters[aa].is_enabled())
             continue;

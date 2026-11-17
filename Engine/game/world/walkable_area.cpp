@@ -122,6 +122,7 @@ void remove_walkable_areas_from_temp(Room &room, const Rect &area)
 Bitmap *prepare_walkable_areas(int source_char_id)
 {
     Game &game = Game::Current();
+    const GameDef &game_def = game.Def();
     Room &room = Room::Current();
     // copy the walkable areas to the temp bitmap
     room.WalkableAreasTemp->Blit(room.WalkAreaMask.get(), 0, 0, 0, 0, room.WalkAreaMask->GetWidth(),
@@ -131,7 +132,7 @@ Bitmap *prepare_walkable_areas(int source_char_id)
         return room.WalkableAreasTemp;
 
     // for each character in the current room, make the area under them unwalkable
-    for (int char_id = 0; char_id < game.CharacterCount; char_id++)
+    for (int char_id = 0; char_id < game_def.CharacterCount; char_id++)
     {
         if (!game.Characters[char_id].is_enabled())
             continue;

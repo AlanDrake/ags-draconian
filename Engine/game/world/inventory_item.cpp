@@ -70,7 +70,8 @@ public:
 void InvItems_RegisterDynamicSpriteCallbacks()
 {
     Game &game = Game::Current();
-    for (int i = 0; i < game.InventoryItemCount; ++i)
+    const GameDef &game_def = game.Def();
+    for (int i = 0; i < game_def.InventoryItemCount; ++i)
     {
         if (game.InventoryItems[i].Sprite > 0)
             add_sprite_changed_callback(i, &gl_InvItemSpriteListener);
@@ -81,7 +82,7 @@ void InvItems_RegisterDynamicSpriteCallbacks()
 static void set_inv_item_pic(int item_id, int sprite)
 {
     Game &game = Game::Current();
-    if ((item_id < 0) || (item_id >= game.InventoryItemCount))
+    if ((item_id < 0) || (item_id >= game.Def().InventoryItemCount))
         quit("!SetInvItemPic: invalid inventory item specified");
 
     if (game.InventoryItems[item_id].Sprite == sprite)
@@ -126,9 +127,11 @@ static void set_inv_item_cursorhotspot(int item_id, int hx, int hy, FrameAlignme
 bool AssertInvItem(const char *apiname, int item_id)
 {
     Game &game = Game::Current();
-    if ((item_id >= 0) && (item_id < game.InventoryItemCount))
+    const GameDef &game_def = game.Def();
+    if ((item_id >= 0) && (item_id < game_def.InventoryItemCount))
         return true;
-    debug_script_warn("%s: invalid inventory id %d (range is 0..%d)", apiname, item_id, game.InventoryItemCount - 1);
+    debug_script_warn("%s: invalid inventory id %d (range is 0..%d)", apiname, item_id,
+                      game_def.InventoryItemCount - 1);
     return false;
 }
 
@@ -186,7 +189,7 @@ void InventoryItem_SetGraphic(ScriptInvItem *item, int sprite)
 static void SetInvItemName(int item_id, const char *new_name)
 {
     Game &game = Game::Current();
-    if ((item_id < 0) || (item_id >= game.InventoryItemCount))
+    if ((item_id < 0) || (item_id >= game.Def().InventoryItemCount))
         quit("!SetInvName: invalid inventory item specified");
 
     game.InventoryItems[item_id].Name = new_name;
@@ -206,7 +209,7 @@ int InventoryItem_GetID(ScriptInvItem *item)
 
 const char *InventoryItem_GetScriptName(ScriptInvItem *item)
 {
-    return CreateNewScriptString(Game::Current().InventoryItemScriptNames[item->id]);
+    return CreateNewScriptString(Game::Current().Def().InventoryItemScriptNames[item->id]);
 }
 
 int GetInvAt(int x, int y, int gui_hitoptions, int inv_hitoptions)
@@ -253,7 +256,8 @@ int InventoryItem_GetGraphic(ScriptInvItem *item)
 void RunInventoryInteraction(int item_id, int mood)
 {
     Game &game = Game::Current();
-    if ((item_id < 0) || (item_id >= game.InventoryItemCount))
+    const GameDef &game_def = game.Def();
+    if ((item_id < 0) || (item_id >= game_def.InventoryItemCount))
         quit("!RunInventoryInteraction: invalid inventory number");
     if (!AssertCursorValidForEvent("InventoryItem.RunInteraction", mood))
         return;
@@ -263,7 +267,7 @@ void RunInventoryInteraction(int item_id, int mood)
     const int anyclick_evt = kInventoryEvent_AnyClick;
 
     // For USE verb: remember active inventory
-    if (game.HasCursorRole(mood, kCursorRole_UseInv))
+    if (game_def.HasCursorRole(mood, kCursorRole_UseInv))
     {
         game.Play.UsedInventory = game.PlayerChar->ActiveInventory;
     }
@@ -282,7 +286,7 @@ void RunInventoryInteraction(int item_id, int mood)
 static int IsInventoryInteractionAvailable(int item_id, int mood)
 {
     Game &game = Game::Current();
-    if ((item_id < 0) || (item_id >= game.InventoryItemCount))
+    if ((item_id < 0) || (item_id >= game.Def().InventoryItemCount))
         quit("!IsInventoryInteractionAvailable: invalid inventory number");
 
     game.Play.CheckInteractionOnly = 1;
@@ -311,21 +315,21 @@ int InventoryItem_CheckInteractionAvailable(ScriptInvItem *item, int mood)
 int InventoryItem_GetProperty(ScriptInvItem *item, const char *property)
 {
     Game &game = Game::Current();
-    return get_int_property(game.InventoryItemProperties[item->id], game.InventoryItems[item->id].PropertyOverrides,
-                            property);
+    return get_int_property(game.Def().InventoryItemProperties[item->id],
+                            game.InventoryItems[item->id].PropertyOverrides, property);
 }
 
 void InventoryItem_GetPropertyText(ScriptInvItem *item, const char *property, char *buffer)
 {
     Game &game = Game::Current();
-    get_text_property(game.InventoryItemProperties[item->id], game.InventoryItems[item->id].PropertyOverrides, property,
-                      buffer);
+    get_text_property(game.Def().InventoryItemProperties[item->id], game.InventoryItems[item->id].PropertyOverrides,
+                      property, buffer);
 }
 
 const char *InventoryItem_GetTextProperty(ScriptInvItem *item, const char *property)
 {
     Game &game = Game::Current();
-    return get_text_property_dynamic_string(game.InventoryItemProperties[item->id],
+    return get_text_property_dynamic_string(game.Def().InventoryItemProperties[item->id],
                                             game.InventoryItems[item->id].PropertyOverrides, property);
 }
 

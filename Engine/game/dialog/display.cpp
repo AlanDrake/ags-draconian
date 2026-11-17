@@ -165,6 +165,7 @@ std::unique_ptr<Bitmap> create_textual_image(const char *text, const DisplayText
                                              const TopBarSettings *topbar)
 {
     Game &game = Game::Current();
+    const GameDef &game_def = game.Def();
     //
     // Configure the textual image
     //
@@ -273,7 +274,7 @@ std::unique_ptr<Bitmap> create_textual_image(const char *text, const DisplayText
     {
         // Both callers make an overlay out of the result, which needs a bitmap;
         // TODO: let the overlay of an empty line have no bitmap
-        return std::unique_ptr<Bitmap>(BitmapHelper::CreateTransparentBitmap(2, 2, game.GetColorDepth()));
+        return std::unique_ptr<Bitmap>(BitmapHelper::CreateTransparentBitmap(2, 2, game_def.GetColorDepth()));
     }
 
     if (look.Style != kDisplayTextStyle_MessageBox)
@@ -303,7 +304,8 @@ std::unique_ptr<Bitmap> create_textual_image(const char *text, const DisplayText
         {
             const int bmp_width = std::max(2, width);
             const int bmp_height = std::max(2, disp.FullTextHeight + padding_doubled_scaled);
-            text_window_ds.reset(BitmapHelper::CreateTransparentBitmap(bmp_width, bmp_height, game.GetColorDepth()));
+            text_window_ds.reset(
+                BitmapHelper::CreateTransparentBitmap(bmp_width, bmp_height, game_def.GetColorDepth()));
         }
 
         // Assign final text color, either use passed parameter, or TextWindow property
@@ -665,7 +667,7 @@ int GetTextDisplayTime(const char *text, int can_be_relative)
 bool ShouldAntiAliasText()
 {
     Game &game = Game::Current();
-    return (game.GetColorDepth() >= 24) && (game.Options[OPT_ANTIALIASFONTS] != 0);
+    return (game.Def().GetColorDepth() >= 24) && (game.Options[OPT_ANTIALIASFONTS] != 0);
 }
 
 // Draw outline that is calculated from the text font, not derived from an outline font
@@ -941,7 +943,7 @@ int get_textwindow_padding(int gui_id)
 
     if (gui_id < 0)
         gui_id = game.Options[OPT_TWCUSTOM];
-    if (gui_id > 0 && gui_id < game.GuiCount)
+    if (gui_id > 0 && gui_id < game.Def().GuiCount)
         result = game.Guis[gui_id].GetPadding();
     else
         result = TEXTWINDOW_PADDING_DEFAULT;
@@ -953,6 +955,7 @@ std::unique_ptr<Bitmap> draw_text_window(int *text_x, int *text_y, int *x, int *
                                          int override_height, int gui_id, const DisplayVars &disp)
 {
     Game &game = Game::Current();
+    const GameDef &game_def = game.Def();
     std::unique_ptr<Bitmap> text_window;
 
     if (gui_id < 0)
@@ -961,9 +964,10 @@ std::unique_ptr<Bitmap> draw_text_window(int *text_x, int *text_y, int *x, int *
     // Assertions
     if (gui_id > 0)
     {
-        if (gui_id >= game.GuiCount)
+        if (gui_id >= game_def.GuiCount)
         {
-            debug_script_warn("Invalid GUI %d specified as text window (valid range: 1..%d)", gui_id, game.GuiCount);
+            debug_script_warn("Invalid GUI %d specified as text window (valid range: 1..%d)", gui_id,
+                              game_def.GuiCount);
             gui_id = 0;
         }
         else if (!game.Guis[gui_id].IsTextWindow())
@@ -981,7 +985,7 @@ std::unique_ptr<Bitmap> draw_text_window(int *text_x, int *text_y, int *x, int *
     {
         const int padding_doubled_scaled = padding * 2;
         text_window.reset(BitmapHelper::CreateTransparentBitmap(width[0], override_height + padding_doubled_scaled,
-                                                                game.GetColorDepth()));
+                                                                game_def.GetColorDepth()));
         Bitmap *ds = text_window.get();
         draw_button_background(ds, 0, 0, ds->GetWidth() - 1, ds->GetHeight() - 1, nullptr);
         if (set_text_color)
@@ -999,7 +1003,7 @@ std::unique_ptr<Bitmap> draw_text_window(int *text_x, int *text_y, int *x, int *
 
         text_window.reset(BitmapHelper::CreateTransparentBitmap(
             width[0], override_height + (padding * 2) + game.SpriteInfos[corner_sprite].Height * 2,
-            game.GetColorDepth()));
+            game_def.GetColorDepth()));
         Bitmap *ds = text_window.get();
         int xoffs = game.SpriteInfos[corner_sprite].Width, yoffs = game.SpriteInfos[corner_sprite].Height;
         draw_button_background(ds, xoffs, yoffs, (ds->GetWidth() - xoffs) - 1, (ds->GetHeight() - yoffs) - 1,
@@ -1026,7 +1030,7 @@ std::unique_ptr<Bitmap> draw_text_window_and_bar(const TopBarSettings *topbar, c
         // create an enlarged window, then free the old one
         Bitmap *ds = text_window_bmp.get();
         std::unique_ptr<Bitmap> text_window_top(
-            BitmapHelper::CreateBitmap(ds->GetWidth(), ds->GetHeight() + topbar->Height, game.GetColorDepth()));
+            BitmapHelper::CreateBitmap(ds->GetWidth(), ds->GetHeight() + topbar->Height, game.Def().GetColorDepth()));
         text_window_top->Blit(ds, 0, 0, 0, topbar->Height, ds->GetWidth(), ds->GetHeight());
         text_window_bmp = std::move(text_window_top);
         ds = text_window_bmp.get();

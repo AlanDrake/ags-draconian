@@ -293,8 +293,8 @@ ScriptGUI GuiObject(int id)
     return gui;
 }
 
-// Element i of the game's list of controls of that type: through a Game the live list, which hides the definition's,
-// through a GameDef (Game::Def()) the definition's
+// Element i of the game's list of controls of that type: through a Game the live list, through a GameDef (Game::Def())
+// the definition's
 template <typename G>
 auto ControlOf(G &game, GUIControlType type, int i)
     -> std::conditional_t<std::is_const_v<G>, const GUIControl *, GUIControl *>
@@ -650,7 +650,7 @@ protected:
 
     // The game's definition, which the test writes as the game file reader would (the engine reads it through
     // Game::Def(), which is const)
-    GameDef &Definition() { return *_game; }
+    GameDef &Definition() { return _def; }
 
     // The game's definition (or another one, to compare with): of each entity two or more, with values of their own
     static void MakeDefinition(GameDef &def)
@@ -844,6 +844,7 @@ protected:
     {
         SCOPED_TRACE(testing::Message() << "GUI " << g);
         Game &game = Game::Current();
+        const GameDef &game_def = game.Def();
         const GUIMain &gui = game.Guis[g];
         const auto &refs = gui.GetControlRefs();
         ASSERT_EQ(refs.size(), static_cast<size_t>(gui.GetControlCount()));
@@ -852,7 +853,7 @@ protected:
             SCOPED_TRACE(testing::Message() << "control " << i);
             const GUIControl *control = gui.GetControl(i);
             EXPECT_EQ(ControlOf(game, refs[i].first, refs[i].second), control);
-            EXPECT_FALSE(IsControlOf(game.Def(), control));
+            EXPECT_FALSE(IsControlOf(game_def, control));
             ASSERT_NE(nullptr, control);
             EXPECT_EQ(g, control->GetParentID());
             EXPECT_EQ(i, control->GetID());
@@ -929,8 +930,9 @@ protected:
     void StartGame()
     {
         Game &game = *_game;
+        const GameDef &game_def = game.Def();
         StartFromDefinitions(game);
-        for (int i = 0; i < game.CharacterCount; ++i)
+        for (int i = 0; i < game_def.CharacterCount; ++i)
             game.Characters[i].ID = i;
         const bool clip_controls = GUI::Options.ClipControls;
         GUI::Options.ClipControls = true;
@@ -939,7 +941,7 @@ protected:
         HError err = GUI::RebuildGUI(game.Guis, gui_control_refs);
         GUI::Options.ClipControls = clip_controls;
         EXPECT_TRUE(err) << err->FullMessage().GetCStr();
-        game.Play.GuiProperties.resize(game.GuiCount);
+        game.Play.GuiProperties.resize(game_def.GuiCount);
         game.Play.GuiControlProperties[kGUIButton].resize(game.GuiButtons.size());
         game.Play.GuiControlProperties[kGUILabel].resize(game.GuiLabels.size());
         game.Play.GuiControlProperties[kGUIInvWindow].resize(game.GuiInvWindows.size());
@@ -1385,7 +1387,9 @@ protected:
     }
 
     EngineServices _services;
-    std::unique_ptr<Game> _game = std::make_unique<Game>();
+    // The game's definition, which the test writes as the loader does, and the game played from it
+    GameDef _def;
+    std::unique_ptr<Game> _game = std::make_unique<Game>(_def);
     Room _room;
     // The sprite file of StartWithSpriteFile, made at its first call
     std::vector<uint8_t> _spriteFile;
@@ -1978,6 +1982,7 @@ TEST_F(GameEntities, GameOptionsAndValuesComeBackFromASave)
 TEST_F(GameEntities, GlobalSpeechAnimationDelayIsSplitAtStart)
 {
     Game &game = Game::Current();
+    const GameDef &game_def = game.Def();
     struct Case
     {
         int Loaded;
@@ -1994,7 +1999,7 @@ TEST_F(GameEntities, GlobalSpeechAnimationDelayIsSplitAtStart)
         RunEngineInitGameSettings();
         EXPECT_EQ(c.Delay, game.Play.GlobalSpeechAnimationDelay);
         EXPECT_EQ(c.Option, GetGameOption(OPT_GLOBALTALKANIMSPD));
-        EXPECT_EQ(c.Loaded, game.Def().Options[OPT_GLOBALTALKANIMSPD]);
+        EXPECT_EQ(c.Loaded, game_def.Options[OPT_GLOBALTALKANIMSPD]);
     }
 }
 
@@ -2044,6 +2049,7 @@ TEST_F(GameEntities, GuisComeBackFromASave)
 TEST_F(GameEntities, StartedGuisPointAtTheLiveControlsOnly)
 {
     Game &game = Game::Current();
+    const GameDef &game_def = game.Def();
     GameDef &def = Definition();
     GUIRefCollection def_control_refs(def.GuiButtons, def.GuiInvWindows, def.GuiLabels, def.GuiListBoxes,
                                       def.GuiSliders, def.GuiTextBoxes);
@@ -2055,9 +2061,9 @@ TEST_F(GameEntities, StartedGuisPointAtTheLiveControlsOnly)
     for (int g = 0; g < kGuiCount; ++g)
     {
         ExpectGuiLinkedToTheLiveControls(g);
-        const GUIMain &def_gui = game.Def().Guis[g];
+        const GUIMain &def_gui = game_def.Guis[g];
         for (int i = 0; i < def_gui.GetControlCount(); ++i)
-            EXPECT_TRUE(IsControlOf(game.Def(), def_gui.GetControl(i))) << "GUI " << g << " control " << i;
+            EXPECT_TRUE(IsControlOf(game_def, def_gui.GetControl(i))) << "GUI " << g << " control " << i;
     }
 }
 
@@ -2117,9 +2123,10 @@ TEST_F(GameEntities, UnloadedGameKeepsNoLiveCopies)
 TEST_F(GameEntities, SpriteCacheWritesTheLiveSpriteTable)
 {
     Game &game = Game::Current();
+    const GameDef &game_def = game.Def();
     StartWithSpriteFile();
     ExpectSpritesStartedWithTheFile();
-    ExpectSameSpriteInfos(LoadedSpriteInfos(), game.Def().SpriteInfos);
+    ExpectSameSpriteInfos(LoadedSpriteInfos(), game_def.SpriteInfos);
 
     const int slot = add_dynamic_sprite(std::make_unique<Bitmap>(24, 12, 32));
     ASSERT_GT(slot, 0);
@@ -2129,7 +2136,7 @@ TEST_F(GameEntities, SpriteCacheWritesTheLiveSpriteTable)
 
     attach_dynsprite_surface(slot, 0);
     EXPECT_EQ(static_cast<uint32_t>(SPF_DYNAMICALLOC | SPF_SURFACEACQUIRED), game.SpriteInfos[slot].Flags);
-    ExpectSameSpriteInfos(LoadedSpriteInfos(), game.Def().SpriteInfos);
+    ExpectSameSpriteInfos(LoadedSpriteInfos(), game_def.SpriteInfos);
     on_dynsprite_surface_release(slot, false);
     EXPECT_EQ(static_cast<uint32_t>(SPF_DYNAMICALLOC), game.SpriteInfos[slot].Flags);
 
@@ -2140,12 +2147,12 @@ TEST_F(GameEntities, SpriteCacheWritesTheLiveSpriteTable)
     EngineServices::Current().Sprites.DeleteSprite(kKeepDepthSprite);
     EXPECT_FALSE(game.SpriteInfos[kKeepDepthSprite].IsValid());
     EXPECT_EQ(0u, game.SpriteInfos[kKeepDepthSprite].Flags);
-    ExpectSameSpriteInfos(LoadedSpriteInfos(), game.Def().SpriteInfos);
+    ExpectSameSpriteInfos(LoadedSpriteInfos(), game_def.SpriteInfos);
 }
 
 // Game::IsSpriteValid reads the live table: a sprite of the sprite file and a dynamic sprite are valid, a free slot, a
-// sprite missing from the sprite file and a number outside the table are not. GameDef::IsSpriteValid, which it
-// hides, reads the definition's table, which has no sizes.
+// sprite missing from the sprite file and a number outside the table are not. GameDef::IsSpriteValid (Def()) reads
+// the definition's table, which has no sizes.
 TEST_F(GameEntities, SpriteValidityIsTheLiveTables)
 {
     Game &game = Game::Current();
@@ -2192,6 +2199,7 @@ TEST_F(GameEntities, DynamicSpritesComeBackFromASaveIntoTheLiveTable)
 TEST_F(GameEntities, SecondStartTakesTheSpriteTableAgain)
 {
     Game &game = Game::Current();
+    const GameDef &game_def = game.Def();
     StartWithSpriteFile();
     const int slot = add_dynamic_sprite(std::make_unique<Bitmap>(24, 12, 32));
     ASSERT_GT(slot, 0);
@@ -2202,11 +2210,11 @@ TEST_F(GameEntities, SecondStartTakesTheSpriteTableAgain)
 
     unload_game();
     EXPECT_TRUE(game.SpriteInfos.empty());
-    EXPECT_TRUE(game.Def().SpriteInfos.empty());
+    EXPECT_TRUE(game_def.SpriteInfos.empty());
 
     StartWithSpriteFile();
     ExpectSpritesStartedWithTheFile();
-    ExpectSameSpriteInfos(LoadedSpriteInfos(), game.Def().SpriteInfos);
+    ExpectSameSpriteInfos(LoadedSpriteInfos(), game_def.SpriteInfos);
 }
 
 // A custom property of an element that nothing set has the definition's value, and the schema's default where the
@@ -2225,6 +2233,7 @@ TEST_F(GameEntities, PropertiesAreTheDefinitionsOrTheSchemasDefault)
 // property's name is not case-sensitive.
 TEST_F(GameEntities, PropertySetDuringPlayIsTheElementsOwn)
 {
+    const GameDef &game_def = Game::Current().Def();
     GameDef made;
     MakeDefinition(made);
     for (const PropertyKind &kind : PropertyKinds())
@@ -2248,7 +2257,7 @@ TEST_F(GameEntities, PropertySetDuringPlayIsTheElementsOwn)
         EXPECT_EQ("blue", kind.GetText(1, "COLOUR"));
 
         for (int i = 0; i < kind.Count; ++i)
-            EXPECT_EQ(kind.Definition(made, i), kind.Definition(Game::Current().Def(), i)) << "element " << i;
+            EXPECT_EQ(kind.Definition(made, i), kind.Definition(game_def, i)) << "element " << i;
     }
 }
 

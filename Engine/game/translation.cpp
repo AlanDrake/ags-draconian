@@ -83,6 +83,7 @@ FontDef construct_font_override(const FontDef *base_finfo, const FontDef &finfo,
 void init_font_overrides(const Translation &trans)
 {
     Game &game = Game::Current();
+    const GameDef &game_def = game.Def();
     for (const auto &font_override : trans.FontOverrides)
     {
         const int font_id = font_override.first;
@@ -94,11 +95,11 @@ void init_font_overrides(const Translation &trans)
         const int use_font_id = finfo.ID;
         if (use_font_id >= 0)
         {
-            if (static_cast<uint32_t>(use_font_id) < game.Fonts.size())
+            if (static_cast<uint32_t>(use_font_id) < game_def.Fonts.size())
             {
                 Debug::Printf("Init font's %d override using replacement font %d and provided parameters", font_id,
                               use_font_id);
-                FontDef use_finfo = construct_font_override(&game.Fonts[use_font_id], finfo, fields);
+                FontDef use_finfo = construct_font_override(&game_def.Fonts[use_font_id], finfo, fields);
                 load_game_font(font_id, use_finfo, game.LoadedDataVersion);
             }
             else
@@ -129,11 +130,12 @@ void init_font_overrides(const Translation &trans)
 void restore_game_fonts(const Translation &old_trans)
 {
     Game &game = Game::Current();
+    const GameDef &game_def = game.Def();
     for (const auto &font_override : trans.FontOverrides)
     {
         const int font_id = font_override.first;
-        if (font_id >= 0 && static_cast<uint32_t>(font_id) < game.Fonts.size())
-            load_game_font(font_id, game.Fonts[font_id], game.LoadedDataVersion);
+        if (font_id >= 0 && static_cast<uint32_t>(font_id) < game_def.Fonts.size())
+            load_game_font(font_id, game_def.Fonts[font_id], game.LoadedDataVersion);
     }
 
     // Additional fixups - after all the fonts are registered
@@ -143,6 +145,7 @@ void restore_game_fonts(const Translation &old_trans)
 void close_translation()
 {
     Game &game = Game::Current();
+    const GameDef &game_def = game.Def();
     game.Options[OPT_AUTOTRANSPARSERSAID] = 0;
     if (trans.FontOverrides.size() > 0)
     {
@@ -153,9 +156,9 @@ void close_translation()
     trans_name = "";
     trans_filename = "";
 
-    SetGameTextLanguage(game.GameTextLanguage);
+    SetGameTextLanguage(game_def.GameTextLanguage);
     SetTranslationTextParser(
-        CreateTextParser(game.ParserDictionary.get(), true, EngineServices::Current().TextLocaleName));
+        CreateTextParser(game_def.ParserDictionary.get(), true, EngineServices::Current().TextLocaleName));
 }
 
 void SetGameTextLanguage(const String &language)
@@ -172,6 +175,7 @@ bool init_translation(const String &lang, const String &fallback_lang)
 {
     EngineServices &services = EngineServices::Current();
     Game &game = Game::Current();
+    const GameDef &game_def = game.Def();
     if (lang.IsEmpty())
         return false;
     trans_name = lang;
@@ -187,7 +191,7 @@ bool init_translation(const String &lang, const String &fallback_lang)
     trans = Translation();
 
     // First test if the translation is meant for this game
-    HError err = TestTraGameID(game.UniqueID, game.Name, std::move(in));
+    HError err = TestTraGameID(game_def.UniqueID, game_def.Name, std::move(in));
     if (err)
     {
         // If successful, then read translation data fully
@@ -248,13 +252,13 @@ bool init_translation(const String &lang, const String &fallback_lang)
     {
         // The parser dictionary must contain all expected word groups, so if any are not
         // found in the translated dict, then add base ones directly there.
-        if (game.ParserDictionary.get())
-            MergeParserDictionary(&trans.ParserDict, game.ParserDictionary.get());
+        if (game_def.ParserDictionary.get())
+            MergeParserDictionary(&trans.ParserDict, game_def.ParserDictionary.get());
         SetTranslationTextParser(CreateTextParser(&trans.ParserDict, true, services.TextLocaleName));
     }
     else
     {
-        SetTranslationTextParser(CreateTextParser(game.ParserDictionary.get(), true, services.TextLocaleName));
+        SetTranslationTextParser(CreateTextParser(game_def.ParserDictionary.get(), true, services.TextLocaleName));
     }
 
     Debug::Printf(kDbgMsg_Info, "Translation initialized: %s (format: %s)", trans_name.GetCStr(),

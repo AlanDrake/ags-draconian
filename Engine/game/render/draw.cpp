@@ -518,8 +518,9 @@ Bitmap *CreateCompatBitmap(int width, int height, int col_depth)
 
 Bitmap *CreateCompatBitmap(Game &game, EngineServices &services, int width, int height, int col_depth)
 {
-    return new Bitmap(width, height,
-                      services.GfxDriver->GetCompatibleBitmapFormat(col_depth == 0 ? game.GetColorDepth() : col_depth));
+    return new Bitmap(
+        width, height,
+        services.GfxDriver->GetCompatibleBitmapFormat(col_depth == 0 ? game.Def().GetColorDepth() : col_depth));
 }
 
 // PrepareSpriteForUseImpl converts input bitmap to format which may be used
@@ -541,7 +542,7 @@ static Bitmap *PrepareSpriteForUseImpl(Bitmap *bitmap, bool conv_to_gamedepth, b
     // sprite must be converted to game's color depth;
     // this behavior is hardcoded in the current engine version
     const int bmp_col_depth = bitmap->GetColorDepth();
-    const int game_col_depth = game.GetColorDepth();
+    const int game_col_depth = game.Def().GetColorDepth();
 
     // Palette must be selected if we convert a 8-bit bitmap for a 32-bit game
     const bool must_switch_palette = conv_to_gamedepth && (bitmap->GetColorDepth() == 8) && (game_col_depth > 8);
@@ -616,7 +617,8 @@ Bitmap *CopyScreenIntoBitmap(int width, int height, const Rect *src_rect, bool a
 {
     EngineServices &services = EngineServices::Current();
     Game &game = Game::Current();
-    Bitmap *dst = new Bitmap(width, height, game.GetColorDepth());
+    const GameDef &game_def = game.Def();
+    Bitmap *dst = new Bitmap(width, height, game_def.GetColorDepth());
     GraphicResolution want_fmt;
     // If the size and color depth are supported, then we may copy right into our final bitmap
     if (services.GfxDriver->GetCopyOfScreenIntoBitmap(dst, src_rect, at_native_res, &want_fmt, batch_skip_filter))
@@ -631,9 +633,9 @@ Bitmap *CopyScreenIntoBitmap(int width, int height, const Rect *src_rect, bool a
     // because Allegro does not support stretching with mismatching color depths
     std::unique_ptr<Bitmap> buf_fixdepth;
     Bitmap *blit_from = buf_screenfmt.get();
-    if ((dst->GetSize() != blit_from->GetSize()) && (want_fmt.ColorDepth != game.GetColorDepth()))
+    if ((dst->GetSize() != blit_from->GetSize()) && (want_fmt.ColorDepth != game_def.GetColorDepth()))
     {
-        buf_fixdepth = std::make_unique<Bitmap>(want_fmt.Width, want_fmt.Height, game.GetColorDepth());
+        buf_fixdepth = std::make_unique<Bitmap>(want_fmt.Width, want_fmt.Height, game_def.GetColorDepth());
         buf_fixdepth->Blit(buf_screenfmt.get());
         blit_from = buf_fixdepth.get();
     }
@@ -672,7 +674,7 @@ void destroy_blank_image()
 
 int MakeColor(int color_index)
 {
-    return BitmapHelper::AGSColorToBitmapColor(color_index, Game::Current().GetColorDepth());
+    return BitmapHelper::AGSColorToBitmapColor(color_index, Game::Current().Def().GetColorDepth());
 }
 
 void init_draw_method()
@@ -695,7 +697,7 @@ void init_draw_method()
     else
     {
         drawstate.WalkBehindMethod = DrawAsSeparateSprite;
-        create_blank_image(game.GetColorDepth());
+        create_blank_image(game.Def().GetColorDepth());
         size_t tx_cache_size = services.Config.TextureCacheSize * 1024;
         // If graphics driver can report available texture memory,
         // then limit the setting by, let's say, 66% of it (we use it for other things)
@@ -738,8 +740,9 @@ static void alloc_fixed_drawindexes()
 void init_game_drawdata()
 {
     Game &game = Game::Current();
+    const GameDef &game_def = game.Def();
     // character and object caches
-    charcache.resize(game.CharacterCount);
+    charcache.resize(game_def.CharacterCount);
     for (size_t i = 0; i < (size_t)MAX_ROOM_OBJECTS; ++i)
         objcache[i] = ObjectCache();
 #if (AGS_PLATFORM_DEBUG)
@@ -747,15 +750,15 @@ void init_game_drawdata()
         charcache[ch.ID].tag.Format("CHAR%d:%s", ch.ID, ch.ScriptName.GetCStr());
 #endif
 
-    size_t actsps_num = game.CharacterCount + MAX_ROOM_OBJECTS;
+    size_t actsps_num = game_def.CharacterCount + MAX_ROOM_OBJECTS;
     actsps.resize(actsps_num);
 
-    guihelpbg.resize(game.GuiCount);
-    guibg.resize(game.GuiCount);
-    gui_render_tex.resize(game.GuiCount);
+    guihelpbg.resize(game_def.GuiCount);
+    guibg.resize(game_def.GuiCount);
+    gui_render_tex.resize(game_def.GuiCount);
     int guio_num = 0;
     // Prepare GUI cache lists and build the quick reference for controls cache
-    guiobjddbref.resize(game.GuiCount);
+    guiobjddbref.resize(game_def.GuiCount);
     for (const auto &gui : game.Guis)
     {
         guiobjddbref[gui.GetID()] = guio_num;
@@ -889,13 +892,14 @@ void release_drawobj_rendertargets()
 void on_mainviewport_changed()
 {
     Game &game = Game::Current();
+    const GameDef &game_def = game.Def();
     if (!drawstate.FullFrameRedraw)
     {
         const auto &view = game.Viewports.GetMainViewport();
         set_invalidrects_globaloffs(view.Left, view.Top);
         // the black background region covers whole game screen
-        init_invalid_regions(-1, game.GetGameRes(), RectWH(game.GetGameRes()));
-        if (game.GetGameRes().ExceedsByAny(view.GetSize()))
+        init_invalid_regions(-1, game_def.GetGameRes(), RectWH(game_def.GetGameRes()));
+        if (game_def.GetGameRes().ExceedsByAny(view.GetSize()))
             clear_letterbox_borders();
     }
 }
@@ -1394,7 +1398,7 @@ static void render_black_borders()
     if (viewport.Top > 0)
     {
         // letterbox borders
-        blankImage->SetStretch(game.GetGameRes().Width, viewport.Top, false);
+        blankImage->SetStretch(game.Def().GetGameRes().Width, viewport.Top, false);
         services.GfxDriver->DrawSprite(0, 0, blankImage);
         services.GfxDriver->DrawSprite(0, viewport.Bottom + 1, blankImage);
     }
@@ -1482,10 +1486,11 @@ void clear_letterbox_borders()
 {
     EngineServices &services = EngineServices::Current();
     Game &game = Game::Current();
+    const GameDef &game_def = game.Def();
     const Rect &viewport = game.Viewports.GetMainViewport();
-    services.GfxDriver->ClearRectangle(0, 0, game.GetGameRes().Width - 1, viewport.Top - 1, nullptr);
-    services.GfxDriver->ClearRectangle(0, viewport.Bottom + 1, game.GetGameRes().Width - 1,
-                                       game.GetGameRes().Height - 1, nullptr);
+    services.GfxDriver->ClearRectangle(0, 0, game_def.GetGameRes().Width - 1, viewport.Top - 1, nullptr);
+    services.GfxDriver->ClearRectangle(0, viewport.Bottom + 1, game_def.GetGameRes().Width - 1,
+                                       game_def.GetGameRes().Height - 1, nullptr);
 }
 
 void draw_sprite_support_alpha(Bitmap *ds, int xpos, int ypos, Bitmap *image, BlendMode blend_mode, int alpha)
@@ -1810,7 +1815,7 @@ void get_local_tint(Game &game, Room &room, int xpp, int ypp, bool use_region_ti
         }
 
         int tint_sat = (tint_level >> 24) & 0xFF;
-        if ((game.BytesPerPixel == 1) || (tint_sat == 0))
+        if ((game.Def().BytesPerPixel == 1) || (tint_sat == 0))
             tint_level = 0;
 
         if (tint_level)
@@ -1880,16 +1885,17 @@ static void apply_tint_or_light_ddb(ObjTexture &objtx, int light_level, int tint
 static void apply_tint_or_light(Game &game, ObjTexture &actsp, int light_level, int tint_amount, int tint_red,
                                 int tint_green, int tint_blue, int tint_light, int coldept, Bitmap *blit_from)
 {
+    const GameDef &game_def = game.Def();
     // In a 256-colour game, we cannot do tinting or lightening
     // (but we can do darkening, if light_level < 0)
-    if (game.BytesPerPixel == 1)
+    if (game_def.BytesPerPixel == 1)
     {
         if ((light_level > 0) || (tint_amount != 0))
             return;
     }
 
     // we can only do tint/light if the colour depths match
-    if (game.GetColorDepth() == actsp.Bmp->GetColorDepth())
+    if (game_def.GetColorDepth() == actsp.Bmp->GetColorDepth())
     {
         std::unique_ptr<Bitmap> oldwas;
         // if the caller supplied a source bitmap, ->Blit from it
@@ -1918,7 +1924,7 @@ static void apply_tint_or_light(Game &game, ObjTexture &actsp, int light_level, 
             int lit_amnt;
             active_spr->FillTransparent();
             // It's a light level, not a tint
-            if (game.BytesPerPixel == 1)
+            if (game_def.BytesPerPixel == 1)
             {
                 // 256-col
                 lit_amnt = 255 + light_level;
@@ -2398,12 +2404,13 @@ void prepare_characters_for_drawing()
 {
     EngineServices &services = EngineServices::Current();
     Game &game = Game::Current();
+    const GameDef &game_def = game.Def();
     Room &room = Room::Current();
     set_our_eip(33);
     const bool hw_accel = !drawstate.SoftwareRender;
 
     // draw characters
-    for (int char_id = 0; char_id < game.CharacterCount; ++char_id)
+    for (int char_id = 0; char_id < game_def.CharacterCount; ++char_id)
     {
         const Character &ch = game.Characters[char_id];
         if (!ch.is_displayed())
@@ -2626,7 +2633,7 @@ void draw_fps(const Rect &viewport)
     auto &fps_display = gl_DrawFPS.bmp;
     if (fps_display == nullptr || gl_DrawFPS.font != font)
     {
-        recycle_bitmap(fps_display, game.GetColorDepth(), viewport.GetWidth(),
+        recycle_bitmap(fps_display, game.Def().GetColorDepth(), viewport.GetWidth(),
                        (get_font_surface_height_outlined(font) + 5));
         gl_DrawFPS.font = font;
     }
@@ -2672,6 +2679,7 @@ void draw_fps(const Rect &viewport)
 // Draw GUI controls as separate sprites, each on their own texture
 static void construct_guictrl_tex(Game &game, GUIMain &gui)
 {
+    const GameDef &game_def = game.Def();
     if (GUI::ShouldSkipControls(&gui))
         return; // don't draw GUI controls
 
@@ -2687,7 +2695,7 @@ static void construct_guictrl_tex(Game &game, GUIMain &gui)
 
         auto &objbg = guiobjbg[draw_index];
         Rect obj_surf = obj->CalcGraphicRect(GUI::Options.ClipControls);
-        recycle_bitmap(objbg.Bmp, game.GetColorDepth(), obj_surf.GetWidth(), obj_surf.GetHeight(), true);
+        recycle_bitmap(objbg.Bmp, game_def.GetColorDepth(), obj_surf.GetWidth(), obj_surf.GetHeight(), true);
         obj->Draw(objbg.Bmp.get(), -obj_surf.Left, -obj_surf.Top);
 
         sync_object_texture(objbg);
@@ -2750,6 +2758,7 @@ void draw_gui_and_overlays()
 {
     EngineServices &services = EngineServices::Current();
     Game &game = Game::Current();
+    const GameDef &game_def = game.Def();
     if (pl_any_want_hook(kPluginEvt_PreGUIDraw))
         services.GfxDriver->AddRenderEvent(kPluginEvt_PreGUIDraw, 0); // render stage
 
@@ -2784,7 +2793,7 @@ void draw_gui_and_overlays()
         set_our_eip(37);
         // Prepare and update GUI textures
         {
-            for (int index = 0; index < game.GuiCount; ++index)
+            for (int index = 0; index < game_def.GuiCount; ++index)
             {
                 auto &gui = game.Guis[index];
                 if (!gui.IsDisplayed())
@@ -2812,7 +2821,7 @@ void draw_gui_and_overlays()
                     // that surface to the final bitmap
                     if (!is_3d_render && gui.GetRotation() != 0.f)
                     {
-                        guihelpbg[index].reset(recycle_bitmap(guihelpbg[index].release(), game.GetColorDepth(),
+                        guihelpbg[index].reset(recycle_bitmap(guihelpbg[index].release(), game_def.GetColorDepth(),
                                                               gui.GetWidth(), gui.GetHeight()));
                         draw_at = guihelpbg[index].get();
                     }
@@ -2860,7 +2869,7 @@ void draw_gui_and_overlays()
         }
         set_our_eip(38);
         // Draw the GUIs
-        for (int index = 0; index < game.GuiCount; ++index)
+        for (int index = 0; index < game_def.GuiCount; ++index)
         {
             GUIMain &gui = game.Guis[index];
             // Don't draw GUI if it's not on, or it's a "GUIs Turn Off When Disabled" state
@@ -2948,6 +2957,7 @@ static void construct_roomview_hw(const Viewport *viewport)
 {
     EngineServices &services = EngineServices::Current();
     Game &game = Game::Current();
+    const GameDef &game_def = game.Def();
     assert(viewport->GetID() < CameraDrawData.size());
     Camera *camera = viewport->GetCamera().get();
     const Rect &view_rc = viewport->GetRect();
@@ -2963,7 +2973,7 @@ static void construct_roomview_hw(const Viewport *viewport)
 
         auto &cam_data = CameraDrawData[viewport->GetID()];
         cam_data.CamRenderTarget = recycle_render_target(services, cam_data.CamRenderTarget, cam_rc.GetWidth(),
-                                                         cam_rc.GetHeight(), game.GetColorDepth());
+                                                         cam_rc.GetHeight(), game_def.GetColorDepth());
         services.GfxDriver->BeginSpriteBatch(cam_data.CamRenderTarget, Rect(), cam_trans, kFlip_None,
                                              RENDER_BATCH_ROOM_LAYER);
         services.GfxDriver->SetStageScreen(cam_rc.GetSize(), cam_rc.Left, cam_rc.Top);
@@ -2978,7 +2988,7 @@ static void construct_roomview_hw(const Viewport *viewport)
         if (viewport->GetShaderID() > 0 && camera->GetShaderID() > 0)
         {
             cam_data.ViewRenderTarget = recycle_render_target(services, cam_data.ViewRenderTarget, cam_rc.GetWidth(),
-                                                              cam_rc.GetHeight(), game.GetColorDepth());
+                                                              cam_rc.GetHeight(), game_def.GetColorDepth());
             services.GfxDriver->BeginSpriteBatch(cam_data.ViewRenderTarget, Rect(), SpriteTransform(), kFlip_None,
                                                  RENDER_BATCH_ROOM_LAYER);
             cam_data.CamRenderTarget->SetStretch(cam_rc.GetWidth(), cam_rc.GetHeight());
@@ -3320,7 +3330,7 @@ void construct_game_screen_overlay(bool draw_cursor)
 void construct_engine_overlay()
 {
     EngineServices &services = EngineServices::Current();
-    const Rect &viewport = RectWH(Game::Current().GetGameRes());
+    const Rect &viewport = RectWH(Game::Current().Def().GetGameRes());
     services.GfxDriver->BeginSpriteBatch(viewport, SpriteTransform(), kFlip_None, nullptr, RENDER_BATCH_ENGINE_OVERLAY);
 
     if (services.Debug.DisplayFps != kFPS_Hide)
@@ -3387,6 +3397,7 @@ void debug_draw_movelist(int charnum)
 void update_room_debug()
 {
     Game &game = Game::Current();
+    const GameDef &game_def = game.Def();
     Room &room = Room::Current();
     if (debugRoomMask == kRoomAreaWalkable)
     {
@@ -3398,9 +3409,9 @@ void update_room_debug()
         const int fin_width = room.Width;
         const int fin_height = room.Height;
         if (drawstate.SoftwareRender)
-            recycle_bitmap(debugMoveListObj.Bmp, game.GetColorDepth(), fin_width, fin_height, true);
+            recycle_bitmap(debugMoveListObj.Bmp, game_def.GetColorDepth(), fin_width, fin_height, true);
         else
-            recycle_bitmap(debugMoveListObj.Bmp, game.GetColorDepth(), room.WalkAreaMask->GetWidth(),
+            recycle_bitmap(debugMoveListObj.Bmp, game_def.GetColorDepth(), room.WalkAreaMask->GetWidth(),
                            room.WalkAreaMask->GetHeight(), true);
 
         if (game.Characters[debugMoveListChar].IsMoving())
@@ -3480,7 +3491,7 @@ void CyclePalette(int strt, int eend)
     // Any non-8-bit game must invalidate screen since the palette changes
     // the effect of the drawing operations
     // FIXME: this is likely wrong, it should also/instead test the graphic driver capabilities?
-    if (game.BytesPerPixel > 1)
+    if (game.Def().BytesPerPixel > 1)
         invalidate_screen();
 
     if ((strt < 0) || (strt > 255) || (eend < 0) || (eend > 255))
@@ -3502,7 +3513,7 @@ void CyclePalette(int strt, int eend)
 void SetPalRGB(int inndx, int rr, int gg, int bb)
 {
     Game &game = Game::Current();
-    if (game.BytesPerPixel > 1)
+    if (game.Def().BytesPerPixel > 1)
         invalidate_screen();
 
     PaletteOp::SetRGB(game.Palette, inndx, rr, gg, bb);
@@ -3512,7 +3523,7 @@ void SetPalRGB(int inndx, int rr, int gg, int bb)
 void UpdatePalette()
 {
     Game &game = Game::Current();
-    if (game.BytesPerPixel > 1)
+    if (game.Def().BytesPerPixel > 1)
         invalidate_screen();
 
     if (!game.Play.FastForward)

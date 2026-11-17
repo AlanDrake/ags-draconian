@@ -408,6 +408,7 @@ void save_room_data_segment()
 void unload_old_room()
 {
     Game &game = Game::Current();
+    const GameDef &game_def = game.Def();
     Room &room = Room::Current();
     // if switching games on restore, don't do this
     if (game.DisplayedRoom < 0)
@@ -462,7 +463,7 @@ void unload_old_room()
         room.MaskModified[i] = false;
 
     // ensure that any half-moves (eg. with scaled movement) are stopped
-    for (int i = 0; i < game.CharacterCount; i++)
+    for (int i = 0; i < game_def.CharacterCount; i++)
     {
         game.Characters[i].FullStepX = INVALID_X;
     }
@@ -702,6 +703,7 @@ void load_new_room(int room_id, Character *ch)
 {
     EngineServices &services = EngineServices::Current();
     Game &game = Game::Current();
+    const GameDef &game_def = game.Def();
     Room &room = Room::Current();
     debug_script_log("Loading room %d", room_id);
 
@@ -722,7 +724,7 @@ void load_new_room(int room_id, Character *ch)
                    err->FullMessage().GetCStr());
     }
 
-    if ((room.GameID != NO_GAME_ID_IN_ROOM_FILE) && (room.GameID != game.UniqueID))
+    if ((room.GameID != NO_GAME_ID_IN_ROOM_FILE) && (room.GameID != game_def.UniqueID))
     {
         quitprintf("!Unable to load '%s'. This room file is assigned to a different game.", room_filename.GetCStr());
     }
@@ -761,7 +763,7 @@ void load_new_room(int room_id, Character *ch)
     // for every other color the game-wide one is copied into each background frame's palette
     for (size_t pal_index = 0; pal_index < 256; pal_index++)
     {
-        if (game.PaletteUses[pal_index] == PAL_BACKGROUND)
+        if (game_def.PaletteUses[pal_index] == PAL_BACKGROUND)
             game.Palette[pal_index] = room.Palette[pal_index];
         else
         {
@@ -865,7 +867,7 @@ void load_new_room(int room_id, Character *ch)
 
         // if a following character is still waiting to come into the
         // previous room, force it out so that the timer resets
-        for (int i = 0; i < game.CharacterCount; i++)
+        for (int i = 0; i < game_def.CharacterCount; i++)
         {
             if ((game.Characters[i].Following >= 0) && (game.Characters[i].Room < 0))
             {
@@ -881,7 +883,7 @@ void load_new_room(int room_id, Character *ch)
         ch->PreviousRoom = ch->Room;
         ch->Room = room_id;
         // only stop moving if it's a new room, not a restore game
-        for (int i = 0; i < game.CharacterCount; i++)
+        for (int i = 0; i < game_def.CharacterCount; i++)
             Character_StopMoving(&game.Characters[i]);
     }
 
@@ -1067,12 +1069,12 @@ void load_new_room(int room_id, Character *ch)
         if (room.Options.ShowPlayerCharacter)
         {
             ch->set_enabled(true);
-            enable_cursor_mode(game.GetModeWalk());
+            enable_cursor_mode(game_def.GetModeWalk());
         }
         else
         {
             ch->set_enabled(false);
-            disable_cursor_mode(game.GetModeWalk());
+            disable_cursor_mode(game_def.GetModeWalk());
             // remember which character we turned off, in case they
             // use SetPlayerCharacter within this room (so we re-enable
             // the correct character when leaving the room)
@@ -1113,7 +1115,7 @@ void load_new_room(int room_id, Character *ch)
     // drop any input which they might have done while it was loading
     ags_clear_input_queue();
     // no fade in, so set the palette immediately in case of 256-col sprites
-    if (game.BytesPerPixel > 1)
+    if (game_def.BytesPerPixel > 1)
         setpal();
 
     set_our_eip(220);
@@ -1246,6 +1248,7 @@ void compile_room_script()
 void on_background_frame_change()
 {
     Game &game = Game::Current();
+    const GameDef &game_def = game.Def();
     Room &room = Room::Current();
     invalidate_screen();
     mark_current_background_dirty();
@@ -1255,7 +1258,7 @@ void on_background_frame_change()
 
     // hi-colour, update the palette. It won't have an immediate effect
     // but will be drawn properly when the screen fades in
-    if (game.BytesPerPixel > 1)
+    if (game_def.BytesPerPixel > 1)
         setpal();
 
     if (game.Events.InEntersScreen)
@@ -1267,7 +1270,7 @@ void on_background_frame_change()
 
     // 256-colours, tell it to update the palette (will actually be done as
     // close as possible to the screen update to prevent flicker problem)
-    if (game.BytesPerPixel == 1)
+    if (game_def.BytesPerPixel == 1)
         room.BgJustChanged = 1;
 }
 
@@ -1566,7 +1569,7 @@ void RoomProcessClick(int x, int y, int mood)
     x = vpt.first.X;
     y = vpt.first.Y;
 
-    if (game.HasCursorRole(mood, kCursorRole_Walk) && (game.Options[OPT_NOWALKMODE] == 0))
+    if (game.Def().HasCursorRole(mood, kCursorRole_Walk) && (game.Options[OPT_NOWALKMODE] == 0))
     {
         int hotspot_id = GetHotspotIDAtRoom(x, y, kHit_Interactable);
         if (hotspot_id < 1)
@@ -1620,7 +1623,7 @@ int IsInteractionAvailable(int x, int y, int mood)
     y = vpt.first.Y;
 
     // You can always walk places
-    if (game.HasCursorRole(mood, kCursorRole_Walk) && (game.Options[OPT_NOWALKMODE] == 0))
+    if (game.Def().HasCursorRole(mood, kCursorRole_Walk) && (game.Options[OPT_NOWALKMODE] == 0))
         return 1;
 
     game.Play.CheckInteractionOnly = 1;

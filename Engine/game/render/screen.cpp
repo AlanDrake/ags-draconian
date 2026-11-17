@@ -169,7 +169,7 @@ public:
         _view = game.Viewports.GetMainViewport();
         _sprTrans = game.Viewports.GetGlobalTransform(true);
 
-        std::unique_ptr<Bitmap> black_bmp(BitmapHelper::CreateBitmap(16, 16, game.GetColorDepth()));
+        std::unique_ptr<Bitmap> black_bmp(BitmapHelper::CreateBitmap(16, 16, game.Def().GetColorDepth()));
         black_bmp->Clear(_fadeColor);
         _fade = EngineServices::Current().GfxDriver->CreateDDBFromBitmap(black_bmp.get(), kTxFlags_Opaque);
         _fade->SetStretch(_view.GetWidth(), _view.GetHeight(), false);
@@ -231,12 +231,13 @@ public:
     {
         EngineServices &services = EngineServices::Current();
         Game &game = Game::Current();
+        const GameDef &game_def = game.Def();
         // Safety fix: set up some default speed
         if (_speed <= 0)
             _speed = 16;
 
         // TODO: scan these functions and double check the palette manipulations
-        if (game.BytesPerPixel > 1)
+        if (game_def.BytesPerPixel > 1)
         {
             set_palette(*_fadeInPal);
         }
@@ -244,7 +245,7 @@ public:
         game.Play.IsScreenFadedOut = false; // force all game elements to draw
         _alpha = 0;
 
-        if (game.BytesPerPixel > 1)
+        if (game_def.BytesPerPixel > 1)
         {
             _speed *= 4; // speed things up for high-color games
             _view = game.Viewports.GetMainViewport();
@@ -286,7 +287,7 @@ public:
     // End the state, release all resources
     void End() override
     {
-        if (Game::Current().BytesPerPixel > 1)
+        if (Game::Current().Def().BytesPerPixel > 1)
         {
             invalidate_screen();
         }
@@ -298,7 +299,7 @@ public:
     // Draw the state
     void Draw() override
     {
-        if (_game.BytesPerPixel > 1)
+        if (_game.Def().BytesPerPixel > 1)
         {
             _bmpBuff->Fill(_clearCol);
             set_trans_blender(0, 0, 0, _fadein ? _alpha : 255 - _alpha);
@@ -313,7 +314,7 @@ public:
     // Update the state during a game tick
     bool RunImpl() override
     {
-        if (_game.BytesPerPixel > 1)
+        if (_game.Def().BytesPerPixel > 1)
         {
             if (_alpha >= 255)
                 return false;
@@ -386,7 +387,7 @@ public:
         _view = game.Viewports.GetMainViewport();
         _sprTrans = game.Viewports.GetGlobalTransform(true);
 
-        std::unique_ptr<Bitmap> black_bmp(BitmapHelper::CreateBitmap(16, 16, game.GetColorDepth()));
+        std::unique_ptr<Bitmap> black_bmp(BitmapHelper::CreateBitmap(16, 16, game.Def().GetColorDepth()));
         black_bmp->Clear(_fadeColor);
         for (int i = 0; i < (_fadein ? 4 : 1); i++)
         {
@@ -549,7 +550,7 @@ public:
     void Begin() override
     {
         Game &game = Game::Current();
-        if (game.BytesPerPixel == 1)
+        if (game.Def().BytesPerPixel == 1)
             quit("!Cannot use crossfade screen transition in 256-colour games");
 
         game.Play.IsScreenFadedOut = false; // force all game elements to draw
@@ -626,7 +627,7 @@ public:
             BitmapData bm_data = game.SavedViewportBitmap->GetBitmapData();
             PaletteOp::Remap(bm_data, old_palette, game.Palette);
         }
-        if (game.BytesPerPixel == 1)
+        if (game.Def().BytesPerPixel == 1)
             set_palette_range(game.Palette, 0, 255, 0);
         _shot_ddb = get_frame_for_transition_in(false /* transparent */);
         _step = 0;
@@ -870,12 +871,12 @@ void current_fade_out_effect()
 
 int Screen_GetScreenWidth()
 {
-    return Game::Current().GetGameRes().Width;
+    return Game::Current().Def().GetGameRes().Width;
 }
 
 int Screen_GetScreenHeight()
 {
-    return Game::Current().GetGameRes().Height;
+    return Game::Current().Def().GetGameRes().Height;
 }
 
 bool Screen_GetAutoSizeViewport()

@@ -92,7 +92,7 @@ protected:
         game.Views[0].Loops[0].Initialize(1);
         game.Views[0].Loops[0].Frames[0].Sprite = kCharacterSprite;
         game.Characters.resize(1);
-        game.CharacterCount = 1;
+        game.DefForLoader().CharacterCount = 1;
         game.Characters[0].View = 0;
         game.Characters[0].Loop = 0;
         game.Characters[0].Room = kRoom;
@@ -106,7 +106,7 @@ protected:
         Room &room = Room::Current();
         game.DisplayedRoom = -10;
         game.Characters.clear();
-        game.CharacterCount = 0;
+        game.DefForLoader().CharacterCount = 0;
         game.Views.clear();
         game.Viewports.FreeViewportsAndCameras();
         game.Viewports.SetUIViewport(Rect());

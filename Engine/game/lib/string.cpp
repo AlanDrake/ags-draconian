@@ -42,9 +42,10 @@ using namespace AGS::Common;
 int ValidateFontNumber(const char *apiname, int font_num)
 {
     Game &game = Game::Current();
-    if (((font_num < 0) || (font_num >= game.FontCount)) && (font_num != FONT_NULL))
+    const GameDef &game_def = game.Def();
+    if (((font_num < 0) || (font_num >= game_def.FontCount)) && (font_num != FONT_NULL))
     {
-        debug_script_warn("%s: invalid font number %d, valid range is 0..%d.", apiname, font_num, game.FontCount);
+        debug_script_warn("%s: invalid font number %d, valid range is 0..%d.", apiname, font_num, game_def.FontCount);
         return FONT_NULL;
     }
     return font_num;

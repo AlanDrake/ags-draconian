@@ -456,6 +456,7 @@ bool run_service_key_controls(KeyInput &out_key)
 {
     EngineServices &services = EngineServices::Current();
     Game &game = Game::Current();
+    const GameDef &game_def = game.Def();
     Room &room = Room::Current();
     out_key = KeyInput(); // clear the output
     if (ags_inputevent_ready() != kInputKeyboard)
@@ -586,7 +587,7 @@ bool run_service_key_controls(KeyInput &out_key)
         DisplayMB(buffer.GetCStr());
         int listed_char_id = game.PlayerCharacterID;
         buffer = "CHARACTERS IN THIS ROOM:\n";
-        for (int char_id = 0; char_id < game.CharacterCount; char_id++)
+        for (int char_id = 0; char_id < game_def.CharacterCount; char_id++)
         {
             if (game.Characters[char_id].Room != game.DisplayedRoom)
                 continue;
@@ -1038,6 +1039,7 @@ static void GameUpdatePersistentAnimations()
 static void update_objects_scale()
 {
     Game &game = Game::Current();
+    const GameDef &game_def = game.Def();
     Room &room = Room::Current();
     if (game.DisplayedRoom < 0)
         return;
@@ -1047,7 +1049,7 @@ static void update_objects_scale()
         update_object_scale(game, room, obj_id);
     }
 
-    for (int char_id = 0; char_id < game.CharacterCount; ++char_id)
+    for (int char_id = 0; char_id < game_def.CharacterCount; ++char_id)
     {
         update_character_scale(game, room, char_id);
     }
@@ -1095,7 +1097,7 @@ static void update_cursor_view()
     // NOTE: we are still doing this even if the in-game mouse input is disabled,
     // or mouse cursor is hidden, the animation logic keeps running in the background.
     const auto &mcur = game.MouseCursors[game.Cursor.Look];
-    if (mcur.View >= 0 && mcur.View < game.ViewCount)
+    if (mcur.View >= 0 && mcur.View < game.Def().ViewCount)
     {
         // only on mousemove, and it's not moving
         if (((mcur.Flags & MCF_ANIMMOVE) != 0) && (services.Input.MouseX == game.Cursor.LastX) &&
@@ -1174,7 +1176,7 @@ static void UpdateGUIContext()
     // OTOH it may be inconvenient to have this in every place where this data changes.
     GUI::Context.GameTitle = game.Play.GameName;
 
-    if (game.PlayerChar->ActiveInventory < 0 || game.PlayerChar->ActiveInventory >= game.InventoryItemCount)
+    if (game.PlayerChar->ActiveInventory < 0 || game.PlayerChar->ActiveInventory >= game.Def().InventoryItemCount)
         GUI::Context.InventoryPic = -1;
     else
         GUI::Context.InventoryPic = game.InventoryItems[game.PlayerChar->ActiveInventory].Sprite;

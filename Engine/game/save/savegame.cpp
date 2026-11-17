@@ -766,7 +766,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
 
     set_cursor_mode(r_data.CursorMode);
     set_cursor_look(r_data.CursorID, true);
-    if (game.HasCursorRole(r_data.CursorID, kCursorRole_UseInv))
+    if (game.Def().HasCursorRole(r_data.CursorID, kCursorRole_UseInv))
         SetActiveInventory(game.PlayerChar->ActiveInventory);
     // precache current cursor
     services.Sprites.PrecacheSprite(game.MouseCursors[r_data.CursorID].Sprite);
@@ -871,7 +871,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
     // may override restored game settings
     ApplyAccessibilityOptions(game.Play, services.Config);
     // Applies behavior options, also hacks and backwards compatibility fixes
-    ApplyBehaviorOptions(game, game.Play, services.Config);
+    ApplyBehaviorOptions(game.Play, services.Config);
 
     game.Play.ClearIgnoreInput(); // don't keep ignored input after save restore
     update_polled_stuff();
@@ -993,6 +993,7 @@ void WriteDescription(Stream *out, const String &user_text, const Bitmap *user_i
 {
     EngineServices &services = EngineServices::Current();
     Game &game = Game::Current();
+    const GameDef &game_def = game.Def();
     // Data format version
     out->WriteInt32(kSvgVersion_Current);
     soff_t file_format_pos = out->GetPosition();
@@ -1004,12 +1005,12 @@ void WriteDescription(Stream *out, const String &user_text, const Bitmap *user_i
     // pass it as arguments instead
     StrUtil::WriteString(get_engine_name(), out);
     StrUtil::WriteString(services.Version.LongString, out);
-    StrUtil::WriteString(game.Guid, out);
-    StrUtil::WriteString(game.Name, out);
+    StrUtil::WriteString(game_def.Guid, out);
+    StrUtil::WriteString(game_def.Name, out);
     StrUtil::WriteString(services.ResPaths.GamePak.Name, out);
     out->WriteInt32(game.LoadedDataVersion);
-    out->WriteInt32(game.GetColorDepth());
-    out->WriteInt32(game.UniqueID);
+    out->WriteInt32(game_def.GetColorDepth());
+    out->WriteInt32(game_def.UniqueID);
     // Write the size of the environment info block into its placeholder
     soff_t env_info_end_pos = out->GetPosition();
     out->Seek(env_info_pos, kSeekBegin);

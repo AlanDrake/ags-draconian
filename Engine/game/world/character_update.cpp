@@ -82,7 +82,7 @@ static void FixupCharacterLoopAndFrame(Game &game, Character *ch, bool switch_fr
     if (view < 0 || view >= game.Views.size())
     {
         quitprintf("!Character %s is assigned a invalid view %d (valid range 1..%d)", ch->ScriptName.GetCStr(), view,
-                   game.ViewCount);
+                   game.Def().ViewCount);
     }
     if (!switch_from_bad_loop && (ch->Loop < 0 || ch->Loop >= game.Views[view].LoopCount))
     {

@@ -25,7 +25,6 @@
 #include "util/string.h"
 
 class Game;
-struct GameDef;
 struct GameState;
 struct EngineConfig;
 
@@ -66,9 +65,9 @@ void StartFromDefinitions(Game &game);
 void ApplyAccessibilityOptions(GameState &play, const EngineConfig &setup);
 // Applies configurable behavior options for this game, which are the runtime behavior switches
 // (the engine's defaults, plus the overrides from the config)
-void ApplyBehaviorOptions(GameDef &game, GameState &play, const EngineConfig &setup);
+void ApplyBehaviorOptions(GameState &play, const EngineConfig &setup);
 // Prints behavior options to the log
-void PrintBehaviorOptions(const GameDef &game, const GameState &play);
+void PrintBehaviorOptions(const GameState &play);
 
 // Registers any persistent script objects that are missing from the managed pool,
 // e.g. if restoring a save made before they were added to the game.

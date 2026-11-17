@@ -670,13 +670,14 @@ void GUI_SetScale(ScriptGUI *sgui, float scale_x, float scale_y)
 int GUI_GetProperty(ScriptGUI *sgui, const char *property)
 {
     Game &game = Game::Current();
-    return get_int_property(game.GuiProperties[sgui->id], game.Play.GuiProperties[sgui->id], property);
+    return get_int_property(game.Def().GuiProperties[sgui->id], game.Play.GuiProperties[sgui->id], property);
 }
 
 const char *GUI_GetTextProperty(ScriptGUI *sgui, const char *property)
 {
     Game &game = Game::Current();
-    return get_text_property_dynamic_string(game.GuiProperties[sgui->id], game.Play.GuiProperties[sgui->id], property);
+    return get_text_property_dynamic_string(game.Def().GuiProperties[sgui->id], game.Play.GuiProperties[sgui->id],
+                                            property);
 }
 
 bool GUI_SetProperty(ScriptGUI *sgui, const char *property, int value)
@@ -704,7 +705,7 @@ void remove_popup_interface(int gui_id)
         Mouse::SetPosition(Point(services.Input.MouseX, game.Guis[gui_id].GetPopupAtY() + 2));
     if ((!IsInterfaceEnabled()) && (game.Cursor.Look == game.Cursor.Mode))
         // Only change the mouse cursor if it hasn't been specifically changed first
-        set_cursor_look(game.GetModeWait());
+        set_cursor_look(game.Def().GetModeWait());
     else if (IsInterfaceEnabled())
         set_default_cursor_look();
 
@@ -884,6 +885,7 @@ static bool should_skip_adjust_for_gui(const GUIMain &gui)
 int adjust_x_for_guis(int x, int y, bool assume_blocking)
 {
     Game &game = Game::Current();
+    const GameDef &game_def = game.Def();
     if ((GUI::Options.DisabledStyle == kGuiDis_Off) && (!IsInterfaceEnabled() || assume_blocking))
         return x; // All GUI off (or will be when the message is displayed)
     // If it's covered by a GUI, move it right a bit
@@ -900,7 +902,7 @@ int adjust_x_for_guis(int x, int y, bool assume_blocking)
             continue;
         // try to deal with very wide GUIs
         const float gui_width_cap = 0.75f; // NOTE: originally was 280 pixels in 320-wide game
-        if (gui.GetWidth() >= game.GetGameRes().Width * gui_width_cap)
+        if (gui.GetWidth() >= game_def.GetGameRes().Width * gui_width_cap)
             continue;
         // fix coordinates if x is inside the gui
         x = gui.GetX() + gui.GetWidth() + 2;
@@ -911,6 +913,7 @@ int adjust_x_for_guis(int x, int y, bool assume_blocking)
 int adjust_y_for_guis(int y, bool assume_blocking)
 {
     Game &game = Game::Current();
+    const GameDef &game_def = game.Def();
     if ((GUI::Options.DisabledStyle == kGuiDis_Off) && (!IsInterfaceEnabled() || assume_blocking))
         return y; // All GUI off (or will be when the message is displayed)
     // If it's covered by a GUI, move it down a bit
@@ -924,7 +927,7 @@ int adjust_y_for_guis(int y, bool assume_blocking)
             continue;
         // ignore tall GUIs (a quarter of the game height or more): the text is not moved for them
         const float gui_height_cap = 0.25f; // NOTE: originally was 50 pixels in 200-height game
-        if (gui.GetHeight() >= game.GetGameRes().Height * gui_height_cap)
+        if (gui.GetHeight() >= game_def.GetGameRes().Height * gui_height_cap)
             continue;
         // fix coordinates if y is inside the gui
         y = gui.GetY() + gui.GetHeight() + 2;
@@ -943,6 +946,7 @@ int gui_on_mouse_move(const int mx, const int my)
 {
     EngineServices &services = EngineServices::Current();
     Game &game = Game::Current();
+    const GameDef &game_def = game.Def();
     int mouse_over_gui = -1;
     // If all GUIs are off, no GUI is under the mouse or pops up
     if ((game.Options[OPT_DISABLEOFF] == kGuiDis_Off) && (GUI::Context.DisabledState >= 0))
@@ -973,7 +977,7 @@ int gui_on_mouse_move(const int mx, const int my)
 
         if (services.Input.MouseY < game.Guis[gui_id].GetPopupAtY())
         {
-            set_cursor_look(game.GetModePointer());
+            set_cursor_look(game_def.GetModePointer());
             game.Guis[gui_id].SetConceal(false);
             game.IfacePopped = gui_id;
             PauseGame();
@@ -1014,6 +1018,7 @@ void gui_on_mouse_hold(const int wasongui, const int wasbutdown)
 void gui_on_mouse_up(const int wasongui, const int wasbutdown, const int mx, const int my)
 {
     Game &game = Game::Current();
+    const GameDef &game_def = game.Def();
     GUIMain &gui = game.Guis[wasongui];
     gui.OnMouseButtonUp();
 
@@ -1054,7 +1059,7 @@ void gui_on_mouse_up(const int wasongui, const int wasbutdown, const int mx, con
                 }
                 else if (wasbutdown == kMouseRight) // right-click is always Look
                 {
-                    RunInventoryInteraction(item_id, game.GetModeLook());
+                    RunInventoryInteraction(item_id, game_def.GetModeLook());
                 }
                 else if (is_current_cursor_mode(kCursorRole_Interact))
                 {
@@ -1172,7 +1177,8 @@ ScriptUserObject *GUI_GUIToScreenPoint(ScriptGUI *sgui, int gui_x, int gui_y, bo
 int FindGUIID(const char *GUIName)
 {
     Game &game = Game::Current();
-    for (int ii = 0; ii < game.GuiCount; ii++)
+    const GameDef &game_def = game.Def();
+    for (int ii = 0; ii < game_def.GuiCount; ii++)
     {
         if (game.Guis[ii].GetName().IsEmpty())
             continue;
@@ -1189,7 +1195,7 @@ void InterfaceOn(int ifn)
 {
     EngineServices &services = EngineServices::Current();
     Game &game = Game::Current();
-    if ((ifn < 0) | (ifn >= game.GuiCount))
+    if ((ifn < 0) | (ifn >= game.Def().GuiCount))
         quit("!GUIOn: invalid GUI specified");
 
     EndSkippingUntilCharStops();
@@ -1211,7 +1217,7 @@ void InterfaceOn(int ifn)
 void InterfaceOff(int ifn)
 {
     Game &game = Game::Current();
-    if ((ifn < 0) | (ifn >= game.GuiCount))
+    if ((ifn < 0) | (ifn >= game.Def().GuiCount))
         quit("!GUIOff: invalid GUI specified");
     if (!game.Guis[ifn].IsVisible())
     {
@@ -1240,7 +1246,7 @@ void DisableInterfaceEx(bool update_cursor)
     // because disabled status may had been toggled by internal game logic too
     if (update_cursor)
     {
-        set_cursor_look(game.GetModeWait());
+        set_cursor_look(game.Def().GetModeWait());
     }
 }
 
@@ -1282,7 +1288,7 @@ int IsInterfaceEnabled()
 void SetTextWindowGUI(int guinum)
 {
     Game &game = Game::Current();
-    if ((guinum < -1) | (guinum >= game.GuiCount))
+    if ((guinum < -1) | (guinum >= game.Def().GuiCount))
         quit("!SetTextWindowGUI: invalid GUI number");
 
     if (guinum < 0)

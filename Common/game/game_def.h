@@ -54,7 +54,9 @@ using AGS::Common::HGameFileError;
 using AGS::Common::HError;
 
 
-// TODO: split GameDef into struct used to hold loaded game data, and actual runtime object
+// What the game file says, as the loader reads it. The engine plays a game from it (Game, Engine/game/game_context.h,
+// which reads it through Game::Def() and keeps its own live copy of what changes during play) and does not write it
+// after load.
 struct GameDef
 {
     static const int LEGACY_GAME_NAME_LENGTH = 50;
@@ -164,11 +166,12 @@ public:
     // There could be other collection types, more optimal for this case. For example,
     // we could use a kind of hash map containing fixed-sized arrays, where size of
     // array is calculated based on key spread factor (sparse list?).
-    // The engine's Game keeps a live copy, which hides this one and which its sprite cache writes: in the engine this
-    // one holds the game file's flags only (the Editor's sprite cache writes this one).
+    // The engine's Game keeps a live copy of the same name, which its sprite cache writes: in the engine this one holds
+    // the game file's flags only (the Editor's sprite cache writes this one).
     std::vector<SpriteInfo> SpriteInfos;
 
-    // Tells if the given game sprite is valid (the engine's Game hides it with one that reads its live table)
+    // Tells if the given game sprite is valid, by this table (the engine's Game has one of the same name that reads its
+    // live table)
     inline bool IsSpriteValid(int sprnum) const
     {
         return (sprnum >= 0) && (static_cast<size_t>(sprnum) < SpriteInfos.size()) && SpriteInfos[sprnum].IsValid();
@@ -189,10 +192,9 @@ public:
     // Tells if the given cursor has the specific role
     bool HasCursorRole(int curs, CursorRole role) const { return MouseCursors[curs].Role == role; }
 
-    // The game's entities as loaded from the game file (ReadGameData reads into them). The engine's Game inherits
-    // them and keeps a live copy of each of these lists, which hides it (PLAN.md 5.1a). The game file reader does
-    // not link the GUIs to their controls (it reads each GUI's references to them only): the engine links its live
-    // copies.
+    // The game's entities as loaded from the game file (ReadGameData reads into them). The engine's Game keeps a live
+    // copy of each of these lists, with the same name (PLAN.md 5.1a). The game file reader does not link the GUIs to
+    // their controls (it reads each GUI's references to them only): the engine links its live copies.
     // The game's views
     std::vector<ViewDef> Views;
     // The dialog topics of the game, by dialog number

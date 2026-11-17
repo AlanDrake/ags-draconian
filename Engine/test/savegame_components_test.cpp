@@ -264,7 +264,7 @@ protected:
         Game &game = Game::Current();
         game.Dialogs.clear();
         game.Dialogs.resize(dialog_count);
-        game.DialogCount = dialog_count;
+        game.DefForLoader().DialogCount = dialog_count;
         for (int d = 0; d < dialog_count; ++d)
         {
             game.Dialogs[d].Options.resize(option_count);
@@ -283,7 +283,7 @@ protected:
         Game &game = Game::Current();
         game.MouseCursors.clear();
         game.MouseCursors.resize(count);
-        game.MouseCursorCount = count;
+        game.DefForLoader().MouseCursorCount = count;
     }
 
     // Resizes the game's audio types, all in their default state with a default volume of 0
@@ -303,7 +303,7 @@ protected:
         Game &game = Game::Current();
         game.Views.clear();
         game.Views.resize(view_count);
-        game.ViewCount = view_count;
+        game.DefForLoader().ViewCount = view_count;
         for (auto &view : game.Views)
         {
             view.Initialize(loop_count);
@@ -323,19 +323,21 @@ protected:
     static void SetCounts(int characters, int items)
     {
         Game &game = Game::Current();
+        GameDef &game_def = game.DefForLoader();
         game.Characters.clear();
         game.Characters.resize(characters);
-        game.CharacterCount = characters;
+        game_def.CharacterCount = characters;
         game.InventoryItems.clear();
         game.InventoryItems.resize(items);
-        game.InventoryItemCount = static_cast<uint16_t>(items);
+        game_def.InventoryItemCount = static_cast<uint16_t>(items);
     }
 
     // State that no new game has
     static void SetState()
     {
         Game &game = Game::Current();
-        for (int i = 0; i < game.CharacterCount; ++i)
+        const GameDef &game_def = game.Def();
+        for (int i = 0; i < game_def.CharacterCount; ++i)
         {
             auto &ch = game.Characters[i];
             ch.X = 100 + i;
@@ -361,7 +363,7 @@ protected:
             ch.Following = 0;
             ch.PropertyOverrides["Mood"] = "angry";
         }
-        for (int i = 0; i < game.InventoryItemCount; ++i)
+        for (int i = 0; i < game_def.InventoryItemCount; ++i)
         {
             game.InventoryItems[i].Name = String::FromFormat("Item %d", i);
             game.InventoryItems[i].Sprite = 20 + i;

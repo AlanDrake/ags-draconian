@@ -68,7 +68,7 @@ protected:
     {
         EngineServices &services = EngineServices::Current();
         init_sprite_cache();
-        Game::Current().BytesPerPixel = 4;
+        Game::Current().DefForLoader().BytesPerPixel = 4;
         _driver = std::make_unique<ALSW::SDLRendererGraphicsDriver>();
         services.GfxDriver = _driver.get();
         {
@@ -102,7 +102,7 @@ protected:
         services.Sprites.Reset();
         services.Sprites.SetMaxCacheSize(DEFAULTCACHESIZE_KB * 1024u);
         game.SpriteInfos.clear();
-        game.BytesPerPixel = 0;
+        game.DefForLoader().BytesPerPixel = 0;
         services.GfxDriver = nullptr;
         _driver.reset();
     }

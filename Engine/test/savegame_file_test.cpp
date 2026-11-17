@@ -92,6 +92,7 @@ protected:
     void SetUp() override
     {
         Game &game = Game::Current();
+        GameDef &game_def = game.DefForLoader();
         // the dynamic sprites component reads the sprite table through the sprite cache, as the engine has it
         init_sprite_cache();
         // a name of its own, also when ctest runs the tests in parallel processes
@@ -101,10 +102,10 @@ protected:
                                                     static_cast<unsigned long long>(
                                                         std::chrono::steady_clock::now().time_since_epoch().count())));
         ASSERT_TRUE(Directory::CreateDirectory(_dir)) << _dir.GetCStr();
-        snprintf(game.Guid, sizeof(game.Guid), "%s", "{01234567-89AB-CDEF-0123-456789ABCDEF}");
-        game.Name = "Savegame Test";
-        game.UniqueID = 0x5A5A1234;
-        game.BytesPerPixel = 4;
+        snprintf(game_def.Guid, sizeof(game_def.Guid), "%s", "{01234567-89AB-CDEF-0123-456789ABCDEF}");
+        game_def.Name = "Savegame Test";
+        game_def.UniqueID = 0x5A5A1234;
+        game_def.BytesPerPixel = 4;
         EngineServices::Current().ResPaths.GamePak.Name = "test.ags";
         game.LoadedDataVersion = kGameVersion_Current;
     }
@@ -112,13 +113,14 @@ protected:
     void TearDown() override
     {
         Game &game = Game::Current();
+        GameDef &game_def = game.DefForLoader();
         for (const String &file : _files)
             File::DeleteFile(file);
         Directory::DeleteDirectory(_dir);
-        game.Guid[0] = 0;
-        game.Name = {};
-        game.UniqueID = 0;
-        game.BytesPerPixel = 0;
+        game_def.Guid[0] = 0;
+        game_def.Name = {};
+        game_def.UniqueID = 0;
+        game_def.BytesPerPixel = 0;
         EngineServices::Current().ResPaths.GamePak.Name = {};
         game.LoadedDataVersion = kGameVersion_Undefined;
         game.Play.MessageTimeLeft = 0;

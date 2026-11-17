@@ -499,22 +499,24 @@ void reset_character_idling_time(Character *ch)
 
 bool IsValidCharacter(int char_id)
 {
-    return ((char_id >= 0) && (char_id < Game::Current().CharacterCount));
+    return ((char_id >= 0) && (char_id < Game::Current().Def().CharacterCount));
 }
 
 bool AssertCharacter(const char *apiname, int char_id)
 {
     Game &game = Game::Current();
-    if ((char_id >= 0) && (char_id < game.CharacterCount))
+    const GameDef &game_def = game.Def();
+    if ((char_id >= 0) && (char_id < game_def.CharacterCount))
         return true;
     debug_script_error("%s: invalid character id %d (range is 0..%d)", apiname, char_id,
-                       game.CharacterCount > 0 ? game.CharacterCount - 1 : 0);
+                       game_def.CharacterCount > 0 ? game_def.CharacterCount - 1 : 0);
     return false;
 }
 
 void Character_AddInventory(Character *ch, ScriptInvItem *item, int at_index)
 {
     Game &game = Game::Current();
+    const GameDef &game_def = game.Def();
     if (item == nullptr)
     {
         quit("!Character.AddInventory: invalid inventory number");
@@ -528,7 +530,7 @@ void Character_AddInventory(Character *ch, ScriptInvItem *item, int at_index)
     if (quant == INT32_MAX)
     {
         debug_script_warn("Character.AddInventory: char %s, item %s: cannot carry more than %d of one inventory item",
-                          ch->ScriptName.GetCStr(), game.InventoryItemScriptNames[inum].GetCStr(), INT32_MAX);
+                          ch->ScriptName.GetCStr(), game_def.InventoryItemScriptNames[inum].GetCStr(), INT32_MAX);
         return;
     }
 
@@ -555,7 +557,7 @@ void Character_AddInventory(Character *ch, ScriptInvItem *item, int at_index)
     {
         debug_script_warn(
             "Character.AddInventory: char %s, item %s: too many inventory items added, max %d can be stored at once",
-            ch->ScriptName.GetCStr(), game.InventoryItemScriptNames[inum].GetCStr(), MAX_CHAR_INVENTORY);
+            ch->ScriptName.GetCStr(), game_def.InventoryItemScriptNames[inum].GetCStr(), MAX_CHAR_INVENTORY);
         return;
     }
 
@@ -743,7 +745,7 @@ void Character_ChangeView(Character *ch, int view)
 {
     view--;
 
-    if ((view < 0) || (view >= Game::Current().ViewCount))
+    if ((view < 0) || (view >= Game::Current().Def().ViewCount))
     {
         quit("!ChangeCharacterView: invalid view number specified");
     }
@@ -1270,7 +1272,7 @@ void Character_LoseInventory(Character *ch, ScriptInvItem *item)
     if (!ch->has_any_of_item(item_id))
     {
         debug_script_warn("Character.LoseInventory: char %s, item %s: no such item in inventory",
-                          ch->ScriptName.GetCStr(), Game::Current().InventoryItemScriptNames[item_id].GetCStr());
+                          ch->ScriptName.GetCStr(), Game::Current().Def().InventoryItemScriptNames[item_id].GetCStr());
         return;
     }
 
@@ -1737,7 +1739,7 @@ void Character_RunInteraction(Character *ch, int mood)
     const int anyclick_evt = kCharacterEvent_AnyClick;
 
     // For USE verb: remember active inventory
-    if (game.HasCursorRole(mood, kCursorRole_UseInv))
+    if (game.Def().HasCursorRole(mood, kCursorRole_UseInv))
     {
         game.Play.UsedInventory = game.PlayerChar->ActiveInventory;
     }
@@ -1776,7 +1778,7 @@ int Character_GetProperty(Character *ch, const char *property)
     {
         return 0;
     }
-    return get_int_property(Game::Current().CharacterProperties[ch->ID], ch->PropertyOverrides, property);
+    return get_int_property(Game::Current().Def().CharacterProperties[ch->ID], ch->PropertyOverrides, property);
 }
 
 void Character_GetPropertyText(Character *ch, const char *property, char *buffer)
@@ -1785,7 +1787,7 @@ void Character_GetPropertyText(Character *ch, const char *property, char *buffer
     {
         return;
     }
-    get_text_property(Game::Current().CharacterProperties[ch->ID], ch->PropertyOverrides, property, buffer);
+    get_text_property(Game::Current().Def().CharacterProperties[ch->ID], ch->PropertyOverrides, property, buffer);
 }
 
 const char *Character_GetTextProperty(Character *ch, const char *property)
@@ -1794,7 +1796,7 @@ const char *Character_GetTextProperty(Character *ch, const char *property)
     {
         return nullptr;
     }
-    return get_text_property_dynamic_string(Game::Current().CharacterProperties[ch->ID], ch->PropertyOverrides,
+    return get_text_property_dynamic_string(Game::Current().Def().CharacterProperties[ch->ID], ch->PropertyOverrides,
                                             property);
 }
 
@@ -1944,7 +1946,7 @@ int Character_GetBlinkView(Character *ch)
 
 void Character_SetBlinkView(Character *ch, int view)
 {
-    if (((view < 2) || (view > Game::Current().ViewCount)) && (view != -1))
+    if (((view < 2) || (view > Game::Current().Def().ViewCount)) && (view != -1))
     {
         quit("!SetCharacterBlinkView: invalid view number");
     }
@@ -2122,7 +2124,8 @@ void Character_SetIInventoryQuantity(Character *ch, int index, int quant)
     if ((quant < 0) || (quant > INT16_MAX))
     {
         debug_script_warn("Character.InventoryQuantity: char %s, item %s: invalid quantity %d, valid range is 0..%d",
-                          ch->ScriptName.GetCStr(), game.InventoryItemScriptNames[index].GetCStr(), quant, INT16_MAX);
+                          ch->ScriptName.GetCStr(), game.Def().InventoryItemScriptNames[index].GetCStr(), quant,
+                          INT16_MAX);
         quant = Math::Clamp<int>(quant, 0, INT16_MAX);
     }
 
@@ -2455,7 +2458,7 @@ void Character_SetSpeechView(Character *ch, int view)
         return;
     }
 
-    if ((view < 1) || (view > Game::Current().ViewCount))
+    if ((view < 1) || (view > Game::Current().Def().ViewCount))
     {
         quit("!SetCharacterSpeechView: invalid view number");
     }
@@ -2486,7 +2489,7 @@ int Character_GetThinkView(Character *ch)
 
 void Character_SetThinkView(Character *ch, int view)
 {
-    if (((view < 2) || (view > Game::Current().ViewCount)) && (view != -1))
+    if (((view < 2) || (view > Game::Current().Def().ViewCount)) && (view != -1))
     {
         quit("!SetCharacterThinkView: invalid view number");
     }
@@ -3104,13 +3107,14 @@ void fix_player_sprite(Character *ch, const MoveList &cmls)
 // Check whether two characters have walked into each other
 int has_hit_another_character(Game &game, int source_char)
 {
+    const GameDef &game_def = game.Def();
     // if the character who's moving doesn't block, don't bother checking
     if (game.Characters[source_char].Flags & CHF_NOBLOCKING)
     {
         return -1;
     }
 
-    for (int ww = 0; ww < game.CharacterCount; ww++)
+    for (int ww = 0; ww < game_def.CharacterCount; ww++)
     {
         if (!game.Characters[ww].is_enabled())
             continue;
@@ -3455,11 +3459,12 @@ void setup_player_character(int char_id)
 void animate_character(Character *ch, int loop, int sppd, int rept, int direction, int sframe, int volume)
 {
     Game &game = Game::Current();
-    if ((ch->View < 0) || (ch->View > game.ViewCount) || (loop < 0) || (loop >= game.Views[ch->View].LoopCount))
+    const GameDef &game_def = game.Def();
+    if ((ch->View < 0) || (ch->View > game_def.ViewCount) || (loop < 0) || (loop >= game.Views[ch->View].LoopCount))
     {
         quitprintf("!AnimateCharacter: invalid view and/or loop\n"
                    "(trying to animate '%s' using view %d (range is 1..%d) and loop %d (view has %d loops)).",
-                   ch->ScriptName.GetCStr(), ch->View + 1, game.ViewCount, loop, game.Views[ch->View].LoopCount);
+                   ch->ScriptName.GetCStr(), ch->View + 1, game_def.ViewCount, loop, game.Views[ch->View].LoopCount);
     }
     // NOTE: there's always frame 0 allocated for safety
     sframe = std::max(0, std::min(sframe, game.Views[ch->View].Loops[loop].GetLastFrame()));
@@ -3590,10 +3595,11 @@ int GetCharIDAtRoom(int x, int y, int hit_options)
 {
     EngineServices &services = EngineServices::Current();
     Game &game = Game::Current();
+    const GameDef &game_def = game.Def();
     const bool only_clickable = (hit_options & kHit_Interactable) != 0;
 
     int cc, sppic, lowestyp = 0, lowestwas = -1;
-    for (cc = 0; cc < game.CharacterCount; cc++)
+    for (cc = 0; cc < game_def.CharacterCount; cc++)
     {
         if (game.Characters[cc].Room != game.DisplayedRoom)
             continue;
@@ -3708,13 +3714,14 @@ void DisplayThoughtCore(int char_id, const char *displbuf)
 void display_speech(const char *text, int char_id, int x, int y, int width, bool auto_position, bool is_thought)
 {
     Game &game = Game::Current();
+    const GameDef &game_def = game.Def();
     if (!AssertCharacter("DisplaySpeech", char_id))
     {
         return;
     }
 
     Character *speaking_char = &game.Characters[char_id];
-    if ((speaking_char->View < 0) || (speaking_char->View >= game.ViewCount))
+    if ((speaking_char->View < 0) || (speaking_char->View >= game_def.ViewCount))
     {
         quit("!DisplaySpeech: character has invalid view");
     }
@@ -3809,7 +3816,7 @@ void display_speech(const char *text, int char_id, int x, int y, int width, bool
         allow_shrink = kDisplayTextShrink_Left;
     }
 
-    if (use_view >= game.ViewCount)
+    if (use_view >= game_def.ViewCount)
     {
         quitprintf("!Character.Say: attempted to use view %d for animation, but it does not exist", use_view + 1);
     }
@@ -3937,7 +3944,7 @@ void display_speech(const char *text, int char_id, int x, int y, int width, bool
                         {
                             // The player's not here. Find another character in this room
                             // that it could be
-                            for (int ce = 0; ce < game.CharacterCount; ce++)
+                            for (int ce = 0; ce < game_def.CharacterCount; ce++)
                             {
                                 if ((game.Characters[ce].Room == speaking_char->Room) &&
                                     (game.Characters[ce].is_enabled()) && (ce != char_id))
@@ -4275,11 +4282,12 @@ void DisplaySpeech(const char *text, int char_id)
 int GetLipSyncFrame(const char *curtex, int *stroffs)
 {
     Game &game = Game::Current();
+    const GameDef &game_def = game.Def();
     size_t bestfit_len = 0;
     int bestfit = game.DefaultLipSyncFrame;
     for (int i = 0; i < MAXLIPSYNCFRAMES; i++)
     {
-        const char *tptr = game.lipSyncFrameLetters[i];
+        const char *tptr = game_def.lipSyncFrameLetters[i];
         while (tptr[0] != 0)
         {
             size_t lenthisbit = strlen(tptr);
@@ -4337,7 +4345,8 @@ int update_lip_sync(int talkview, int talkloop, int *talkframeptr)
 void restore_characters()
 {
     Game &game = Game::Current();
-    for (int i = 0; i < game.CharacterCount; ++i)
+    const GameDef &game_def = game.Def();
+    for (int i = 0; i < game_def.CharacterCount; ++i)
     {
         game.Characters[i].OffsetZoom = (game.Options[OPT_SCALECHAROFFSETS] != 0) ? game.Characters[i].Zoom : 100;
     }
@@ -4384,13 +4393,14 @@ PViewport FindNearestViewport(int char_id)
 void UpdateInventory()
 {
     Game &game = Game::Current();
-    for (int cc = 0; cc < game.CharacterCount; cc++)
+    const GameDef &game_def = game.Def();
+    for (int cc = 0; cc < game_def.CharacterCount; cc++)
     {
         auto &ch = game.Characters[cc];
         ch.Inventory.clear();
         // Iterate through all inv items, adding them once
         // (or multiple times if requested) to the list.
-        for (int item = 0; (item < game.InventoryItemCount) && (ch.Inventory.size() != MAX_CHAR_INVENTORY); ++item)
+        for (int item = 0; (item < game_def.InventoryItemCount) && (ch.Inventory.size() != MAX_CHAR_INVENTORY); ++item)
         {
             int item_count = ch.get_item_quantity(item);
             if ((game.Options[OPT_DUPLICATEINV] == 0) && (item_count > 1))

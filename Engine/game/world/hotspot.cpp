@@ -156,6 +156,7 @@ void Hotspot_SetName(ScriptHotspot *hss, const char *new_name)
 void RunHotspotInteraction(int hotspothere, int mood)
 {
     Game &game = Game::Current();
+    const GameDef &game_def = game.Def();
     Room &room = Room::Current();
     if (!AssertCursorValidForEvent("Hotspot.RunInteraction", mood))
         return;
@@ -165,16 +166,16 @@ void RunHotspotInteraction(int hotspothere, int mood)
     const int anyclick_evt = kHotspotEvent_AnyClick;
 
     // For USE verb: remember active inventory
-    if (game.HasCursorRole(mood, kCursorRole_UseInv))
+    if (game_def.HasCursorRole(mood, kCursorRole_UseInv))
     {
         game.Play.UsedInventory = game.PlayerChar->ActiveInventory;
     }
 
-    if ((game.Options[OPT_WALKONLOOK] == 0) && (game.HasCursorRole(mood, kCursorRole_Look)))
+    if ((game.Options[OPT_WALKONLOOK] == 0) && (game_def.HasCursorRole(mood, kCursorRole_Look)))
         ;
     else if (game.Play.AutoUseWalkToPoints == 0)
         ;
-    else if ((!game.HasCursorRole(mood, kCursorRole_Walk)) && (game.Play.CheckInteractionOnly == 0))
+    else if ((!game_def.HasCursorRole(mood, kCursorRole_Walk)) && (game.Play.CheckInteractionOnly == 0))
         MoveCharacterToHotspot(game.PlayerCharacterID, hotspothere);
 
     const auto obj_evt =

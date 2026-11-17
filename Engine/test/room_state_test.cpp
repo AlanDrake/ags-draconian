@@ -1173,21 +1173,22 @@ protected:
     {
         LoadedRoom::SetUp();
         Game &game = Game::Current();
-        _wasNumViews = game.ViewCount;
+        GameDef &game_def = game.DefForLoader();
+        _wasNumViews = game_def.ViewCount;
         _wasViews.swap(game.Views);
         game.Views.resize(1);
         game.Views[0].Initialize(1);
         game.Views[0].Loops[0].Initialize(2);
         game.Views[0].Loops[0].Frames[0].Delay = 3;
         game.Views[0].Loops[0].Frames[1].Delay = 5;
-        game.ViewCount = 1;
+        game_def.ViewCount = 1;
     }
 
     void TearDown() override
     {
         Game &game = Game::Current();
         game.Views.swap(_wasViews);
-        game.ViewCount = _wasNumViews;
+        game.DefForLoader().ViewCount = _wasNumViews;
         LoadedRoom::TearDown();
     }
 

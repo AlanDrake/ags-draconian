@@ -414,7 +414,7 @@ static HError video_single_run(const String &asset_name, int video_flags, int st
 
     VideoInitParams params;
     params.Flags = static_cast<VideoFlags>(video_flags);
-    params.TargetColorDepth = Game::Current().GetColorDepth();
+    params.TargetColorDepth = Game::Current().Def().GetColorDepth();
 
     video_core_init();
     auto slot = video_core_slot_init(std::move(video_stream), asset_name, Path::GetFileExtension(asset_name), params);
@@ -680,7 +680,7 @@ HError open_video(const char *name, int video_flags, int &video_id)
 
     VideoInitParams params;
     params.Flags = static_cast<VideoFlags>(video_flags);
-    params.TargetColorDepth = Game::Current().GetColorDepth();
+    params.TargetColorDepth = Game::Current().Def().GetColorDepth();
     int video_slot = video_core_slot_init(std::move(video_stream), name, Path::GetFileExtension(name), params);
     if (video_slot < 0) // FIXME: return errors from slot_init?
         return new Error(String::FromFormat("Failed to initialize video player for %s", name));
