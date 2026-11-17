@@ -34,6 +34,7 @@ target_sources(engine
     device/mousew32.h
     device/sys_events.cpp
     device/sys_events.h
+    game/anim_flow.h
     game/asset_helper.h
     game/audio/audio.cpp
     game/audio/audio.h

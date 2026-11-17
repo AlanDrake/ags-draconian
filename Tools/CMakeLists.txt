@@ -35,6 +35,7 @@ set(TOOLS_COMMON_SOURCES
         ../Common/game/room_file_blocks.cpp
         ../Common/game/room_def.cpp
         ../Common/game/room_def.h
+        ../Common/game/room_limits.h
         ../Common/game/scripteventtable.cpp
         ../Common/game/scripteventtable.h
         ../Common/game/words_dictionary.cpp

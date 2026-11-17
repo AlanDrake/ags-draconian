@@ -790,6 +790,9 @@
     <ClInclude Include="..\..\Common\game\room_def.h">
       <Filter>Header Files\game</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Common\game\room_limits.h">
+      <Filter>Header Files\game</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\Common\util\stdio_compat.h">
       <Filter>Header Files\util</Filter>
     </ClInclude>

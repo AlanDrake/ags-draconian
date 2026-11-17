@@ -15,7 +15,7 @@
 
 #include "game/dynobj/script_drawing_surface.h"
 #include "game/navigation/route_finder.h"
-#include "game/room_def.h"
+#include "game/room_limits.h"
 #include "script/runtimescriptvalue.h"
 
 class Character;

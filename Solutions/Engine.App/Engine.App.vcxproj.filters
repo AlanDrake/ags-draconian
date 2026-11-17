@@ -947,6 +947,9 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Engine\game\anim_flow.h">
+      <Filter>Header Files\game</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\Engine\game\asset_helper.h">
       <Filter>Header Files\game</Filter>
     </ClInclude>

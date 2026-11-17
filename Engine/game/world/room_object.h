@@ -19,7 +19,6 @@
 
 #include "game/common_defines.h"
 #include "game/room_def.h"
-#include "game/runtime_defines.h"
 #include "game/world/entity_state.h"
 #include "gfx/graphicspace.h"
 

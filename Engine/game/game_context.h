@@ -22,7 +22,7 @@
 #include "game/game_def.h"
 #include "game/game_state.h"
 #include "game/render/viewport.h"
-#include "game/room_def.h"
+#include "game/room_limits.h"
 #include "game/ui/cursor_graphic_state.h"
 #include "media/audio/audiodefines.h"
 

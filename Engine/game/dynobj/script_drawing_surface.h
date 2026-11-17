@@ -13,7 +13,7 @@
 //=============================================================================
 #pragma once
 
-#include "game/room_def.h"
+#include "game/room_limits.h"
 #include "gfx/bitmap.h"
 #include "gfx/gfx_def.h"
 #include "script/dynobj/cc_ags_dynamic_object.h"

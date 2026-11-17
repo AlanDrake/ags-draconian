@@ -69,6 +69,7 @@ target_sources(common
     game/room_version.h
     game/room_def.cpp
     game/room_def.h
+    game/room_limits.h
     game/roomstruct.cpp
     game/roomstruct.h
     game/audio_clip_def.cpp

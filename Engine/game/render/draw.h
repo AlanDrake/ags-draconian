@@ -16,7 +16,7 @@
 #include <memory>
 
 #include "game/common_defines.h"
-#include "game/room_def.h"
+#include "game/room_limits.h"
 #include "game/runtime_defines.h"
 #include "gfx/bitmap.h"
 #include "gfx/gfx_def.h"

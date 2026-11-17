@@ -654,6 +654,7 @@
 		526F27781D3B5CC300EF4E1F /* route_finder.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F24F51D3B5CC300EF4E1F /* route_finder.cpp */; };
 		526F27791D3B5CC300EF4E1F /* route_finder.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F24F61D3B5CC300EF4E1F /* route_finder.h */; };
 		526F277A1D3B5CC300EF4E1F /* runtime_defines.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F24F71D3B5CC300EF4E1F /* runtime_defines.h */; };
+		30CCFF0724D8DDC855160841 /* anim_flow.h in Headers */ = {isa = PBXBuildFile; fileRef = 3768591C82A93B9FAEB858CA /* anim_flow.h */; };
 		526F277B1D3B5CC300EF4E1F /* screen.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F24F81D3B5CC300EF4E1F /* screen.cpp */; };
 		526F277C1D3B5CC300EF4E1F /* screen.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F24F91D3B5CC300EF4E1F /* screen.h */; };
 		526F277D1D3B5CC300EF4E1F /* screen_overlay.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F24FA1D3B5CC300EF4E1F /* screen_overlay.cpp */; };
@@ -1580,6 +1581,7 @@
 		526F24F51D3B5CC300EF4E1F /* route_finder.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = route_finder.cpp; sourceTree = "<group>"; };
 		526F24F61D3B5CC300EF4E1F /* route_finder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = route_finder.h; sourceTree = "<group>"; };
 		526F24F71D3B5CC300EF4E1F /* runtime_defines.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = runtime_defines.h; sourceTree = "<group>"; };
+		3768591C82A93B9FAEB858CA /* anim_flow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = anim_flow.h; sourceTree = "<group>"; };
 		526F24F81D3B5CC300EF4E1F /* screen.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = screen.cpp; sourceTree = "<group>"; };
 		526F24F91D3B5CC300EF4E1F /* screen.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = screen.h; sourceTree = "<group>"; };
 		526F24FA1D3B5CC300EF4E1F /* screen_overlay.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = screen_overlay.cpp; sourceTree = "<group>"; };
@@ -3338,6 +3340,7 @@
 				526F24741D3B5CC200EF4E1F /* game.h */,
 				526F24771D3B5CC200EF4E1F /* game_state.cpp */,
 				526F24781D3B5CC200EF4E1F /* game_state.h */,
+				3768591C82A93B9FAEB858CA /* anim_flow.h */,
 				526F24F71D3B5CC300EF4E1F /* runtime_defines.h */,
 				526F250C1D3B5CC300EF4E1F /* system.cpp */,
 				526F250D1D3B5CC300EF4E1F /* system.h */,
@@ -3893,6 +3896,7 @@
 				52F5D8531DA120CB006F8F4B /* main_game_file.h in Headers */,
 				20E684F728F2189800B95C00 /* ogg.h in Headers */,
 				526F277A1D3B5CC300EF4E1F /* runtime_defines.h in Headers */,
+				30CCFF0724D8DDC855160841 /* anim_flow.h in Headers */,
 				20E6849A28F20CC700B95C00 /* quant.h in Headers */,
 				526F22DC1D3B5C4900EF4E1F /* bitmap.h in Headers */,
 				526F22DA1D3B5C4900EF4E1F /* allegrobitmap.h in Headers */,

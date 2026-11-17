@@ -628,6 +628,7 @@
     <ClInclude Include="..\..\Engine\device\input_state.h" />
     <ClInclude Include="..\..\Engine\device\mousew32.h" />
     <ClInclude Include="..\..\Engine\device\sys_events.h" />
+    <ClInclude Include="..\..\Engine\game\anim_flow.h" />
     <ClInclude Include="..\..\Engine\game\asset_helper.h" />
     <ClInclude Include="..\..\Engine\game\audio\audio.h" />
     <ClInclude Include="..\..\Engine\game\audio\audio_channel.h" />

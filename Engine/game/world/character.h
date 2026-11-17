@@ -19,7 +19,6 @@
 #include "game/dynobj/script_objects.h"
 #include "game/dynobj/script_overlay.h"
 #include "game/render/viewport.h"
-#include "game/runtime_defines.h"
 #include "game/world/entity_state.h"
 #include "gfx/gfx_def.h"
 #include "gfx/graphicspace.h"

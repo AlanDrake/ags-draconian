@@ -26,6 +26,7 @@
 
 #include <allegro.h>
 
+#include "game/room_limits.h"
 #include "game/scripteventtable.h"
 #include "gfx/bitmapdata.h"
 #include "gfx/gfx_def.h"
@@ -35,20 +36,6 @@
 // TODO: move the following enums under AGS::Common namespace
 // later, when more engine source is put in AGS namespace and
 // refactored.
-
-// Room's area mask type
-enum RoomAreaMask
-{
-    kRoomAreaNone = 0,
-    kRoomAreaHotspot,
-    kRoomAreaWalkBehind,
-    kRoomAreaWalkable,
-    kRoomAreaRegion,
-    kNumRoomAreaTypes,
-
-    kRoomArea_First = kRoomAreaHotspot,
-    kRoomArea_Last = kRoomAreaRegion
-};
 
 // Extended room boolean options
 enum RoomFlags
@@ -60,17 +47,6 @@ enum RoomFlags
 #define NOT_VECTOR_SCALED -10000
 // Flags tells that room is not linked to particular game ID
 #define NO_GAME_ID_IN_ROOM_FILE 16325
-
-// Max number of room background frames
-#define MAX_ROOM_BGFRAMES     256
-#define MAX_ROOM_BGFRAMES_321 5
-
-#define MAX_ROOM_HOTSPOTS     50  // v2.62: 20 -> 30; v2.8: -> 50
-#define MAX_ROOM_OBJECTS_v300 40  // for some legacy logic support
-#define MAX_ROOM_OBJECTS      256 // v3.6.0: 40 -> 256 (now limited by room format)
-#define MAX_ROOM_REGIONS      16
-#define MAX_WALK_AREAS        16
-#define MAX_WALK_BEHINDS      16
 
 #define MAX_MESSAGES 100
 // Max length of a serialized room message prior to 2.61

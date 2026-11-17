@@ -22,7 +22,7 @@
 
 #include <cstdint>
 
-#include "game/runtime_defines.h"
+#include "game/anim_flow.h"
 #include "util/geometry.h"
 
 namespace AGS

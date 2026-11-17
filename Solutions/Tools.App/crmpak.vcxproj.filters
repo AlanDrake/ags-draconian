@@ -233,6 +233,9 @@
     <ClInclude Include="..\..\Common\game\room_def.h">
       <Filter>Common</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Common\game\room_limits.h">
+      <Filter>Common</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\Common\game\room_file_blocks.h">
       <Filter>Common</Filter>
     </ClInclude>
